@@ -1,0 +1,33 @@
+.cell-grid  {
+	padding-left: 0px;
+	padding-right: 0px;
+	padding-top: 0px;
+	padding-bottom: 0px;
+}
+
+.cell-marker {
+	padding-left: 0px;
+	padding-right: 0px;
+	padding-top: 0px;
+	padding-bottom: 0px;
+	border-top-width: 0px;
+	border-bottom-width: 0px;
+	border-right-width: 0px; 
+	border-left-width: 0px;
+	min-width: 8px;
+}
+
+.cell-marker:disabled {
+	background-color: #2ca5e0;
+}
+
+.container-grid {
+	padding-left: 4px;
+	padding-right: 0px;
+	padding-top: 0px;
+	padding-bottom: 0px;
+}
+
+.add-button {
+	background-color: transparent;
+}
