@@ -5235,9 +5235,9 @@
 		<context id="wolfram">
 			<include>
 				<context ref="block-comment"/>
-				<context ref="keywords1"/>
+				<!--context ref="keywords1"/>
 				<context ref="keywords2"/>
-				<context ref="keywords3"/>
+				<context ref="keywords3"/-->
 				<context ref="string"/>
 				<context ref="argument"/>
 				<context ref="error"/>

@@ -15,14 +15,22 @@ namespace Seaborg {
 		public abstract uint get_level();
 		public abstract void remove_recursively();
 		public abstract void add_before(int pos, ICell[] list);
+		public abstract void remove_from(int pos, int number);
 
 	}
 
-	public class Notebook : Gtk.Grid, ICell {
+	public interface ICellContainer : ICell {
+		public abstract ICell[] Children {get; set;}
+		public abstract AddButton[] AddButtons {get; set;}
+
+	}
+
+	public class Notebook : Gtk.Grid, ICellContainer, ICell {
 		public Notebook(uint level) {
 			Level = level;
 			Children = new ICell[] {};
-
+			column_spacing = 4;
+			row_spacing = 4;
 
 			css = new CssProvider();
 			this.get_style_context().add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
@@ -44,27 +52,17 @@ namespace Seaborg {
 			get_style_context().add_class("container-grid");
 
 			// assemble the container
-			attach(Marker, 0, 0, 1, 2*Children.length + 1);
-			//attach(add_button);
-			for(int i=0; i<Children.length; i++) {
-				attach(Children[i], 1, i+1, 1, 1);
-				//attach(add_button);
-			}
-
+			attach(Marker, 0, 0, 1, 1);
+			AddButtons = new AddButton[1];
+			AddButtons[0] = new AddButton(this);
+			attach(AddButtons[0], 1, 0, 1, 1);
 		}
 
 		public void remove_recursively() {
-			for(int i=0; i<Children.length;){
+			for(int i=Children.length-1; i >= 0; i--) {
 				if(Children[i].marker_selected()) {
-					if(i != Children.length - 1) {
-						Children.move(i+1, i, Children.length-i);
-					}
-					Children.resize(Children.length-1);
-					remove_row(2*i+2);
-					remove_row(2*i+1);
+					remove_from(i,1);
 				}
-
-				i++;
 			}
 
 			foreach (var child in Children)
@@ -74,18 +72,22 @@ namespace Seaborg {
 		public void add_before(int pos, ICell[] list) {
 			
 			int old_len = Children.length;
+			if(pos < 0 ) pos += old_len + 1;
 			if(pos < 0 || pos > old_len)
 				return;
 			
 			Children.resize(old_len + list.length);
+			AddButtons.resize(AddButtons.length + list.length);
 			if(pos < old_len) {
 					Children.move(pos, pos + list.length, old_len - pos);
+					AddButtons.move(pos+1, pos+1 + list.length, old_len - pos);
 					for(int j=1; j<=2*list.length; j++) insert_row(pos);
 			}
 			for(int i=0; i<list.length; i++) {
 					Children[pos+i] = list[i];
+					AddButtons[pos+1+i] = new AddButton(this);
 					attach(Children[pos+i], 1, 2*(pos+i)+1, 1, 1);
-					//attach(add_button, 1,  2*(pos+i)+2, 1, 1);
+					attach(AddButtons[pos+1+i], 1,  2*(pos+i)+2, 1, 1);
 			}
 
 			//redraw marker if stuff was attached to the end
@@ -94,6 +96,24 @@ namespace Seaborg {
 				insert_column(0);
 				attach(Marker, 0, 0, 1, 2*(Children.length+1));
 			}
+
+		}
+
+		public void remove_from(int pos, int number) {
+			
+			if(pos < 0 || number <= 0)
+				return;
+
+			if(pos+number > Children.length)
+				number = Children.length - pos;
+
+			if(pos+number < Children.length) {
+				Children.move(pos+number, pos, Children.length - pos - number);
+				AddButtons.move(pos+number+1, pos+1, AddButtons.length - pos - number -1);
+			}
+			Children.resize(Children.length - number);
+			AddButtons.resize(AddButtons.length - number);
+			for(int i=1; i <= 2*number; i++) remove_row(pos+1);
 
 		}
 
@@ -136,19 +156,22 @@ namespace Seaborg {
 		}
 
 
+		public ICell[] Children {get; set;}
+		public AddButton[] AddButtons {get; set;}
 		private uint Level;
-		public ICell[] Children;
 		private Gtk.ToggleButton Marker;
 		private CssProvider css;
 	}
 
 	// container class with heading
-	public class CellContainer : Gtk.Grid, ICell {
+	public class CellContainer : Gtk.Grid, ICellContainer, ICell {
 		public CellContainer(CellContainer* parent, uint level) {
 			Parent = parent;
 			Level = level;
 			Children = new ICell[] {};
 			Title = new TextCell();
+			column_spacing = 4;
+			row_spacing = 4;
 
 			css = new CssProvider();
 			this.get_style_context().add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
@@ -168,64 +191,44 @@ namespace Seaborg {
 			style_context.add_class("cell-marker");
 			get_style_context().add_class("view");
 			get_style_context().add_class("container-grid");
+
+			// assemble the container
+			attach(Marker, 0, 0, 1, 2);
+			attach(Title, 1, 0, 1, 1);
+			AddButtons = new AddButton[1];
+			AddButtons[0] = new AddButton(this);
+			attach(AddButtons[0], 1, 1, 1);
 			
 			int this_position=0;
 			int next_position=0;
 			
-			// find out where the next container (e.g. section) of the same level is
+			// find out where the next container (e.g. section) of the same or higher level is
 			for(int i=0; i<(Parent->Children).length; i++) {
 				if(&((Parent->Children)[i]) == &this)
 					this_position = i;
-				if(Parent->Children[i].get_level() == Level && i > this_position)
+				if(Parent->Children[i].get_level() >= Level && i > this_position)
 					{
 						next_position = i;
 						break;
 					}
 			}
 
-			int copy_position=this_position+1;
-
+			
 			// move elements from parents into this container
-			if(next_position < (Parent->Children).length && copy_position  < next_position) {
-
-				while(copy_position < (Parent->Children).length)
-				{
-					Children.resize(Children.length+1);
-					Children[Children.length-1] = Parent->Children[copy_position];
-
-					parent->remove_row(this_position*2+5);
-					parent->remove_row(this_position*2+4);
-					copy_position++;
-				}
-				if(next_position !=Parent->Children.length-1) {
-					Parent->Children.move(next_position, this_position+1, next_position-Parent->Children.length);
-				}
-				Parent->Children.resize(Parent->Children.length-next_position+this_position+1);
-			}
-
-			// assemble the container
-			attach(Marker, 0, 0, 1, 2*Children.length + 2);
-			attach(Title, 1, 0, 1, 1);
-			//attach(add_button);
-			for(int i=0; i<Children.length; i++) {
-				attach(Children[i], 1, i+2, 1, 1);
-				//attach(add_button);
+			if(next_position < (Parent->Children).length && this_position+1 < next_position) {
+				
+				add_before(0, Parent->Children[this_position+1 : next_position]);
+				Parent->remove_from(this_position+1, next_position-1 - this_position);
+				
 			}
 
 		}
 
 		public void remove_recursively() {
-			for(int i=0; i<Children.length;){
+			for(int i=Children.length-1; i >= 0; i--) {
 				if(Children[i].marker_selected()) {
-					if(i != Children.length - 1) {
-						Children.move(i+1, i, Children.length-i);
-					}
-					Children.resize(Children.length-1);
-					remove_row(2*i+3);
-					remove_row(2*i+2);
+					remove_from(i,1);
 				}
-
-				i++;
 			}
 
 			foreach (var child in Children)
@@ -243,19 +246,19 @@ namespace Seaborg {
 				if(this_position >= Parent->Children.length)
 					return;
 				// 'this' is not firstborn
-				if(this_position != 0)
+				if(this_position > 0)
 				{
 					if(Parent->Children[this_position-1].get_level() >= Level){
 						
 						// hand children to this_position-1 as children 
-						Parent->Children[this_position-1].add_before(0, Children);
+						if((Parent->Children[this_position-1]) is CellContainer) {
+							((CellContainer)(Parent->Children[this_position-1])).add_before(-1, Children);
+						} else if((Parent->Children[this_position-1]) is Notebook) {
+							((Notebook)(Parent->Children[this_position-1])).add_before(-1, Children);
+						}
 						
 						// erase this_position
-						if(this_position < Parent->Children.length-1)
-							Parent->Children.move(this_position+1, this_position, Parent->Children.length - this_position - 1);
-						Parent->Children.resize(Parent->Children.length-1);
-						Parent->remove_row(2*this_position+3);
-						Parent->remove_row(2*this_position+2);
+						Parent->remove_from(this_position,1);
 						return;
 					} 
 				}
@@ -264,11 +267,7 @@ namespace Seaborg {
 				Parent->add_before(this_position, Children);
 
 				// erase this_position
-				if(this_position < Parent->Children.length-1)
-					Parent->Children.move(this_position+1, this_position, Parent->Children.length - this_position - 1);
-				Parent->Children.resize(Parent->Children.length-1);
-				Parent->remove_row(2*this_position+3);
-				Parent->remove_row(2*this_position+2);
+				Parent->remove_from(this_position,1);
 
 			}
 		}
@@ -276,18 +275,22 @@ namespace Seaborg {
 		public void add_before(int pos, ICell[] list) {
 			
 			int old_len = Children.length;
+			if(pos < 0 ) pos += old_len + 1;
 			if(pos < 0 || pos > old_len)
 				return;
 			
 			Children.resize(old_len + list.length);
+			AddButtons.resize(AddButtons.length + list.length);
 			if(pos < old_len) {
 					Children.move(pos, pos + list.length, old_len - pos);
+					AddButtons.move(pos+1, pos+1 + list.length, old_len - pos);
 					for(int j=1; j<=2*list.length; j++) insert_row(pos);
 			}
 			for(int i=0; i<list.length; i++) {
 					Children[pos+i] = list[i];
+					AddButtons[pos+1+i] = new AddButton(this);
 					attach(Children[pos+i], 1, 2*(pos+i)+2, 1, 1);
-					//attach(add_button, 1,  2*(pos+i)+3, 1, 1);
+					attach(AddButtons[pos+1+i], 1, 2*(pos+i)+3, 1, 1);
 			}
 
 			//redraw marker if stuff was attached to the end
@@ -296,6 +299,24 @@ namespace Seaborg {
 				insert_column(0);
 				attach(Marker, 0, 0, 1, 2*(Children.length+1));
 			}
+
+		}
+
+		public void remove_from(int pos, int number) {
+			
+			if(pos < 0 || number <= 0)
+				return;
+
+			if(pos+number > Children.length)
+				number = Children.length - pos;
+
+			if(pos+number < Children.length) {
+				Children.move(pos+number, pos, Children.length - pos - number);
+				AddButtons.move(pos+number+1, pos+1, AddButtons.length - pos - number -1);
+			}
+			Children.resize(Children.length - number);
+			AddButtons.resize(AddButtons.length - number);
+			for(int i=1; i <= 2*number; i++) remove_row(pos+2);
 
 		}
 
@@ -338,10 +359,11 @@ namespace Seaborg {
 		}
 
 
+		public ICell[] Children {get; set;}
+		public AddButton[] AddButtons {get; set;}
 		private uint Level;
 		private TextCell Title;
-		public ICell[] Children;
-		private CellContainer* Parent;
+		private ICellContainer* Parent;
 		private Gtk.ToggleButton Marker;
 		private CssProvider css;
 	}
@@ -351,6 +373,7 @@ namespace Seaborg {
 		
 		public EvaluationCell() {
 
+			column_spacing = 4;
 			css = new CssProvider();
 			this.get_style_context().add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 
@@ -492,6 +515,7 @@ namespace Seaborg {
 		public void remove_recursively() {}
 
 		public void add_before(int pos, ICell[] list) {}
+		public void remove_from(int pos, int number) {}
 
 		private bool expand_handler(EventButton event) {
 			if(event.type == Gdk.EventType.DOUBLE_BUTTON_PRESS ) {
@@ -516,6 +540,7 @@ namespace Seaborg {
 	// Generic Cell for text comments
 	public class TextCell : Gtk.Grid, ICell {
 		public TextCell() {
+			column_spacing = 4;
 			CssProvider css = new CssProvider();
 			get_style_context().add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 
@@ -581,15 +606,49 @@ namespace Seaborg {
 		public void schedule_evaluation() {}
 		public void unschedule_evaluation() {}
 		public void add_before(int pos, ICell[] list) {}
+		public void remove_from(int pos, int number) {}
 
 		private Gtk.TextView Cell;
 		private Gtk.ToggleButton Marker;
 	}
 
 	public class AddButton : Gtk.Button {
-		public AddButton() {
+		public AddButton(ICellContainer* par) {
+
 			label = "+";
+			Parent = par;
+
+			CssProvider css = new CssProvider();
+			get_style_context().add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
+
+			try {
+
+				css.load_from_path("res/seaborg.css");
+
+			} catch(GLib.Error error) {
+
+				css = CssProvider.get_default();
+			}
+
+			get_style_context().add_class("add-button");
+
+			
+			clicked.connect(() => {
+
+				int pos;
+				for(pos=0; pos < Parent->AddButtons.length; pos++) {
+					if(&this == (Parent->AddButtons[pos]))
+						break;
+				}
+
+				Parent->add_before(pos, {new EvaluationCell()});
+
+			});
+
 		}
+
+		private ICellContainer* Parent;
+
 	}
 
 }
