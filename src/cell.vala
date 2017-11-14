@@ -25,7 +25,7 @@ namespace Seaborg {
 
 	}
 
-	public class Notebook : Gtk.Grid, ICellContainer, ICell {
+	public class Notebook : Gtk.Grid, ICell, ICellContainer {
 		public Notebook(uint level) {
 			Level = level;
 			Children = new GLib.Array<ICell>();
@@ -59,14 +59,14 @@ namespace Seaborg {
 		}
 
 		public void remove_recursively() {
-			uint i;
-			for(i=Children.length-1; i >= 0; i--) {
-				if(Children.index(i).marker_selected()) {
-					remove_from((int)i,1);
+			int i;
+			for(i=(int)(Children.length)-1; i >= 0; i--) {
+				if(Children.data[i].marker_selected()) {
+					remove_from(i,1);
 				}
 			}
 
-			for(i=0; i<Children.length; i++) Children.index(i).remove_recursively();
+			for(i=0; i<(int)(Children.length); i++) Children.index(i).remove_recursively();
 		}
 
 		public void add_before(int pos, ICell[] list) {
@@ -82,7 +82,7 @@ namespace Seaborg {
 			}
 
 			Children.insert_vals(pos, list, list.length);
-			AddButtons.set_size(AddButtons.length + list.length + 1);
+			AddButtons.set_size(AddButtons.data.length + list.length + 1);
 			for(int i=0; i<list.length; i++) {
 					AddButtons.data[pos+1+i] = new AddButton(this);
 					attach(Children.data[pos+i], 1, 2*(pos+i)+1, 1, 1);
@@ -103,12 +103,12 @@ namespace Seaborg {
 			if(pos < 0 || number <= 0)
 				return;
 
-			if(pos+number > Children.length)
+			if(pos+number > Children.data.length)
 				number = (int)(Children.length) - pos;
 
 			Children.remove_range(pos, number);
 			AddButtons.remove_range(pos+1, number);
-			for(int i=1; i <= 2*number; i++) remove_row(pos+1);
+			for(int i=1; i <= 2*number; i++) remove_row(2*pos+1);
 
 		}
 
@@ -165,7 +165,7 @@ namespace Seaborg {
 	}
 
 	// container class with heading
-	public class CellContainer : Gtk.Grid, ICellContainer, ICell {
+	public class CellContainer : Gtk.Grid, ICell, ICellContainer {
 		public CellContainer(CellContainer* parent, uint level) {
 			Parent = parent;
 			Level = level;
@@ -204,7 +204,7 @@ namespace Seaborg {
 			int next_position=0;
 			
 			// find out where the next container (e.g. section) of the same or higher level is
-			for(int i=0; i<(Parent->Children).length; i++) {
+			for(int i=0; i<(Parent->Children).data.length; i++) {
 				if(&((Parent->Children).data[i]) == &this)
 					this_position = i;
 				if(Parent->Children.data[i].get_level() >= Level && i > this_position)
@@ -216,7 +216,7 @@ namespace Seaborg {
 
 			
 			// move elements from parents into this container
-			if(next_position < (Parent->Children).length && this_position+1 < next_position) {
+			if(next_position < (Parent->Children).data.length && this_position+1 < next_position) {
 				
 				add_before(0, Parent->Children.data[this_position+1 : next_position]);
 				Parent->remove_from(this_position+1, next_position-1 - this_position);
@@ -233,18 +233,18 @@ namespace Seaborg {
 				}
 			}
 
-			for(i=0; i<Children.length; i++) Children.index(i).remove_recursively();
+			for(i=0; i<Children.data.length; i++) Children.index(i).remove_recursively();
 
 			if(Title.marker_selected()) {
 				// hand children back to parent
 				int this_position;
-				for(this_position=0; this_position<(Parent->Children).length; this_position++) {
+				for(this_position=0; this_position<(Parent->Children).data.length; this_position++) {
 					if(&(Parent->Children.data[this_position]) == &this)
 						break;
 				}
 
 				// 'this' is a wayward child
-				if(this_position >= Parent->Children.length)
+				if(this_position >= Parent->Children.data.length)
 					return;
 				// 'this' is not firstborn
 				if(this_position > 0)
@@ -281,7 +281,7 @@ namespace Seaborg {
 				return;
 			
 			Children.insert_vals(pos, list, list.length);
-			AddButtons.set_size(AddButtons.length + list.length);
+			AddButtons.set_size(AddButtons.data.length + list.length);
 			
 			if(pos < old_len) {
 					for(int j=1; j<=2*list.length; j++) insert_row(pos);
@@ -311,7 +311,7 @@ namespace Seaborg {
 
 			Children.remove_range(pos, number);
 			AddButtons.remove_range(pos+1, number);
-			for(int i=1; i <= 2*number; i++) remove_row(pos+2);
+			for(int i=1; i <= 2*number; i++) remove_row(2*pos+2);
 
 		}
 
@@ -637,7 +637,7 @@ namespace Seaborg {
 			clicked.connect(() => {
 
 				int pos;
-				for(pos=0; pos < Parent->AddButtons.length; pos++) {
+				for(pos=0; pos < Parent->AddButtons.data.length; pos++) {
 					if(&this == &(Parent->AddButtons.data[pos]))
 						break;
 				}
