@@ -41,6 +41,7 @@ namespace Seaborg {
 
 	public class Notebook : Gtk.Grid, ICell, ICellContainer {
 		public Notebook(uint level) {
+			IdGenerator.reset();
 			this.name = IdGenerator.get_id();
 			Level = level;
 			Children = new GLib.Array<ICell>();
@@ -82,6 +83,7 @@ namespace Seaborg {
 			}
 
 			for(i=0; i<(int)(Children.length); i++) Children.index(i).remove_recursively();
+			show_all();
 		}
 
 		public void add_before(int pos, ICell[] list) {
@@ -91,15 +93,13 @@ namespace Seaborg {
 			if(pos < 0 || pos > old_len)
 				return;
 			
-			
 			if(pos < old_len) {
-				for(int j=1; j<=2*list.length; j++) insert_row(pos);
+				for(int j=1; j<=2*list.length; j++) insert_row(2*pos+1);
 			}
 
 			Children.insert_vals(pos, list, list.length);
-			AddButtons.set_size(AddButtons.data.length + list.length + 1);
+			for(int k=0; k < list.length; k++) AddButtons.insert_val(pos+1, new AddButton(this));
 			for(int i=0; i<list.length; i++) {
-					AddButtons.data[pos+1+i] = new AddButton(this);
 					attach(Children.data[pos+i], 1, 2*(pos+i)+1, 1, 1);
 					attach(AddButtons.data[pos+1+i], 1,  2*(pos+i)+2, 1, 1);
 			}
@@ -108,8 +108,9 @@ namespace Seaborg {
 			if(pos == old_len) {
 				remove_column(0);
 				insert_column(0);
-				attach(Marker, 0, 0, 1, 2*((int)(Children.length)+1));
+				attach(Marker, 0, 0, 1, 2*((int)(Children.length))+1);
 			}
+			this.show_all();
 
 		}
 
@@ -239,6 +240,8 @@ namespace Seaborg {
 				
 			}
 
+			show_all();
+
 		}
 
 		public void remove_recursively() {
@@ -276,6 +279,7 @@ namespace Seaborg {
 						
 						// erase this_position
 						Parent->remove_from(this_position, 1);
+						show_all();
 						return;
 					} 
 				}
@@ -285,6 +289,8 @@ namespace Seaborg {
 
 				// erase this_position
 				Parent->remove_from(this_position, 1);
+				show_all();
+
 
 			}
 		}
@@ -300,10 +306,10 @@ namespace Seaborg {
 			AddButtons.set_size(AddButtons.data.length + list.length);
 			
 			if(pos < old_len) {
-					for(int j=1; j<=2*list.length; j++) insert_row(pos);
+					for(int j=1; j<=2*list.length; j++) insert_row(2*pos+2);;
 			}
+			for(int k=0; k<list.length; k++) AddButtons.insert_val(pos+1, new AddButton(this));
 			for(int i=0; i<(int)(list.length); i++) {
-					AddButtons.data[pos+1+i] = new AddButton(this);
 					attach(Children.data[pos+i], 1, 2*(pos+i)+2, 1, 1);
 					attach(AddButtons.data[pos+1+i], 1, 2*(pos+i)+3, 1, 1);
 			}
@@ -314,6 +320,8 @@ namespace Seaborg {
 				insert_column(0);
 				attach(Marker, 0, 0, 1, 2*((int)(Children.length)+1));
 			}
+
+			show_all();
 
 		}
 
@@ -460,11 +468,10 @@ namespace Seaborg {
 			style_context.add_class("cell-marker");
 			this.get_style_context().add_class("cell-grid");
 
-			attach(Marker, 0, 0, 1, 2);
+			attach(Marker, 0, 0, 1, 1);
 			attach(InputCell, 1, 0, 1, 1);
-			attach(OutputCell, 1, 1, 1, 1);
 
-			isExpanded = true;
+			isExpanded = false;
 
 			Marker.button_press_event.connect(expand_handler);
 
@@ -658,10 +665,9 @@ namespace Seaborg {
 					if(this.name == Parent->AddButtons.data[pos].name)
 						break;
 				}
-
-				stderr.printf(pos.to_string() + "/" + Parent->AddButtons.data.length.to_string());
-
-				Parent->add_before(pos, {new EvaluationCell()});
+				
+				if(pos < Parent->AddButtons.data.length)
+					Parent->add_before(pos, {new EvaluationCell()});
 
 			});
 
