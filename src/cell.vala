@@ -25,8 +25,23 @@ namespace Seaborg {
 
 	}
 
+	
+	public class IdGenerator : GLib.Object {
+
+		public static void reset() {
+			id = 0;
+		}
+
+		public static string get_id() {
+			return (id++).to_string();
+		}
+
+  		private static int id;
+	}
+
 	public class Notebook : Gtk.Grid, ICell, ICellContainer {
 		public Notebook(uint level) {
+			this.name = IdGenerator.get_id();
 			Level = level;
 			Children = new GLib.Array<ICell>();
 			AddButtons = new GLib.Array<AddButton>();
@@ -167,6 +182,7 @@ namespace Seaborg {
 	// container class with heading
 	public class CellContainer : Gtk.Grid, ICell, ICellContainer {
 		public CellContainer(CellContainer* parent, uint level) {
+			this.name = IdGenerator.get_id();
 			Parent = parent;
 			Level = level;
 			Children = new GLib.Array<ICell>();
@@ -205,7 +221,7 @@ namespace Seaborg {
 			
 			// find out where the next container (e.g. section) of the same or higher level is
 			for(int i=0; i<(Parent->Children).data.length; i++) {
-				if(&((Parent->Children).data[i]) == &this)
+				if((Parent->Children).data[i].name == this.name)
 					this_position = i;
 				if(Parent->Children.data[i].get_level() >= Level && i > this_position)
 					{
@@ -239,7 +255,7 @@ namespace Seaborg {
 				// hand children back to parent
 				int this_position;
 				for(this_position=0; this_position<(Parent->Children).data.length; this_position++) {
-					if(&(Parent->Children.data[this_position]) == &this)
+					if(Parent->Children.data[this_position].name == this.name)
 						break;
 				}
 
@@ -373,7 +389,7 @@ namespace Seaborg {
 	public class EvaluationCell : Gtk.Grid, ICell {
 		
 		public EvaluationCell() {
-
+			this.name = IdGenerator.get_id();
 			column_spacing = 4;
 			css = new CssProvider();
 			this.get_style_context().add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
@@ -541,6 +557,7 @@ namespace Seaborg {
 	// Generic Cell for text comments
 	public class TextCell : Gtk.Grid, ICell {
 		public TextCell() {
+			this.name = IdGenerator.get_id();
 			column_spacing = 4;
 			CssProvider css = new CssProvider();
 			get_style_context().add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
@@ -615,7 +632,7 @@ namespace Seaborg {
 
 	public class AddButton : Gtk.Button {
 		public AddButton(ICellContainer* par) {
-
+			this.name = IdGenerator.get_id();
 			label = "+";
 			Parent = par;
 
@@ -638,9 +655,11 @@ namespace Seaborg {
 
 				int pos;
 				for(pos=0; pos < Parent->AddButtons.data.length; pos++) {
-					if(&this == &(Parent->AddButtons.data[pos]))
+					if(this.name == Parent->AddButtons.data[pos].name)
 						break;
 				}
+
+				stderr.printf(pos.to_string() + "/" + Parent->AddButtons.data.length.to_string());
 
 				Parent->add_before(pos, {new EvaluationCell()});
 
