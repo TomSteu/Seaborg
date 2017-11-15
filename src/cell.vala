@@ -16,6 +16,7 @@ namespace Seaborg {
 		public abstract void remove_recursively();
 		public abstract void add_before(int pos, ICell[] list);
 		public abstract void remove_from(int pos, int number);
+		public abstract void focus();
 		public abstract ICellContainer* Parent {get; set;}
 
 	}
@@ -175,6 +176,11 @@ namespace Seaborg {
 
 		public uint get_level() {
 			return Level;
+		}
+
+		public void focus() {
+			if(Children.length > 0)
+				Children.data[0].focus();
 		}
 
 
@@ -392,6 +398,10 @@ namespace Seaborg {
 			return Level;
 		}
 
+		public void focus() {
+			Title.focus();
+		}
+
 
 		public GLib.Array<ICell> Children {get; set;}
 		public GLib.Array<AddButton> AddButtons {get; set;}
@@ -540,6 +550,10 @@ namespace Seaborg {
 			return Marker.sensitive ? Marker.active : false;
 		}
 
+		public void focus() {
+			InputCell.grab_focus();
+		}
+
 		public void remove_recursively() {}
 
 		public void add_before(int pos, ICell[] list) {}
@@ -623,6 +637,10 @@ namespace Seaborg {
 
 		public uint get_level() {
 			return 0;
+		}
+
+		public void focus() {
+			Cell.grab_focus();
 		}
 
 		public void remove_recursively() {}
