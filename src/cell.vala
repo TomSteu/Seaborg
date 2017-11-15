@@ -16,6 +16,7 @@ namespace Seaborg {
 		public abstract void remove_recursively();
 		public abstract void add_before(int pos, ICell[] list);
 		public abstract void remove_from(int pos, int number);
+		public abstract ICellContainer* Parent {get; set;}
 
 	}
 
@@ -43,6 +44,7 @@ namespace Seaborg {
 		public Notebook(uint level) {
 			IdGenerator.reset();
 			this.name = IdGenerator.get_id();
+			Parent = null;
 			Level = level;
 			Children = new GLib.Array<ICell>();
 			AddButtons = new GLib.Array<AddButton>();
@@ -92,7 +94,8 @@ namespace Seaborg {
 			if(pos < 0 ) pos += old_len + 1;
 			if(pos < 0 || pos > old_len)
 				return;
-			
+
+			for(int l=0; l<list.length; l++) list[l].Parent = this;
 			if(pos < old_len) {
 				for(int j=1; j<=2*list.length; j++) insert_row(2*pos+1);
 			}
@@ -129,12 +132,14 @@ namespace Seaborg {
 		}
 
 		public void toggle_all() {
+			Marker.active = true;
 			for(int i=0; i<Children.data.length; i++) {
 				Children.data[i].toggle_all();
 			}
 		}
 
 		public void untoggle_all() {
+			Marker.active = false;
 			for(int i=0; i<Children.data.length; i++) {
 				Children.data[i].untoggle_all();
 			}
@@ -175,6 +180,7 @@ namespace Seaborg {
 
 		public GLib.Array<ICell> Children {get; set;}
 		public GLib.Array<AddButton> AddButtons {get; set;}
+		public ICellContainer* Parent {get; set;}
 		private uint Level;
 		private Gtk.ToggleButton Marker;
 		private CssProvider css;
@@ -188,7 +194,7 @@ namespace Seaborg {
 			Level = level;
 			Children = new GLib.Array<ICell>();
 			AddButtons = new GLib.Array<AddButton>();
-			Title = new TextCell();
+			Title = new TextCell(this);
 			column_spacing = 4;
 			row_spacing = 4;
 
@@ -254,7 +260,7 @@ namespace Seaborg {
 
 			for(i=0; i<Children.data.length; i++) Children.index(i).remove_recursively();
 
-			if(Title.marker_selected()) {
+			if(Title.marker_selected() && Parent != null) {
 				// hand children back to parent
 				int this_position;
 				for(this_position=0; this_position<(Parent->Children).data.length; this_position++) {
@@ -271,10 +277,8 @@ namespace Seaborg {
 					if(Parent->Children.data[this_position-1].get_level() >= Level){
 						
 						// hand children to this_position-1 as children 
-						if((Parent->Children.data[this_position-1]) is CellContainer) {
-							((CellContainer)(Parent->Children.data[this_position-1])).add_before(-1, Children.data);
-						} else if((Parent->Children.data[this_position-1]) is Notebook) {
-							((Notebook)(Parent->Children.data[this_position-1])).add_before(-1, Children.data);
+						if((Parent->Children.data[this_position-1]) is ICellContainer) {
+							((ICellContainer)(Parent->Children.data[this_position-1])).add_before(-1, Children.data);
 						}
 						
 						// erase this_position
@@ -302,6 +306,7 @@ namespace Seaborg {
 			if(pos < 0 || pos > old_len)
 				return;
 			
+			for(int l=0; l<list.length; l++) list[l].Parent = this;
 			Children.insert_vals(pos, list, list.length);
 			AddButtons.set_size(AddButtons.data.length + list.length);
 			
@@ -340,12 +345,16 @@ namespace Seaborg {
 		}
 
 		public void toggle_all() {
+			Marker.active = true;
+			Title.toggle_all();
 			for(int i=0; i<Children.data.length; i++) {
 				Children.data[i].toggle_all();
 			}
 		}
 
 		public void untoggle_all() {
+			Marker.active = false;
+			Title.untoggle_all();
 			for(int i=0; i<Children.data.length; i++) {
 				Children.data[i].untoggle_all();
 			}
@@ -386,9 +395,9 @@ namespace Seaborg {
 
 		public GLib.Array<ICell> Children {get; set;}
 		public GLib.Array<AddButton> AddButtons {get; set;}
+		private ICellContainer* Parent {get; set;}
 		private uint Level;
 		private TextCell Title;
-		private ICellContainer* Parent;
 		private Gtk.ToggleButton Marker;
 		private CssProvider css;
 	}
@@ -396,8 +405,9 @@ namespace Seaborg {
 	// Generic cell for evaluation
 	public class EvaluationCell : Gtk.Grid, ICell {
 		
-		public EvaluationCell() {
+		public EvaluationCell(ICellContainer* par) {
 			this.name = IdGenerator.get_id();
+			Parent = par;
 			column_spacing = 4;
 			css = new CssProvider();
 			this.get_style_context().add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
@@ -477,12 +487,6 @@ namespace Seaborg {
 
 		}
 
-		public static EvaluationCell from_TextCell(TextCell* textCell) {
-			EvaluationCell res = new EvaluationCell();
-			res.InputBuffer.text = textCell->get_text();
-			return res;
-		}
-
 		public string get_input() {
 			return InputBuffer.text;
 		}
@@ -551,6 +555,7 @@ namespace Seaborg {
 			return false;
 		}
 
+		public ICellContainer* Parent {get; set;}
 		private Gtk.SourceView InputCell;
 		private Gtk.SourceBuffer InputBuffer;
 		private Gtk.SourceView OutputCell;
@@ -563,8 +568,9 @@ namespace Seaborg {
 
 	// Generic Cell for text comments
 	public class TextCell : Gtk.Grid, ICell {
-		public TextCell() {
+		public TextCell(ICellContainer* par) {
 			this.name = IdGenerator.get_id();
+			Parent = par;
 			column_spacing = 4;
 			CssProvider css = new CssProvider();
 			get_style_context().add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
@@ -598,12 +604,6 @@ namespace Seaborg {
 
 		}
 
-		public static TextCell from_EvaluationCell(EvaluationCell* eval) {
-			TextCell res = new TextCell();
-			res.Cell.buffer.text = eval->get_input();
-			return res;
-		}
-
 		public string get_text() {
 			return Cell.buffer.text;
 		}
@@ -632,6 +632,7 @@ namespace Seaborg {
 		public void unschedule_evaluation() {}
 		public void add_before(int pos, ICell[] list) {}
 		public void remove_from(int pos, int number) {}
+		public ICellContainer* Parent {get; set;}
 
 		private Gtk.TextView Cell;
 		private Gtk.ToggleButton Marker;
@@ -667,7 +668,7 @@ namespace Seaborg {
 				}
 				
 				if(pos < Parent->AddButtons.data.length)
-					Parent->add_before(pos, {new EvaluationCell()});
+					Parent->add_before(pos, {new EvaluationCell(Parent)});
 
 			});
 

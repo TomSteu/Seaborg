@@ -14,7 +14,7 @@ namespace Seaborg {
 			SeaborgStack = new Gtk.Stack();
 			ContentScroll = new Gtk.ScrolledWindow(null,null);
 			SeaborgNotebook = new Seaborg.Notebook(1);
-			SeaborgNotebook.add_before(0, {new EvaluationCell(), new EvaluationCell(), new EvaluationCell()});
+			SeaborgNotebook.add_before(0, {new EvaluationCell(SeaborgNotebook), new EvaluationCell(SeaborgNotebook), new EvaluationCell(SeaborgNotebook)});
 			
 			
 
