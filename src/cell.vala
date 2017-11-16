@@ -18,6 +18,7 @@ namespace Seaborg {
 		public abstract void remove_from(int pos, int number);
 		public abstract void focus();
 		public abstract ICellContainer* Parent {get; set;}
+		public abstract string text {get; set;} 
 
 	}
 
@@ -183,6 +184,10 @@ namespace Seaborg {
 				Children.data[0].focus();
 		}
 
+		public string text {
+			get {return "";}
+			set {}
+		}
 
 		public GLib.Array<ICell> Children {get; set;}
 		public GLib.Array<AddButton> AddButtons {get; set;}
@@ -252,6 +257,8 @@ namespace Seaborg {
 				
 			}
 
+			Marker.button_press_event.connect(press_handler);
+			isExpanded = true;
 			show_all();
 
 		}
@@ -280,7 +287,7 @@ namespace Seaborg {
 				// 'this' is not firstborn
 				if(this_position > 0)
 				{
-					if(Parent->Children.data[this_position-1].get_level() >= Level){
+					if(Parent->Children.data[this_position-1].get_level() >= Level) {
 						
 						// hand children to this_position-1 as children 
 						if((Parent->Children.data[this_position-1]) is ICellContainer) {
@@ -300,7 +307,6 @@ namespace Seaborg {
 				// erase this_position
 				Parent->remove_from(this_position, 1);
 				show_all();
-
 
 			}
 		}
@@ -367,14 +373,26 @@ namespace Seaborg {
 		}
 
 		public void expand_all() {
-			for(int i=0; i<Children.data.length; i++) {
-				Children.data[i].expand_all();
+			if(!isExpanded) {
+				remove_column(0);
+				attach(AddButtons.data[0], 0, 1, 1, 1);
+				for(int i=0; i<Children.data.length; i++) {
+					attach(Children.data[i], 0, 1+i, 1, 1);
+					attach(AddButtons.data[1+i], 0, 2+i, 1, 1);
+				}
+				insert_column(0);
+				attach(Marker, 0, 0, 1, 2*(Children.data.length+1));
+				isExpanded = true;
+				show_all();
 			}
 		}
 
 		public void collapse_all() {
-			for(int i=0; i<Children.data.length; i++) {
-				Children.data[i].collapse_all();
+			if(isExpanded) {
+				for(int i=0; i<=2*Children.data.length; i++)
+					remove_row(1);
+				isExpanded = false;
+				show_all();
 			}
 		}
 
@@ -394,12 +412,33 @@ namespace Seaborg {
 			return Marker.sensitive ? Marker.active : false;
 		}
 
+		public string text {
+			get {return Title.text; }
+			set {Title.text = value;}
+		}
+
 		public uint get_level() {
 			return Level;
 		}
 
 		public void focus() {
 			Title.focus();
+		}
+
+		private bool press_handler(EventButton event) {
+			if(event.type == Gdk.EventType.DOUBLE_BUTTON_PRESS && event.button == 1) {
+				if(isExpanded) 
+					collapse_all(); 
+				else  
+					expand_all();
+			}
+
+			if(event.type == Gdk.EventType.BUTTON_PRESS && event.button == 3) {
+				ContextMenu context = new ContextMenu(this);
+				context.popup_at_widget(Marker, Gdk.Gravity.CENTER, Gdk.Gravity.WEST, null);
+			}
+
+			return false;
 		}
 
 
@@ -410,6 +449,7 @@ namespace Seaborg {
 		private TextCell Title;
 		private Gtk.ToggleButton Marker;
 		private CssProvider css;
+		private bool isExpanded;
 	}
 
 	// Generic cell for evaluation
@@ -493,7 +533,8 @@ namespace Seaborg {
 
 			isExpanded = false;
 
-			Marker.button_press_event.connect(expand_handler);
+			Marker.button_press_event.connect(press_handler);
+			show_all();
 
 		}
 
@@ -518,6 +559,7 @@ namespace Seaborg {
 			if(isExpanded) {
 				remove_row(1);
 				isExpanded = false;
+				show_all();
 			}
 		}
 
@@ -532,6 +574,7 @@ namespace Seaborg {
 				attach(OutputCell, 1, 1, 1, 1);
 				attach(Marker, 0, 0, 1, 2);
 				isExpanded = true;
+				show_all();
 			}
 		}
 
@@ -559,15 +602,26 @@ namespace Seaborg {
 		public void add_before(int pos, ICell[] list) {}
 		public void remove_from(int pos, int number) {}
 
-		private bool expand_handler(EventButton event) {
-			if(event.type == Gdk.EventType.DOUBLE_BUTTON_PRESS ) {
+		private bool press_handler(EventButton event) {
+			if(event.type == Gdk.EventType.DOUBLE_BUTTON_PRESS && event.button == 1) {
 				if(isExpanded) 
 					collapse_all(); 
 				else  
 					expand_all();
 			}
+
+			if(event.type == Gdk.EventType.BUTTON_PRESS && event.button == 3) {
+				ContextMenu context = new ContextMenu(this);
+				context.popup_at_widget(Marker, Gdk.Gravity.CENTER, Gdk.Gravity.WEST, null);
+			}
+
 			return false;
 		}
+
+		public string text {
+			get {return InputBuffer.text.to_string(); }
+			set {InputBuffer.text = value; }
+		} 
 
 		public ICellContainer* Parent {get; set;}
 		private Gtk.SourceView InputCell;
@@ -616,6 +670,9 @@ namespace Seaborg {
 			attach(Marker, 0, 0, 1, 1);
 			attach(Cell, 1, 0, 1, 1);
 
+			Marker.button_press_event.connect(press_handler);
+			show_all();
+
 		}
 
 		public string get_text() {
@@ -643,6 +700,11 @@ namespace Seaborg {
 			Cell.grab_focus();
 		}
 
+		public string text {
+			get { return Cell.buffer.text.to_string(); }
+			set {Cell.buffer.text = value; }
+		} 
+
 		public void remove_recursively() {}
 		public void collapse_all() {}
 		public void expand_all() {}
@@ -652,10 +714,21 @@ namespace Seaborg {
 		public void remove_from(int pos, int number) {}
 		public ICellContainer* Parent {get; set;}
 
+		private bool press_handler(EventButton event) {
+
+			if(event.type == Gdk.EventType.BUTTON_PRESS && event.button == 3) {
+				ContextMenu context = new ContextMenu(this);
+				context.popup_at_widget(Marker, Gdk.Gravity.CENTER, Gdk.Gravity.WEST, null);
+			}
+
+			return false;
+		}
+
 		private Gtk.TextView Cell;
 		private Gtk.ToggleButton Marker;
 	}
 
+	// add buttons to insert cell
 	public class AddButton : Gtk.Button {
 		public AddButton(ICellContainer* par) {
 			this.name = IdGenerator.get_id();
@@ -694,6 +767,146 @@ namespace Seaborg {
 
 		private ICellContainer* Parent;
 
+	}
+
+	// popup context menu
+	public class ContextMenu : Gtk.Menu {
+		public ContextMenu(ICell* cell) {
+			Cell = cell;
+			
+			EvaluationCellType = new RadioMenuItem.with_label(null, "Evaluation Cell");
+			TextCellType = new RadioMenuItem.with_label_from_widget(EvaluationCellType, "Text Cell");
+			CellContainerType = new RadioMenuItem.with_label_from_widget(EvaluationCellType, " Cell");
+
+			if(Cell is EvaluationCell)
+				EvaluationCellType.active = true;
+			if(Cell is TextCell)
+				TextCellType.active = true;
+			if(Cell is CellContainer)
+				CellContainerType.active = true;
+
+			EvaluationCellType.toggled.connect(() => {
+				if(Cell is EvaluationCell)
+					return;
+				if(Cell is TextCell) {
+					int pos;
+					for(pos=0; pos < Cell->Parent->Children.data.length; pos++) {
+						if(Cell->Parent->Children.data[pos].name == Cell->name)
+							break;
+					}
+
+					if(pos >= Cell->Parent->Children.data.length)
+						return;
+
+					var newCell = new EvaluationCell(Cell->Parent);
+					newCell.text = Cell->text;
+					Cell->Parent->add_before(pos, { newCell });
+					newCell.focus();
+					Cell->Parent->remove_from(pos+1, 1);
+
+					return;
+				}
+				if(Cell is CellContainer) {
+					int pos;
+					for(pos=0; pos < Cell->Parent->Children.data.length; pos++) {
+						if(Cell->Parent->Children.data[pos].name == Cell->name)
+							break;
+					}
+
+					if(pos >= Cell->Parent->Children.data.length)
+						return;
+
+					//add new cell
+					var newCell = new EvaluationCell(Cell->Parent);
+					newCell.text = Cell->text;
+					Cell->Parent->add_before(pos, { newCell });
+					newCell.focus();
+						
+					if(pos > 0) {
+						if(Cell->Parent->Children.data[pos-1].get_level() >= Cell->get_level()) {
+							// hand children to older silbling
+							Cell->Parent->Children.data[pos-1].add_before(-1, ((ICellContainer*)Cell)->Children.data);
+							Cell->Parent->remove_from(pos+1, 1);
+							return;
+						}
+					}
+						
+					// give children to parent
+					Cell->Parent->add_before(pos+1, ((ICellContainer*)Cell)->Children.data);
+					Cell->Parent->remove_from(pos+1+((ICellContainer*)Cell)->Children.data.length, 1);
+					return;
+				}
+			});
+
+			TextCellType.toggled.connect(() => {
+				if(Cell is TextCell)
+					return;
+				if(Cell is EvaluationCell) {
+					int pos;
+					for(pos=0; pos < Cell->Parent->Children.data.length; pos++) {
+						if(Cell->Parent->Children.data[pos].name == Cell->name)
+							break;
+					}
+
+					if(pos >= Cell->Parent->Children.data.length)
+						return;
+
+					var newCell = new TextCell(Cell->Parent);
+					newCell.text = Cell->text;
+					Cell->Parent->add_before(pos, { newCell });
+					newCell.focus();
+					Cell->Parent->remove_from(pos+1, 1);
+
+					return;
+				}
+				if(Cell is CellContainer) {
+					int pos;
+					for(pos=0; pos < Cell->Parent->Children.data.length; pos++) {
+						if(Cell->Parent->Children.data[pos].name == Cell->name)
+							break;
+					}
+
+					if(pos >= Cell->Parent->Children.data.length)
+						return;
+
+					//add new cell
+					var newCell = new TextCell(Cell->Parent);
+					newCell.text = Cell->text;
+					Cell->Parent->add_before(pos, { newCell });
+					newCell.focus();
+						
+					if(pos > 0) {
+						if(Cell->Parent->Children.data[pos-1].get_level() >= Cell->get_level()) {
+							// hand children to older silbling
+							Cell->Parent->Children.data[pos-1].add_before(-1, ((ICellContainer*)Cell)->Children.data);
+							Cell->Parent->remove_from(pos+1, 1);
+							return;
+						}
+					}
+						
+					// give children to parent
+					Cell->Parent->add_before(pos+1, ((ICellContainer*)Cell)->Children.data);
+					Cell->Parent->remove_from(pos+1+((ICellContainer*)Cell)->Children.data.length, 1);
+					return;
+				}
+			});
+
+			CellContainerType.toggled.connect(() => {
+
+			});
+
+			this.add(EvaluationCellType);
+			this.add(TextCellType);
+			this.add(CellContainerType);
+
+			show_all();
+
+		}
+
+		private ICell* Cell;
+		private RadioMenuItem EvaluationCellType;
+		private RadioMenuItem TextCellType;
+		private RadioMenuItem CellContainerType;
 	}
 
 }
