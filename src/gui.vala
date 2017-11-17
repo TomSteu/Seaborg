@@ -13,7 +13,7 @@ namespace Seaborg {
 			SeaborgStackSwitcher = new Gtk.StackSwitcher();
 			SeaborgStack = new Gtk.Stack();
 			ContentScroll = new Gtk.ScrolledWindow(null,null);
-			SeaborgNotebook = new Seaborg.Notebook(1);
+			SeaborgNotebook = new Seaborg.Notebook();
 			SeaborgNotebook.add_before(0, {new EvaluationCell(SeaborgNotebook), new EvaluationCell(SeaborgNotebook), new EvaluationCell(SeaborgNotebook)});
 			SeaborgNotebook.Children.data[0].focus();
 			
