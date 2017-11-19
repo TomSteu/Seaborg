@@ -26,7 +26,6 @@ namespace Seaborg {
 	public interface ICellContainer : ICell {
 		public abstract GLib.Array<ICell> Children {get; set;}
 		public abstract GLib.Array<AddButton> AddButtons {get; set;}
-
 	}
 
 	
@@ -140,6 +139,16 @@ namespace Seaborg {
 
 			if(pos+number > Children.data.length)
 				number = (int)(Children.length) - pos;
+
+			// manually remove objects since they are exluded from reference counting
+			ICell* ref_child;
+			AddButton* ref_button;
+			for(int j=0; j<number; j++) {
+				ref_child =  Children.data[pos+j];
+				ref_button = AddButtons.data[pos+1+j];
+				delete ref_child;
+				delete ref_button;
+			}
 
 			Children.remove_range(pos, number);
 			AddButtons.remove_range(pos+1, number);
@@ -335,6 +344,7 @@ namespace Seaborg {
 			Children.insert_vals(pos, list, list.length);
 			AddButtons.set_size(AddButtons.data.length + list.length);
 			
+			if(! isExpanded) return;
 			if(pos < old_len) {
 					for(int j=1; j<=2*list.length; j++) insert_row(2*pos+2);;
 			}
@@ -362,6 +372,16 @@ namespace Seaborg {
 
 			if(pos+number > (int)(Children.length))
 				number = (int)(Children.length) - pos;
+
+			// manually remove objects since they are excluded from reference counting
+			ICell* ref_child;
+			AddButton* ref_button;
+			for(int j=0; j<number; j++) {
+				ref_child =  Children.data[pos+j];
+				ref_button = AddButtons.data[pos+1+j];
+				delete ref_child;
+				delete ref_button;
+			}
 
 			Children.remove_range(pos, number);
 			AddButtons.remove_range(pos+1, number);
@@ -402,6 +422,7 @@ namespace Seaborg {
 
 		public void collapse_all() {
 			if(isExpanded) {
+
 				for(int i=0; i<=2*Children.data.length; i++)
 					remove_row(1);
 				isExpanded = false;
@@ -768,8 +789,10 @@ namespace Seaborg {
 						break;
 				}
 				
-				if(pos < Parent->AddButtons.data.length)
-					Parent->add_before(pos, {new EvaluationCell(Parent)});
+				if(pos < Parent->AddButtons.data.length) {
+					EvaluationCell* newCell = new EvaluationCell(Parent);
+					Parent->add_before(pos, {newCell});
+				}
 
 			});
 
@@ -835,10 +858,10 @@ namespace Seaborg {
 					if(pos >= parent->Children.data.length)
 						return;
 
-					var newCell = new EvaluationCell(Cell->Parent);
-					newCell.set_text(Cell->get_text());
+					EvaluationCell* newCell = new EvaluationCell(Cell->Parent);
+					newCell->set_text(Cell->get_text());
 					parent->add_before(pos, { newCell });
-					newCell.focus();
+					newCell->focus();
 					parent->remove_from(pos+1, 1);
 
 					return;
@@ -853,10 +876,10 @@ namespace Seaborg {
 						return;
 
 					//add new cell
-					var newCell = new EvaluationCell(parent);
-					newCell.set_text(Cell->get_text());
+					EvaluationCell* newCell = new EvaluationCell(parent);
+					newCell->set_text(Cell->get_text());
 					parent->add_before(pos, { newCell });
-					newCell.focus();
+					newCell->focus();
 						
 					if(pos > 0) {
 						if(parent->Children.data[pos-1].get_level() >= Cell->get_level()) {
@@ -888,10 +911,10 @@ namespace Seaborg {
 					if(pos >= parent->Children.data.length)
 						return;
 
-					var newCell = new TextCell(parent);
-					newCell.set_text(Cell->get_text().printf());
+					TextCell* newCell = new TextCell(parent);
+					newCell->set_text(Cell->get_text().printf());
 					parent->add_before(pos, { newCell });
-					newCell.focus();
+					newCell->focus();
 					parent->remove_from(pos+1, 1);
 
 					return;
@@ -964,9 +987,9 @@ namespace Seaborg {
 					return;
 
 
-				var newCell = new CellContainer(parent, toggled_level);	
-				newCell.set_text(Cell->get_text());	
-				newCell.focus();
+				CellContainer* newCell = new CellContainer(parent, toggled_level);	
+				newCell->set_text(Cell->get_text());	
+				newCell->focus();
 				parent->remove_from(pos, 1);
 				parent->add_before(pos, { newCell });
 				((CellContainer)(parent->Children.data[pos])).eat_children();
@@ -992,9 +1015,9 @@ namespace Seaborg {
 						
 				// put children out behind cell, convert cell, and eat them again
 				parent->add_before(pos+1, ((CellContainer*)Cell)->Children.data);
-				var newCell = new CellContainer(parent, toggled_level);
-				newCell.set_text(Cell->get_text());
-				newCell.focus();
+				CellContainer* newCell = new CellContainer(parent, toggled_level);
+				newCell->set_text(Cell->get_text());
+				newCell->focus();
 				parent->remove_from(pos, 1);
 				parent->add_before(pos, { newCell });
 				((CellContainer)(parent->Children.data[pos])).eat_children();

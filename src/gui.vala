@@ -14,9 +14,16 @@ namespace Seaborg {
 			SeaborgStack = new Gtk.Stack();
 			ContentScroll = new Gtk.ScrolledWindow(null,null);
 			SeaborgNotebook = new Seaborg.Notebook();
-			SeaborgNotebook.add_before(0, {new EvaluationCell(SeaborgNotebook), new EvaluationCell(SeaborgNotebook), new EvaluationCell(SeaborgNotebook)});
-			SeaborgNotebook.Children.data[0].focus();
-			
+			var nutbook = new Seaborg.CellContainer(SeaborgNotebook, 1);
+			//SeaborgNotebook.add_before(0, {new EvaluationCell(SeaborgNotebook), new EvaluationCell(SeaborgNotebook), new EvaluationCell(SeaborgNotebook)});
+			//SeaborgNotebook.Children.data[0].focus();
+			ecell = new EvaluationCell(nutbook);
+			EvaluationCell* cellA = new EvaluationCell(nutbook);
+			EvaluationCell* cellB = new EvaluationCell(nutbook);
+			EvaluationCell* cellC = new EvaluationCell(nutbook);
+			nutbook.add_before(0,   {cellA, cellB, cellC});
+			nutbook.Children.data[0].focus();
+			SeaborgNotebook.add_before(0, {nutbook});
 			
 
 			var ggd = new Gtk.Grid();
@@ -100,6 +107,7 @@ namespace Seaborg {
 		private GLib.Menu SeaborMenu;
 		private Gtk.ScrolledWindow ContentScroll;
 		private Seaborg.Notebook SeaborgNotebook;
+		private EvaluationCell ecell;
 	}
 
 
