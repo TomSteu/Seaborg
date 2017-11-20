@@ -15,7 +15,7 @@ namespace Seaborg {
 		public abstract uint get_level();
 		public abstract void remove_recursively();
 		public abstract void add_before(int pos, ICell[] list);
-		public abstract void remove_from(int pos, int number);
+		public abstract void remove_from(int pos, int number, bool trash);
 		public abstract void focus();
 		public abstract ICellContainer* Parent {get; set;}
 		public abstract void set_text(string _text);
@@ -95,7 +95,7 @@ namespace Seaborg {
 			int i;
 			for(i=(int)(Children.length)-1; i >= 0; i--) {
 				if(Children.data[i].marker_selected()) {
-					remove_from(i,1);
+					remove_from(i,1,true);
 				}
 			}
 
@@ -132,7 +132,7 @@ namespace Seaborg {
 
 		}
 
-		public void remove_from(int pos, int number) {
+		public void remove_from(int pos, int number, bool trash) {
 			
 			if(pos < 0 || number <= 0)
 				return;
@@ -141,14 +141,17 @@ namespace Seaborg {
 				number = (int)(Children.length) - pos;
 
 			// manually remove objects since they are exluded from reference counting
-			ICell* ref_child;
-			AddButton* ref_button;
-			for(int j=0; j<number; j++) {
-				ref_child =  Children.data[pos+j];
-				ref_button = AddButtons.data[pos+1+j];
-				delete ref_child;
-				delete ref_button;
+			if(trash) {
+				ICell* ref_child;
+				AddButton* ref_button;
+				for(int j=0; j<number; j++) {
+					ref_child =  Children.data[pos+j];
+					ref_button = AddButtons.data[pos+1+j];
+					delete ref_child;
+					delete ref_button;
+				}
 			}
+
 
 			Children.remove_range(pos, number);
 			AddButtons.remove_range(pos+1, number);
@@ -226,7 +229,6 @@ namespace Seaborg {
 			Level = level;
 			Children = new GLib.Array<ICell>();
 			AddButtons = new GLib.Array<AddButton>();
-			Title = new TextCell(this);
 			column_spacing = 4;
 			row_spacing = 4;
 
@@ -241,6 +243,26 @@ namespace Seaborg {
 
 				css = CssProvider.get_default();
 			}
+
+			Title = new Gtk.TextView();
+			Title.wrap_mode = Gtk.WrapMode.WORD;
+			Title.monospace = false;
+			Title.editable = true;
+			Title.hexpand = true;
+			Title.halign = Gtk.Align.FILL;
+			Title.left_margin = 0;
+			Title.right_margin = 0;
+			Title.top_margin = 0;
+			Title.bottom_margin = 0;
+			Title.wrap_mode = Gtk.WrapMode.WORD;
+			Title.monospace = false;
+			Title.editable = true;
+			Title.hexpand = true;
+			Title.halign = Gtk.Align.FILL;
+			Title.left_margin = 0;
+			Title.right_margin = 0;
+			Title.top_margin = 0;
+			Title.bottom_margin = 0;
 
 			Marker = new Gtk.ToggleButton();
 			var style_context = Marker.get_style_context();
@@ -262,75 +284,88 @@ namespace Seaborg {
 		}
 
 		public void eat_children() {
+
+			if(Parent == null) return;
+
 			int this_position=0;
-			int next_position=0;
-			
-			// find out where the next container (e.g. section) of the same or higher level is
-			for(int i=0; i<(Parent->Children).data.length; i++) {
-				if((Parent->Children).data[i].name == this.name)
-					this_position = i;
-				if(Parent->Children.data[i].get_level() >= Level && i > this_position)
-				{
-					next_position = i;
-					break;
+
+			if(Parent->get_level() <= Level) {
+
+				int par_len = Parent->Children.data.length;
+
+				// find out position within parent
+				for(this_position=0; this_position < par_len; this_position++) {
+					if(this.name == Parent->Children.data[this_position].name)
+						break;
 				}
-			}
-			
-			// move elements from parents into this container
-			if(next_position < (Parent->Children).data.length && this_position+1 < next_position) {
+
+				// move elements from parents into this container
+				if(this_position < par_len - 1) {
+					var cells = Parent->Children.data[this_position+1 : par_len];
+					Parent->remove_from(this_position+1, par_len - 1 - this_position, false);
+					add_before(0, cells);
+					
+					
+				}
 				
-				add_before(0, Parent->Children.data[this_position+1 : next_position]);
-				Parent->remove_from(this_position+1, next_position-1 - this_position);
+				// put Container from parent into grandparent
+				if(Parent->Parent != null) {
+
+					// find position of parent within grandparent
+					int parent_position;
+					for(parent_position=0; parent_position < Parent->Parent->Children.data.length; parent_position++) {
+						if(Parent->name == Parent->Parent->Children.data[parent_position].name)
+							break;
+					}
+
+					if(parent_position >= Parent->Parent->Children.data.length)
+						return;
+					
+					// move container 
+					Parent->remove_from(this_position, 1, false);
+					Parent->Parent->add_before(parent_position+1, { this });
+					Parent = Parent->Parent;
+					eat_children();
+
+				}
+
+			} else {
+
+				int next_position=0;
 				
+				// find out where the next container (e.g. section) of the same or higher level is
+				for(int i=0; i<(Parent->Children).data.length; i++) {
+					if((Parent->Children).data[i].name == this.name)
+						this_position = i;
+					if(Parent->Children.data[i].get_level() >= Level && i > this_position)
+					{
+						next_position = i;
+						break;
+					}
+				}
+				
+				// move elements from parents into this container
+				if(next_position < (Parent->Children).data.length && this_position+1 < next_position) {
+					var cells = Parent->Children.data[this_position+1 : next_position];
+					Parent->remove_from(this_position+1, next_position-1 - this_position, false);
+					add_before(0, cells);
+					
+				}
+
 			}
+
 		}
 
 		public void remove_recursively() {
 			int i;
 			for(i=(int)(Children.length)-1; i >= 0; i--) {
 				if(Children.index(i).marker_selected()) {
-					remove_from(i,1);
+					remove_from(i,1,true);
 				}
 			}
 
 			for(i=0; i<Children.data.length; i++) Children.index(i).remove_recursively();
 
-			if(Title.marker_selected() && Parent != null) {
-				// hand children back to parent
-				int this_position;
-				for(this_position=0; this_position<(Parent->Children).data.length; this_position++) {
-					if(Parent->Children.data[this_position].name == this.name)
-						break;
-				}
-
-				// 'this' is a wayward child
-				if(this_position >= Parent->Children.data.length)
-					return;
-				// 'this' is not firstborn
-				if(this_position > 0)
-				{
-					if(Parent->Children.data[this_position-1].get_level() >= Level) {
-						
-						// hand children to this_position-1 as children 
-						if((Parent->Children.data[this_position-1]) is ICellContainer) {
-							((ICellContainer)(Parent->Children.data[this_position-1])).add_before(-1, Children.data);
-						}
-						
-						// erase this_position
-						Parent->remove_from(this_position, 1);
-						show_all();
-						return;
-					} 
-				}
-
-				// hand children back as siblings of 'this'
-				Parent->add_before(this_position, Children.data);
-
-				// erase this_position
-				Parent->remove_from(this_position, 1);
-				show_all();
-
-			}
 		}
 
 		public void add_before(int pos, ICell[] list) {
@@ -365,7 +400,7 @@ namespace Seaborg {
 
 		}
 
-		public void remove_from(int pos, int number) {
+		public void remove_from(int pos, int number, bool trash) {
 			
 			if(pos < 0 || number <= 0)
 				return;
@@ -374,13 +409,15 @@ namespace Seaborg {
 				number = (int)(Children.length) - pos;
 
 			// manually remove objects since they are excluded from reference counting
-			ICell* ref_child;
-			AddButton* ref_button;
-			for(int j=0; j<number; j++) {
-				ref_child =  Children.data[pos+j];
-				ref_button = AddButtons.data[pos+1+j];
-				delete ref_child;
-				delete ref_button;
+			if(trash) {
+				ICell* ref_child;
+				AddButton* ref_button;
+				for(int j=0; j<number; j++) {
+					ref_child =  Children.data[pos+j];
+					ref_button = AddButtons.data[pos+1+j];
+					delete ref_child;
+					delete ref_button;
+				}
 			}
 
 			Children.remove_range(pos, number);
@@ -391,7 +428,6 @@ namespace Seaborg {
 
 		public void toggle_all() {
 			Marker.active = true;
-			Title.toggle_all();
 			for(int i=0; i<Children.data.length; i++) {
 				Children.data[i].toggle_all();
 			}
@@ -399,7 +435,6 @@ namespace Seaborg {
 
 		public void untoggle_all() {
 			Marker.active = false;
-			Title.untoggle_all();
 			for(int i=0; i<Children.data.length; i++) {
 				Children.data[i].untoggle_all();
 			}
@@ -447,11 +482,11 @@ namespace Seaborg {
 		}
 
 		public void set_text(string _text) {
-			Title.set_text(_text);
+			Title.buffer.text = _text;
 		}
 
 		public string get_text() {
-			return Title.get_text();
+			return Title.buffer.text;
 		}
 
 		public uint get_level() {
@@ -459,7 +494,7 @@ namespace Seaborg {
 		}
 
 		public void focus() {
-			Title.focus();
+			Title.grab_focus();
 		}
 
 		private bool press_handler(EventButton event) {
@@ -483,7 +518,7 @@ namespace Seaborg {
 		public GLib.Array<AddButton> AddButtons {get; set;}
 		public ICellContainer* Parent {get; set;}
 		private uint Level;
-		private TextCell Title;
+		private TextView Title;
 		private Gtk.ToggleButton Marker;
 		private CssProvider css;
 		private bool isExpanded;
@@ -629,7 +664,7 @@ namespace Seaborg {
 		public void remove_recursively() {}
 
 		public void add_before(int pos, ICell[] list) {}
-		public void remove_from(int pos, int number) {}
+		public void remove_from(int pos, int number, bool trash) {}
 
 		private bool press_handler(EventButton event) {
 			if(event.type == Gdk.EventType.DOUBLE_BUTTON_PRESS && event.button == 1) {
@@ -742,7 +777,7 @@ namespace Seaborg {
 		public void schedule_evaluation() {}
 		public void unschedule_evaluation() {}
 		public void add_before(int pos, ICell[] list) {}
-		public void remove_from(int pos, int number) {}
+		public void remove_from(int pos, int number, bool trash) {}
 		public ICellContainer* Parent {get; set;}
 
 		private bool press_handler(EventButton event) {
@@ -862,7 +897,7 @@ namespace Seaborg {
 					newCell->set_text(Cell->get_text());
 					parent->add_before(pos, { newCell });
 					newCell->focus();
-					parent->remove_from(pos+1, 1);
+					parent->remove_from(pos+1, 1, true);
 
 					return;
 				}
@@ -884,16 +919,19 @@ namespace Seaborg {
 					if(pos > 0) {
 						if(parent->Children.data[pos-1].get_level() >= Cell->get_level()) {
 							// hand children to older silbling
-							parent->Children.data[pos-1].add_before(-1, ((ICellContainer*)Cell)->Children.data);
-							parent->remove_from(pos+1, 1);
+							var offspring = ((ICellContainer*)Cell)->Children.data;
+							parent->remove_from(pos+1, 1, true);
+							parent->Children.data[pos-1].add_before(-1, offspring);
 							return;
 						}
 					}
 						
 					// give children to parent
-					parent->add_before(pos+1, ((ICellContainer*)Cell)->Children.data);
-					parent->remove_from(pos+1+((ICellContainer*)Cell)->Children.data.length, 1);
+					var offspring = ((ICellContainer*)Cell)->Children.data;
+					parent->remove_from(pos+1, 1, true);
+					parent->add_before(pos+1, offspring);
 					return;
+
 				}
 			});
 
@@ -915,7 +953,7 @@ namespace Seaborg {
 					newCell->set_text(Cell->get_text().printf());
 					parent->add_before(pos, { newCell });
 					newCell->focus();
-					parent->remove_from(pos+1, 1);
+					parent->remove_from(pos+1, 1, true);
 
 					return;
 				}
@@ -937,15 +975,17 @@ namespace Seaborg {
 					if(pos > 0) {
 						if(parent->Children.data[pos-1].get_level() >= Cell->get_level()) {
 							// hand children to older silbling
-							parent->Children.data[pos-1].add_before(-1, ((ICellContainer*)Cell)->Children.data);
-							parent->remove_from(pos+1, 1);
+							var offspring = ((ICellContainer*)Cell)->Children.data;
+							parent->remove_from(pos+1, 1, true);
+							parent->Children.data[pos-1].add_before(-1, offspring);
 							return;
 						}
 					}
 						
 					// give children to parent
-					parent->add_before(pos+1, ((ICellContainer*)Cell)->Children.data);
-					parent->remove_from(pos+1+((ICellContainer*)Cell)->Children.data.length, 1);
+					var offspring = ((ICellContainer*)Cell)->Children.data;
+					parent->remove_from(pos+1, 1, true);
+					parent->add_before(pos+1, offspring);
 					return;
 				}
 			});
@@ -990,7 +1030,7 @@ namespace Seaborg {
 				CellContainer* newCell = new CellContainer(parent, toggled_level);	
 				newCell->set_text(Cell->get_text());	
 				newCell->focus();
-				parent->remove_from(pos, 1);
+				parent->remove_from(pos, 1, true);
 				parent->add_before(pos, { newCell });
 				((CellContainer)(parent->Children.data[pos])).eat_children();
 
@@ -1012,14 +1052,16 @@ namespace Seaborg {
 				if(pos >= parent->Children.data.length) {
 					return;
 				}
-						
+				
 				// put children out behind cell, convert cell, and eat them again
-				parent->add_before(pos+1, ((CellContainer*)Cell)->Children.data);
+				var offspring = ((CellContainer*)Cell)->Children.data;
+				Cell->remove_from(0, offspring.length, false);
 				CellContainer* newCell = new CellContainer(parent, toggled_level);
 				newCell->set_text(Cell->get_text());
 				newCell->focus();
-				parent->remove_from(pos, 1);
 				parent->add_before(pos, { newCell });
+				parent->add_before(pos+1, offspring);
+				parent->remove_from(pos, 1, true);
 				((CellContainer)(parent->Children.data[pos])).eat_children();
 
 				// the level was downgraded, so some children have to be eaten by an uncle

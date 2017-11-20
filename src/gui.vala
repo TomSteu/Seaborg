@@ -14,7 +14,7 @@ namespace Seaborg {
 			SeaborgStack = new Gtk.Stack();
 			ContentScroll = new Gtk.ScrolledWindow(null,null);
 			SeaborgNotebook = new Seaborg.Notebook();
-			var nutbook = new Seaborg.CellContainer(SeaborgNotebook, 1);
+			var nutbook = new Seaborg.CellContainer(SeaborgNotebook, 2);
 			//SeaborgNotebook.add_before(0, {new EvaluationCell(SeaborgNotebook), new EvaluationCell(SeaborgNotebook), new EvaluationCell(SeaborgNotebook)});
 			//SeaborgNotebook.Children.data[0].focus();
 			ecell = new EvaluationCell(nutbook);
@@ -30,8 +30,6 @@ namespace Seaborg {
 			ggd.attach(SeaborgNotebook,0,0,1,1);
 			var btn = new Gtk.Button.with_label("-");
 			btn.clicked.connect(() => { 
-				/*Gtk.MessageDialog msg = new Gtk.MessageDialog (null, Gtk.DialogFlags.MODAL, Gtk.MessageType.WARNING, Gtk.ButtonsType.OK_CANCEL, "My message!");
-				msg.show();*/
 				SeaborgNotebook.remove_recursively();
 			});
 			ggd.attach(btn, 0, 1, 1, 1);
