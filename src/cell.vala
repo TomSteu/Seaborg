@@ -1037,7 +1037,7 @@ namespace Seaborg {
 				return;
 			}
 			if(Cell is CellContainer) {
-				
+
 				if(Cell->get_level() == toggled_level)
 					return;
 				
@@ -1061,13 +1061,15 @@ namespace Seaborg {
 				newCell->focus();
 				parent->add_before(pos, { newCell });
 				parent->add_before(pos+1, offspring);
-				parent->remove_from(pos, 1, true);
+				parent->remove_from(pos+1+offspring.length, 1, false);
 				((CellContainer)(parent->Children.data[pos])).eat_children();
 
 				// the level was downgraded, so some children have to be eaten by an uncle
 				if(previous_pos >= 0 && Cell->get_level() > toggled_level)
 					((CellContainer)parent->Children.data[previous_pos]).eat_children();
-
+				
+				//finally, dispose the old cell
+				delete Cell;
 				return;
 
 			}
