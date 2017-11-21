@@ -226,7 +226,6 @@ namespace Seaborg {
 		public CellContainer(ICellContainer* parent, uint level) {
 			this.name = IdGenerator.get_id();
 			Parent = parent;
-			Level = level;
 			Children = new GLib.Array<ICell>();
 			AddButtons = new GLib.Array<AddButton>();
 			column_spacing = 4;
@@ -264,6 +263,8 @@ namespace Seaborg {
 			Title.top_margin = 0;
 			Title.bottom_margin = 0;
 
+			set_level(level);
+
 			Marker = new Gtk.ToggleButton();
 			var style_context = Marker.get_style_context();
 			style_context.add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
@@ -287,7 +288,7 @@ namespace Seaborg {
 
 			if(Parent == null) return;
 
-			int this_position=0;
+			int this_position=-1;
 
 			if(Parent->get_level() <= Level) {
 
@@ -331,7 +332,7 @@ namespace Seaborg {
 
 			} else {
 
-				int next_position=0;
+				int next_position=-1;
 				
 				// find out where the next container (e.g. section) of the same or higher level is
 				for(int i=0; i<(Parent->Children).data.length; i++) {
@@ -343,14 +344,24 @@ namespace Seaborg {
 						break;
 					}
 				}
-				
-				// move elements from parents into this container
-				if(next_position < (Parent->Children).data.length && this_position+1 < next_position) {
+
+				// weird error
+				if(this_position < 0)
+					return;
+
+				// no next  position among children - eat them all !
+				if(next_position < 0 && this_position >= 0)
+					next_position = (Parent->Children).data.length;
+
+				// next position somewhere behind move elements from parents into this container
+				if(next_position > 0 && this_position+1 < next_position) {
 					var cells = Parent->Children.data[this_position+1 : next_position];
 					Parent->remove_from(this_position+1, next_position-1 - this_position, false);
-					add_before(0, cells);
+					add_before(Children.data.length, cells);
 					
 				}
+
+				show_all();
 
 			}
 
@@ -491,6 +502,10 @@ namespace Seaborg {
 
 		public uint get_level() {
 			return Level;
+		}
+
+		public void set_level(uint level) {
+			Level = level;
 		}
 
 		public void focus() {
@@ -1038,39 +1053,65 @@ namespace Seaborg {
 			}
 			if(Cell is CellContainer) {
 
-				if(Cell->get_level() == toggled_level)
-					return;
+				uint old_level = Cell->get_level();
 				
-				int previous_pos=-1;
-				for(pos=0; pos < parent->Children.data.length; pos++) {
-					if(parent->Children.data[pos].name == Cell->name)
-						break;
-					if(parent->Children.data[pos].get_level() >= Cell->get_level())
-						previous_pos = pos;
-				}
+				if(old_level == toggled_level)
+					return;
 
-				if(pos >= parent->Children.data.length) {
+				// this is an level-up -- just eat a couple of more children
+				if(old_level<toggled_level) {
+					((CellContainer*)Cell)->set_level(toggled_level);
+					((CellContainer*)Cell)->eat_children();
 					return;
 				}
-				
-				// put children out behind cell, convert cell, and eat them again
-				var offspring = ((CellContainer*)Cell)->Children.data;
-				Cell->remove_from(0, offspring.length, false);
-				CellContainer* newCell = new CellContainer(parent, toggled_level);
-				newCell->set_text(Cell->get_text());
-				newCell->focus();
-				parent->add_before(pos, { newCell });
-				parent->add_before(pos+1, offspring);
-				parent->remove_from(pos+1+offspring.length, 1, false);
-				((CellContainer)(parent->Children.data[pos])).eat_children();
 
-				// the level was downgraded, so some children have to be eaten by an uncle
-				if(previous_pos >= 0 && Cell->get_level() > toggled_level)
-					((CellContainer)parent->Children.data[previous_pos]).eat_children();
-				
-				//finally, dispose the old cell
-				delete Cell;
-				return;
+				// downgrade - throw up some children
+				if(old_level > toggled_level) {
+
+					// gradually lower level, so there is no need for nested eating silblings
+					((CellContainer*)Cell)->set_level(old_level-1);
+					
+					// find cell within parent
+					for(pos=0; pos < parent->Children.data.length; pos++) {
+						if(parent->Children.data[pos].name == Cell->name)
+							break;
+					}
+
+					//find out first child to throw up
+					int internal_pos;
+					var offspring = ((CellContainer*)Cell)->Children.data;
+					for(internal_pos=0; internal_pos<offspring.length; internal_pos++) {
+						if(offspring[internal_pos].get_level() >= toggled_level)
+							break;
+					}
+
+					// no need to throw up children
+					if(internal_pos >= offspring.length)
+						return;
+
+					// transfer to parent
+					offspring = offspring[internal_pos : offspring.length];
+					((CellContainer*)Cell)->remove_from(internal_pos, offspring.length, false);
+					parent->add_before(pos+1, offspring);
+
+					// let last released child eat former uncle
+					if(pos+offspring.length+1 < parent->Children.data.length) {
+						if(parent->Children.data[pos+offspring.length+1].get_level() < parent->Children.data[pos+offspring.length].get_level()) {
+							((CellContainer)parent->Children.data[pos+offspring.length]).eat_children();
+						}
+					}
+
+					// let next oldest silbling of Cell eat children now
+					if(pos > 0) {
+						if(parent->Children.data[pos-1].get_level() > parent->Children.data[pos].get_level())
+							((CellContainer)parent->Children.data[pos-1]).eat_children();
+					}
+
+					//next recursion step
+					toggled_container(toggled_level);
+
+
+				}
 
 			}
 		}
