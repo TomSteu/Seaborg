@@ -840,8 +840,23 @@ namespace Seaborg {
 				}
 				
 				if(pos < Parent->AddButtons.data.length) {
+					
+					// if this button is right after container create one with same level
+					if(pos > 0) {
+						uint lev = Parent->Children.data[pos-1].get_level();
+						if(lev > 0) {
+							CellContainer* newCell = new CellContainer(Parent, lev);
+							Parent->add_before(pos, {newCell});
+							newCell->eat_children();
+							newCell->focus();
+							return;
+						}
+					}
+					
+					// add evaluation cell as default behaviour
 					EvaluationCell* newCell = new EvaluationCell(Parent);
 					Parent->add_before(pos, {newCell});
+					newCell->focus();
 				}
 
 			});
