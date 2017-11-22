@@ -244,6 +244,7 @@ namespace Seaborg {
 			}
 
 			Title = new Gtk.TextView();
+			Title.get_style_context().add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 			Title.wrap_mode = Gtk.WrapMode.WORD;
 			Title.monospace = false;
 			Title.editable = true;
@@ -262,6 +263,7 @@ namespace Seaborg {
 			Title.right_margin = 0;
 			Title.top_margin = 0;
 			Title.bottom_margin = 0;
+
 
 			set_level(level);
 
@@ -505,7 +507,11 @@ namespace Seaborg {
 		}
 
 		public void set_level(uint level) {
+			if(Level == level)
+				return;
+			Title.get_style_context().remove_class("title-" + Level.to_string());
 			Level = level;
+			Title.get_style_context().add_class("title-" + Level.to_string());
 		}
 
 		public void focus() {

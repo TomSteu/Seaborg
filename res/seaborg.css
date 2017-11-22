@@ -31,3 +31,39 @@
 .add-button {
 	background-color: transparent;
 }
+
+/* Subsubsection */
+.title-1 {
+	font-size: 1.2em;
+	font-weight: bold;
+}
+
+/* Subsection */
+.title-2 {
+	font-size: 1.4em;
+	font-weight: bold;
+}
+
+/* Section */
+.title-3 {
+	font-size: 1.6em;
+	font-weight: bold;
+}
+
+/* Subchapter */
+.title-4 {
+	font-size: 1.8em;
+	font-weight: bold;
+}
+
+/* Chapter */
+.title-5 {
+	font-size: 2em;
+	font-weight: bold;
+}
+
+/* Titel */
+.title-6 {
+	font-size: 2.2em;
+	font-weight: bold;
+}
