@@ -29,7 +29,30 @@
 }
 
 .add-button {
+	color: transparent;
 	background-color: transparent;
+	border-color: transparent;
+	border-width: 0px;
+	border-image: none;
+	outline-color: transparent;
+	padding: 0px;
+	margin: 0px;
+
+}
+
+.add-button {
+	color: transparent;
+	background-color: transparent;
+	border-color: transparent;
+	border-width: 0px;
+	border-image: none;
+	outline-color: transparent;
+	outline-style: none;
+	padding: 0px;
+	margin: 0px;
+	box-shadow: none;
+	min-height: 10px;
+
 }
 
 /* Subsubsection */

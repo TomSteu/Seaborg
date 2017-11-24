@@ -24,5 +24,5 @@ clean:
 
 .PHONY: test
 test: 
-	$(VALAC) $(VALAFLAGS) ./src/gui.vala ./src/cell.vala -o ./bin/seaborg  --pkg gtk+-3.0 --pkg gtksourceview-3.0
+	$(VALAC) $(VALAFLAGS) ./src/gui.vala  ./src/cell.vala -o ./bin/seaborg  --pkg gtk+-3.0 --pkg gtksourceview-3.0
 	./bin/seaborg

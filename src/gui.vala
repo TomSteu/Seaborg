@@ -1,7 +1,17 @@
 using Gtk;
 using GLib;
 
+// [CCode (cheader_filename = "include/wstp_connection.h")]
 namespace Seaborg {
+
+	/*[SimpleType]
+    [CCode (cname = "WstpConnection", has_type_id = false)]
+    public struct WstpConnection {
+    }*/
+    
+
+	/*[CCode(cname = "init_connection", cheader_filename = "wstp_connection.h")]
+	public extern WstpConnection init_connection(string  path);*/
 
 	public class SeaborgApplication : Gtk.Application {
 		
@@ -14,29 +24,18 @@ namespace Seaborg {
 			SeaborgStack = new Gtk.Stack();
 			ContentScroll = new Gtk.ScrolledWindow(null,null);
 			SeaborgNotebook = new Seaborg.Notebook();
-			var nutbook = new Seaborg.CellContainer(SeaborgNotebook, 2);
-			//SeaborgNotebook.add_before(0, {new EvaluationCell(SeaborgNotebook), new EvaluationCell(SeaborgNotebook), new EvaluationCell(SeaborgNotebook)});
-			//SeaborgNotebook.Children.data[0].focus();
-			ecell = new EvaluationCell(nutbook);
-			EvaluationCell* cellA = new EvaluationCell(nutbook);
-			EvaluationCell* cellB = new EvaluationCell(nutbook);
-			EvaluationCell* cellC = new EvaluationCell(nutbook);
-			nutbook.add_before(0,   {cellA, cellB, cellC});
-			nutbook.Children.data[0].focus();
-			SeaborgNotebook.add_before(0, {nutbook});
 			
 
-			var ggd = new Gtk.Grid();
-			ggd.attach(SeaborgNotebook,0,0,1,1);
-			var btn = new Gtk.Button.with_label("-");
-			btn.clicked.connect(() => { 
-				SeaborgNotebook.remove_recursively();
-			});
-			ggd.attach(btn, 0, 1, 1, 1);
 
 			// assemble gui
+			EvaluationCell* cellA = new EvaluationCell(SeaborgNotebook);
+			EvaluationCell* cellB = new EvaluationCell(SeaborgNotebook);
+			EvaluationCell* cellC = new EvaluationCell(SeaborgNotebook);
+			SeaborgNotebook.add_before(0, {cellA, cellB, cellC});
+
 			SeaborgStackSwitcher.stack = SeaborgStack;
-			SeaborgStack.add_titled(ggd, "Cell1", "Cell1");
+			SeaborgStack.add_titled(SeaborgNotebook, "Cell1", "Cell1");
+			
 			SeaborgHeaderBar.show_close_button = true;
 			SeaborgHeaderBar.custom_title = SeaborgStackSwitcher;
 			ContentScroll.add(SeaborgStack);
@@ -95,6 +94,9 @@ namespace Seaborg {
 			this.set_accels_for_action("app.open", open_accels);
 			this.set_accels_for_action("app.save", save_accels);
 			this.set_accels_for_action("app.rm", rm_accels);
+
+			// connecting kernel
+
 
 		}
 

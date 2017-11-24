@@ -819,7 +819,8 @@ namespace Seaborg {
 	public class AddButton : Gtk.Button {
 		public AddButton(ICellContainer* par) {
 			this.name = IdGenerator.get_id();
-			label = "+";
+			this.can_focus = false;
+			this.focus_on_click = false;
 			Parent = par;
 
 			CssProvider css = new CssProvider();
