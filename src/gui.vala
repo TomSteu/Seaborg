@@ -31,7 +31,7 @@ namespace Seaborg {
 			EvaluationCell* cellA = new EvaluationCell(SeaborgNotebook);
 			EvaluationCell* cellB = new EvaluationCell(SeaborgNotebook);
 			EvaluationCell* cellC = new EvaluationCell(SeaborgNotebook);
-			SeaborgNotebook.add_before(0, {cellA/*, cellB, cellC*/});
+			SeaborgNotebook.add_before(0, {cellA, cellB, cellC});
 
 			SeaborgStackSwitcher.stack = SeaborgStack;
 			SeaborgStack.add_titled(SeaborgNotebook, "Cell1", "Cell1");
@@ -57,43 +57,50 @@ namespace Seaborg {
 			SeaborMenu.append("New", "app.new");
 			SeaborMenu.append("Open", "app.open");
 			SeaborMenu.append("Save", "app.save");
+			this.app_menu = SeaborMenu;
 
 			var new_action = new GLib.SimpleAction("new", null);
 			var open_action = new GLib.SimpleAction("open", null);
 			var save_action = new GLib.SimpleAction("save", null);
 			var remove_action = new GLib.SimpleAction("rm", null);
+			var untoggle_action = new GLib.SimpleAction("untoggle", null);
 
 			new_action.activate.connect(() => {
-
 			});
 
 			open_action.activate.connect(() => {
-				
 			});
 
 			save_action.activate.connect(() => {
-				
 			});
 
 			remove_action.activate.connect(() => {
 				SeaborgNotebook.remove_recursively();
 			});
 
+			untoggle_action.activate.connect(() => {
+				SeaborgNotebook.untoggle_all();
+			});
+
 
 			this.add_action(new_action);
 			this.add_action(open_action);
 			this.add_action(save_action);
-			this.app_menu = SeaborMenu;
+			this.add_action(remove_action);
+			this.add_action(untoggle_action);
 
 
 			const string[] new_accels = {"<Control>N", null};
 			const string[] open_accels = {"<Control>O", null};
 			const string[] save_accels = {"<Control>S", null};
-			const string[] rm_accels = {"Delete", null};
+			const string[] rm_accels = {"<Control>Delete","<Control>D", null};
+			const string[] untoggle_accels ={"Escape", null};
+
 			this.set_accels_for_action("app.new", new_accels);
 			this.set_accels_for_action("app.open", open_accels);
 			this.set_accels_for_action("app.save", save_accels);
 			this.set_accels_for_action("app.rm", rm_accels);
+			this.set_accels_for_action("app.untoggle", untoggle_accels);
 
 			// connecting kernel
 
@@ -107,7 +114,6 @@ namespace Seaborg {
 		private GLib.Menu SeaborMenu;
 		private Gtk.ScrolledWindow ContentScroll;
 		private Seaborg.Notebook SeaborgNotebook;
-		private EvaluationCell ecell;
 	}
 
 
