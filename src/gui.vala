@@ -31,7 +31,7 @@ namespace Seaborg {
 			EvaluationCell* cellA = new EvaluationCell(SeaborgNotebook);
 			EvaluationCell* cellB = new EvaluationCell(SeaborgNotebook);
 			EvaluationCell* cellC = new EvaluationCell(SeaborgNotebook);
-			SeaborgNotebook.add_before(0, {cellA, cellB, cellC});
+			SeaborgNotebook.add_before(0, {cellA/*, cellB, cellC*/});
 
 			SeaborgStackSwitcher.stack = SeaborgStack;
 			SeaborgStack.add_titled(SeaborgNotebook, "Cell1", "Cell1");

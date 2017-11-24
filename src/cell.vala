@@ -85,10 +85,21 @@ namespace Seaborg {
 			get_style_context().add_class("view");
 			get_style_context().add_class("container-grid");
 
+			// final Addbutton to fill the bottom of the window
+			Footer = new AddButton(this);
+			Footer.name = IdGenerator.get_id();
+			Footer.can_focus = false;
+			Footer.focus_on_click = false;
+			Footer.get_style_context().add_class("add-button");
+			Footer.vexpand = true;
+			Footer.valign = Gtk.Align.FILL;
+			Footer.clicked.connect(() => { AddButtons.data[AddButtons.data.length-1].insert_child();});
+
 			// assemble the container
-			attach(Marker, 0, 0, 1, 1);
+			attach(Marker, 0, 0, 1, 2);
 			AddButtons.append_val(new AddButton(this));
 			attach(AddButtons.index(0), 1, 0, 1, 1);
+			attach(Footer, 0, 2, 2, 1);
 		}
 
 		public void remove_recursively() {
@@ -110,10 +121,11 @@ namespace Seaborg {
 			if(pos < 0 || pos > old_len)
 				return;
 
-			for(int l=0; l<list.length; l++) list[l].Parent = this;
-			if(pos < old_len) {
-				for(int j=1; j<=2*list.length; j++) insert_row(2*pos+1);
-			}
+			for(int l=0; l<list.length; l++) 
+				list[l].Parent = this;
+				
+			for(int j=1; j<=2*list.length; j++) 
+				insert_row(2*pos+1);
 
 			Children.insert_vals(pos, list, list.length);
 			for(int k=0; k < list.length; k++) AddButtons.insert_val(pos+1, new AddButton(this));
@@ -122,12 +134,6 @@ namespace Seaborg {
 					attach(AddButtons.data[pos+1+i], 1,  2*(pos+i)+2, 1, 1);
 			}
 
-			//redraw marker if stuff was attached to the end
-			if(pos == old_len) {
-				remove_column(0);
-				insert_column(0);
-				attach(Marker, 0, 0, 1, 2*((int)(Children.length))+1);
-			}
 			this.show_all();
 
 		}
@@ -219,6 +225,7 @@ namespace Seaborg {
 		private uint Level;
 		private Gtk.ToggleButton Marker;
 		private CssProvider css;
+		private Gtk.Button Footer;
 	}
 
 	// container class with heading
@@ -838,36 +845,37 @@ namespace Seaborg {
 			get_style_context().add_class("add-button");
 
 			
-			clicked.connect(() => {
+			clicked.connect(insert_child);
 
-				int pos;
-				for(pos=0; pos < Parent->AddButtons.data.length; pos++) {
-					if(this.name == Parent->AddButtons.data[pos].name)
-						break;
-				}
+		}
+
+		public void insert_child() {
+			int pos;
+
+			for(pos=0; pos < Parent->AddButtons.data.length; pos++) {
+				if(this.name == Parent->AddButtons.data[pos].name)
+					break;
+			}
 				
-				if(pos < Parent->AddButtons.data.length) {
+			if(pos < Parent->AddButtons.data.length) {
 					
-					// if this button is right after container create one with same level
-					if(pos > 0) {
-						uint lev = Parent->Children.data[pos-1].get_level();
-						if(lev > 0) {
-							CellContainer* newCell = new CellContainer(Parent, lev);
-							Parent->add_before(pos, {newCell});
-							newCell->eat_children();
-							newCell->focus();
-							return;
-						}
+				// if this button is right after container create one with same level
+				if(pos > 0) {
+					uint lev = Parent->Children.data[pos-1].get_level();
+					if(lev > 0) {
+						CellContainer* newCell = new CellContainer(Parent, lev);
+						Parent->add_before(pos, {newCell});
+						newCell->eat_children();
+						newCell->focus();
+						return;
 					}
-					
-					// add evaluation cell as default behaviour
-					EvaluationCell* newCell = new EvaluationCell(Parent);
-					Parent->add_before(pos, {newCell});
-					newCell->focus();
 				}
-
-			});
-
+					
+				// add evaluation cell as default behaviour
+				EvaluationCell* newCell = new EvaluationCell(Parent);
+				Parent->add_before(pos, {newCell});
+				newCell->focus();
+			}
 		}
 
 		private ICellContainer* Parent;
