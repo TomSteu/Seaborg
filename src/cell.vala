@@ -123,7 +123,7 @@ namespace Seaborg {
 
 			for(int l=0; l<list.length; l++) 
 				list[l].Parent = this;
-				
+
 			for(int j=1; j<=2*list.length; j++) 
 				insert_row(2*pos+1);
 
@@ -573,8 +573,8 @@ namespace Seaborg {
 
 			Gtk.SourceLanguageManager lm = new Gtk.SourceLanguageManager();
 			Gtk.SourceStyleSchemeManager sm = new Gtk.SourceStyleSchemeManager();
- 			lm.search_path = new string[] {"res/"};
- 			sm.search_path = new string[] {"res/"};
+ 			lm.search_path = new string[] {"res/sourceview/"};
+ 			sm.search_path = new string[] {"res/sourceview/"};
 			
  			InputBuffer = new Gtk.SourceBuffer(null);
 			InputBuffer.highlight_matching_brackets = true;

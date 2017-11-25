@@ -16,7 +16,7 @@ all: wstp_connection.o
 	
 .PHONY: vala
 vala:
-	$(VALAC) $(VALAFLAGS) ./src/gui.vala ./src/cell.vala -C --pkg gtk+-3.0 --pkg gtksourceview-3.0
+	$(VALAC) $(VALAFLAGS) ./src/gui.vala ./src/cell.vala -d ./build/ -C --pkg gtk+-3.0 --pkg gtksourceview-3.0
 
 .PHONY: clean
 clean:

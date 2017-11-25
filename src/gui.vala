@@ -16,48 +16,130 @@ namespace Seaborg {
 	public class SeaborgApplication : Gtk.Application {
 		
 		protected override void activate() {
+
+			this.set_resource_base_path("/tst/seaborg/./res/");
 			
 			// widgets
-			SeaborgWindow = new Gtk.ApplicationWindow(this);
-			SeaborgHeaderBar = new Gtk.HeaderBar();
-			SeaborgStackSwitcher = new Gtk.StackSwitcher();
-			SeaborgStack = new Gtk.Stack();
-			ContentScroll = new Gtk.ScrolledWindow(null,null);
-			SeaborgNotebook = new Seaborg.Notebook();
-			
+			main_window = new Gtk.ApplicationWindow(this);
+			main_headerbar = new Gtk.HeaderBar();
+			tab_switcher = new Gtk.StackSwitcher();
+			notebook_stack = new Gtk.Stack();
+			notebook_scroll = new Gtk.ScrolledWindow(null,null);
+			notebook = new Seaborg.Notebook();
+			string shortcut_builder_string = 
+				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>"+
+				"<interface>"+
+				  "<object class=\"GtkShortcutsWindow\" id=\"shortcuts\">"+
+				    "<property name=\"modal\">1</property>"+
+				    "<child>"+
+				      "<object class=\"GtkShortcutsSection\">"+
+				        "<property name=\"visible\">1</property>"+
+				        "<property name=\"section-name\">shortcuts</property>"+
+				        "<property name=\"max-height\">12</property>"+
+				        "<child>"+
+				          "<object class=\"GtkShortcutsGroup\">"+
+				            "<property name=\"visible\">1</property>"+
+				            "<property name=\"title\" translatable=\"yes\">Window</property>"+
+				            "<child>"+
+				              "<object class=\"GtkShortcutsShortcut\">"+
+				                "<property name=\"visible\">1</property>"+
+				                "<property name=\"accelerator\">&lt;ctrl&gt;N</property>"+
+				                "<property name=\"title\" translatable=\"yes\">Create new notebook</property>"+
+				              "</object>"+
+				            "</child>"+
+				            "<child>"+
+				              "<object class=\"GtkShortcutsShortcut\">"+
+				                "<property name=\"visible\">1</property>"+
+				                "<property name=\"accelerator\">&lt;ctrl&gt;O</property>"+
+				                "<property name=\"title\" translatable=\"yes\">Open a notebook</property>"+
+				              "</object>"+
+				            "</child>"+
+				            "<child>"+
+				              "<object class=\"GtkShortcutsShortcut\">"+
+				                "<property name=\"visible\">1</property>"+
+				                "<property name=\"accelerator\">&lt;ctrl&gt;S</property>"+
+				                "<property name=\"title\" translatable=\"yes\">Save the notebook</property>"+
+				              "</object>"+
+				            "</child>"+
+				            "<child>"+
+				              "<object class=\"GtkShortcutsShortcut\">"+
+				                "<property name=\"visible\">1</property>"+
+				                "<property name=\"accelerator\">&lt;Primary&gt;question &lt;Primary&gt;F1</property>"+
+				                "<property name=\"title\" translatable=\"yes\">Show shortcuts</property>"+
+				              "</object>"+
+				            "</child>"+
+				    	  "</object>"+
+				    	"</child>"+
+				    	"<child>"+
+				    	  "<object class=\"GtkShortcutsGroup\">"+
+				            "<property name=\"visible\">1</property>"+
+				            "<property name=\"title\" translatable=\"yes\">Cells</property>"+
+				            "<child>"+
+				              "<object class=\"GtkShortcutsShortcut\">"+
+				                "<property name=\"visible\">1</property>"+
+				                "<property name=\"accelerator\">&lt;Primary&gt;Escape</property>"+
+				                "<property name=\"title\" translatable=\"yes\">Untoggle all cells</property>"+
+				              "</object>"+
+				            "</child>"+
+				            "<child>"+
+				              "<object class=\"GtkShortcutsShortcut\">"+
+				                "<property name=\"visible\">1</property>"+
+				                "<property name=\"accelerator\">&lt;ctrl&gt;D &lt;ctrl&gt;Delete</property>"+
+				                "<property name=\"title\" translatable=\"yes\">Delete selected cells</property>"+
+				              "</object>"+
+				            "</child>"+
+				            "<child>"+
+				              "<object class=\"GtkShortcutsShortcut\">"+
+				                "<property name=\"visible\">1</property>"+
+				                "<property name=\"accelerator\">&lt;ctrl&gt;Return</property>"+
+				                "<property name=\"title\" translatable=\"yes\">Evaluate cells</property>"+
+				              "</object>"+
+				            "</child>"+
+				          "</object>"+
+				        "</child>"+
+				      "</object>"+
+				    "</child>"+
+				  "</object>"+
+				"</interface>";
+			Gtk.Builder shortcut_builder = new Gtk.Builder.from_string(shortcut_builder_string, shortcut_builder_string.length);
+			shortcuts = shortcut_builder.get_object("shortcuts") as Gtk.ShortcutsWindow;
 
 
 			// assemble gui
-			EvaluationCell* cellA = new EvaluationCell(SeaborgNotebook);
-			EvaluationCell* cellB = new EvaluationCell(SeaborgNotebook);
-			EvaluationCell* cellC = new EvaluationCell(SeaborgNotebook);
-			SeaborgNotebook.add_before(0, {cellA, cellB, cellC});
+			EvaluationCell* cellA = new EvaluationCell(notebook);
+			EvaluationCell* cellB = new EvaluationCell(notebook);
+			EvaluationCell* cellC = new EvaluationCell(notebook);
+			notebook.add_before(0, {cellA, cellB, cellC});
 
-			SeaborgStackSwitcher.stack = SeaborgStack;
-			SeaborgStack.add_titled(SeaborgNotebook, "Cell1", "Cell1");
+			tab_switcher.stack = notebook_stack;
+			notebook_stack.add_titled(notebook, "Cell1", "Cell1");
 			
-			SeaborgHeaderBar.show_close_button = true;
-			SeaborgHeaderBar.custom_title = SeaborgStackSwitcher;
-			ContentScroll.add(SeaborgStack);
+			main_headerbar.show_close_button = true;
+			main_headerbar.custom_title = tab_switcher;
+			notebook_scroll.add(notebook_stack);
 			
-			SeaborgWindow.title = "Gtk Notebook";
-			SeaborgWindow.set_titlebar(SeaborgHeaderBar);
-			SeaborgWindow.add(ContentScroll);
-			this.add_window(SeaborgWindow);
+			main_window.title = "Gtk Notebook";
+			main_window.set_titlebar(main_headerbar);
+			main_window.add(notebook_scroll);
+			main_window.set_help_overlay(shortcuts);
+			this.add_window(main_window);
 
-			// SeaborgWindow.default_size = something;
-			SeaborgWindow.show_all();
+			// main_window.default_size = something;
+			main_window.show_all();
+			stderr.printf("\n" + this.get_resource_base_path() + " : \n");
 
 		}
 
 		protected override void startup() {
 			base.startup();
 
-			SeaborMenu = new GLib.Menu();
-			SeaborMenu.append("New", "app.new");
-			SeaborMenu.append("Open", "app.open");
-			SeaborMenu.append("Save", "app.save");
-			this.app_menu = SeaborMenu;
+			main_menu = new GLib.Menu();
+			main_menu.append("New", "app.new");
+			main_menu.append("Open", "app.open");
+			main_menu.append("Save", "app.save");
+			main_menu.append("Keyboard Shortcuts", "win.show-help-overlay");
+
+			this.app_menu = main_menu;
 
 			var new_action = new GLib.SimpleAction("new", null);
 			var open_action = new GLib.SimpleAction("open", null);
@@ -75,11 +157,11 @@ namespace Seaborg {
 			});
 
 			remove_action.activate.connect(() => {
-				SeaborgNotebook.remove_recursively();
+				notebook.remove_recursively();
 			});
 
 			untoggle_action.activate.connect(() => {
-				SeaborgNotebook.untoggle_all();
+				notebook.untoggle_all();
 			});
 
 
@@ -95,25 +177,28 @@ namespace Seaborg {
 			const string[] save_accels = {"<Control>S", null};
 			const string[] rm_accels = {"<Control>Delete","<Control>D", null};
 			const string[] untoggle_accels ={"Escape", null};
+			const string[] shortcut_accels ={"<Control>F1", "<Control>question",null};
 
 			this.set_accels_for_action("app.new", new_accels);
 			this.set_accels_for_action("app.open", open_accels);
 			this.set_accels_for_action("app.save", save_accels);
 			this.set_accels_for_action("app.rm", rm_accels);
 			this.set_accels_for_action("app.untoggle", untoggle_accels);
-
+			this.set_accels_for_action("win.show-help-overlay", shortcut_accels);
+			
 			// connecting kernel
 
 
 		}
 
-		private Gtk.ApplicationWindow SeaborgWindow;
-		private Gtk.HeaderBar SeaborgHeaderBar;
-		private Gtk.StackSwitcher SeaborgStackSwitcher;
-		private Gtk.Stack SeaborgStack;
-		private GLib.Menu SeaborMenu;
-		private Gtk.ScrolledWindow ContentScroll;
-		private Seaborg.Notebook SeaborgNotebook;
+		private Gtk.ApplicationWindow main_window;
+		private Gtk.HeaderBar main_headerbar;
+		private Gtk.StackSwitcher tab_switcher;
+		private Gtk.Stack notebook_stack;
+		private GLib.Menu main_menu;
+		private Gtk.ScrolledWindow notebook_scroll;
+		private Seaborg.Notebook notebook;
+		private Gtk.ShortcutsWindow shortcuts;
 	}
 
 
