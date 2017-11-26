@@ -302,13 +302,15 @@ namespace Seaborg {
 		}
 
 		public void eat_children() {
+			Debug("-> Container " + this.name + " -> eat_children");
 
 			if(Parent == null) return;
 
 			int this_position=-1;
 
+			// eat younger silblings and transfer to parent
 			if(Parent->get_level() <= Level) {
-
+				Debug("-> Container " + this.name + " -> eat_children -> fall through parent");
 				int par_len = Parent->Children.data.length;
 
 				// find out position within parent
@@ -321,10 +323,14 @@ namespace Seaborg {
 				if(this_position < par_len - 1) {
 					var cells = Parent->Children.data[this_position+1 : par_len];
 					Parent->remove_from(this_position+1, par_len - 1 - this_position, false);
-					add_before(0, cells);
-					
-					
+					add_before(-1, cells);					
 				}
+
+					string dbgstr = "-> Container " + this.name + " -> eat_children -> fall through parent -> absorbed children[" + Children.data.length.to_string() + "] {";
+					for(int d=0; d<Children.data.length; d++) {
+						dbgstr += Children.data[d].Parent->name + "." + Children.data[d].name + ", ";
+					}
+					Debug(dbgstr + "}");
 				
 				// put Container from parent into grandparent
 				if(Parent->Parent != null) {
@@ -342,13 +348,15 @@ namespace Seaborg {
 					// move container 
 					Parent->remove_from(this_position, 1, false);
 					Parent->Parent->add_before(parent_position+1, { this });
-					Parent = Parent->Parent;
 					eat_children();
 
 				}
 
+				Debug("-> Container " + this.name + " -> eat_children -> fall through parent -> no grandparent");
+
 			} else {
 
+				Debug("-> Container " + this.name + " -> eat_children -> no fall-through");
 				int next_position=-1;
 				
 				// find out where the next container (e.g. section) of the same or higher level is
@@ -378,9 +386,9 @@ namespace Seaborg {
 					
 				}
 
-				show_all();
-
 			}
+
+			show_all();
 
 		}
 
@@ -397,7 +405,10 @@ namespace Seaborg {
 		}
 
 		public void add_before(int pos, ICell[] list) {
-			
+			var dbgstr = "-> Container " + this.name +" -> add_before(" + pos.to_string() + ", {";
+			for(int d=0; d<list.length; d++) dbgstr +=  list[d].name + ", ";
+			Debug(dbgstr + "})");
+
 			int old_len = (int)(Children.length);
 			if(pos < 0 ) pos += old_len + 1;
 			if(pos < 0 || pos > old_len)
@@ -423,13 +434,15 @@ namespace Seaborg {
 				insert_column(0);
 				attach(Marker, 0, 0, 1, 2*((int)(Children.length)+1));
 			}
-
+			dbgstr = "-> Container " + this.name + " -> add_before -> children[" + Children.data.length.to_string() + "] {";
+			for(int d=0; d<Children.data.length; d++) dbgstr +=  Children.data[d].Parent->name + "." + Children.data[d].name + ", ";
+			Debug(dbgstr + "}");
 			show_all();
 
 		}
 
 		public void remove_from(int pos, int number, bool trash) {
-			
+			Debug("-> Container " + this.name + " -> remove_from(" + pos.to_string() + ", " + number.to_string() + ", " + trash.to_string() + ")");			
 			if(pos < 0 || number <= 0)
 				return;
 
@@ -451,7 +464,9 @@ namespace Seaborg {
 			Children.remove_range(pos, number);
 			AddButtons.remove_range(pos+1, number);
 			for(int i=1; i <= 2*number; i++) remove_row(2*pos+2);
-
+			string dbgstr = "-> Container " + this.name + " -> remove_from -> children[" + Children.data.length.to_string() + "] { ";
+			for(int d=0; d<Children.data.length; d++) dbgstr += Children.data[d].Parent->name + "." + Children.data[d].name + ", ";
+			Debug(dbgstr + "}");
 		}
 
 		public void toggle_all() {
@@ -1086,6 +1101,7 @@ namespace Seaborg {
 				//add new cell
 				TextCell* newCell = new TextCell(parent);
 				var offspring = ((ICellContainer*)Cell)->Children.data;
+				((ICellContainer*)Cell)->remove_from(0, offspring.length, false); 
 				newCell->set_text(Cell->get_text());
 				parent->remove_from(pos, 1, true);
 				parent->add_before(pos, { newCell });
