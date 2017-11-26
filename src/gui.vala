@@ -124,9 +124,8 @@ namespace Seaborg {
 			main_window.set_help_overlay(shortcuts);
 			this.add_window(main_window);
 
-			// main_window.default_size = something;
+			main_window.set_default_size(800, 600);
 			main_window.show_all();
-			stderr.printf("\n" + this.get_resource_base_path() + " : \n");
 
 		}
 

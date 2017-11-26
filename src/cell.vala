@@ -115,6 +115,9 @@ namespace Seaborg {
 		}
 
 		public void add_before(int pos, ICell[] list) {
+			var dbgstr = "-> Notebook " + this.name +" -> add_before(" + pos.to_string() + ", {";
+			for(int d=0; d<list.length; d++) dbgstr +=  list[d].name + ", ";
+			Debug(dbgstr + "})");
 
 			int old_len = (int)(Children.length);
 			if(pos < 0 ) pos += old_len + 1;
@@ -133,13 +136,15 @@ namespace Seaborg {
 					attach(Children.data[pos+i], 1, 2*(pos+i)+1, 1, 1);
 					attach(AddButtons.data[pos+1+i], 1,  2*(pos+i)+2, 1, 1);
 			}
-
+			dbgstr = "-> Notebook " + this.name + " -> add_before -> children[" + Children.data.length.to_string() + "] {";
+			for(int d=0; d<Children.data.length; d++) dbgstr +=  list[d].Parent->name + "." + list[d].name + ", ";
+			Debug(dbgstr + "}");
 			this.show_all();
 
 		}
 
 		public void remove_from(int pos, int number, bool trash) {
-			
+			Debug("-> Notebook " + this.name + " -> remove_from(" + pos.to_string() + ", " + number.to_string() + ", " + trash.to_string() + ")");
 			if(pos < 0 || number <= 0)
 				return;
 
@@ -162,6 +167,9 @@ namespace Seaborg {
 			Children.remove_range(pos, number);
 			AddButtons.remove_range(pos+1, number);
 			for(int i=1; i <= 2*number; i++) remove_row(2*pos+1);
+			string dbgstr = "-> Notebook " + this.name + " -> remove_from -> children[" + Children.data.length.to_string() + "] { ";
+			for(int d=0; d<Children.data.length; d++) dbgstr += Children.data[d].Parent->name + "." + Children.data[d].name + ", ";
+			Debug(dbgstr + "}");
 
 		}
 
@@ -516,9 +524,11 @@ namespace Seaborg {
 		public void set_level(uint level) {
 			if(Level == level)
 				return;
+			
 			Title.get_style_context().remove_class("title-" + Level.to_string());
 			Level = level;
 			Title.get_style_context().add_class("title-" + Level.to_string());
+
 		}
 
 		public void focus() {
@@ -923,120 +933,8 @@ namespace Seaborg {
 				}
 			}
 
-			EvaluationCellType.toggled.connect(() => {
-				if(Cell is EvaluationCell)
-					return;
-				int pos;
-				ICellContainer* parent = Cell->Parent;
-				if(Cell is TextCell) {
-					
-					for(pos=0; pos < parent->Children.data.length; pos++) {
-						if(parent->Children.data[pos].name == Cell->name)
-							break;
-					}
-
-					if(pos >= parent->Children.data.length)
-						return;
-
-					EvaluationCell* newCell = new EvaluationCell(Cell->Parent);
-					newCell->set_text(Cell->get_text());
-					parent->add_before(pos, { newCell });
-					newCell->focus();
-					parent->remove_from(pos+1, 1, true);
-
-					return;
-				}
-				if(Cell is CellContainer) {
-					for(pos=0; pos < parent->Children.data.length; pos++) {
-						if(parent->Children.data[pos].name == Cell->name)
-							break;
-					}
-
-					if(pos >= parent->Children.data.length)
-						return;
-
-					//add new cell
-					EvaluationCell* newCell = new EvaluationCell(parent);
-					newCell->set_text(Cell->get_text());
-					parent->add_before(pos, { newCell });
-					newCell->focus();
-						
-					if(pos > 0) {
-						if(parent->Children.data[pos-1].get_level() >= Cell->get_level()) {
-							// hand children to older silbling
-							var offspring = ((ICellContainer*)Cell)->Children.data;
-							parent->remove_from(pos+1, 1, true);
-							parent->Children.data[pos-1].add_before(-1, offspring);
-							return;
-						}
-					}
-						
-					// give children to parent
-					var offspring = ((ICellContainer*)Cell)->Children.data;
-					parent->remove_from(pos+1, 1, true);
-					parent->add_before(pos+1, offspring);
-					return;
-
-				}
-			});
-
-			TextCellType.toggled.connect(() => {
-				if(Cell is TextCell)
-					return;
-				int pos;
-				ICellContainer* parent = Cell->Parent;
-				if(Cell is EvaluationCell) {
-					for(pos=0; pos < parent->Children.data.length; pos++) {
-						if(parent->Children.data[pos].name == Cell->name)
-							break;
-					}
-
-					if(pos >= parent->Children.data.length)
-						return;
-
-					TextCell* newCell = new TextCell(parent);
-					newCell->set_text(Cell->get_text().printf());
-					parent->add_before(pos, { newCell });
-					newCell->focus();
-					parent->remove_from(pos+1, 1, true);
-
-					return;
-				}
-				if(Cell is CellContainer) {
-					for(pos=0; pos < parent->Children.data.length; pos++) {
-						if(parent->Children.data[pos].name == Cell->name)
-							break;
-					}
-
-					if(pos >= parent->Children.data.length)
-						return;
-
-					//add new cell
-					var newCell = new TextCell(Cell->Parent);
-					newCell.set_text(Cell->get_text());
-					parent->add_before(pos, { newCell });
-					newCell.focus();
-						
-					if(pos > 0) {
-						if(parent->Children.data[pos-1].get_level() >= Cell->get_level()) {
-							// hand children to older silbling
-							var offspring = ((ICellContainer*)Cell)->Children.data;
-							parent->remove_from(pos+1, 1, true);
-							parent->Children.data[pos-1].add_before(-1, offspring);
-							return;
-						}
-					}
-						
-					// give children to parent
-					var offspring = ((ICellContainer*)Cell)->Children.data;
-					parent->remove_from(pos+1, 1, true);
-					parent->add_before(pos+1, offspring);
-					return;
-				}
-			});
-
-
-
+			EvaluationCellType.toggled.connect(() => {toggled_evaluation_cell();});
+			TextCellType.toggled.connect(() => {toggled_text_cell();});
 			TitleType.toggled.connect(() => { toggled_container(6); });
 			ChapterType.toggled.connect(() => { toggled_container(5); });
 			SubChapterType.toggled.connect(() => { toggled_container(4); });
@@ -1058,11 +956,164 @@ namespace Seaborg {
 
 		}
 
-		private void toggled_container(uint toggled_level) {
+		private void toggled_evaluation_cell() {
+			stderr.printf("-> toggled_evaluation_cell \n");
+			if(Cell is EvaluationCell) {stderr.printf("-> toggled_evaluation_cell -> already EvaluationCell \n");
+				return;
+			}
+
+			int pos;
 			ICellContainer* parent = Cell->Parent;
+			if(parent == null) { stderr.printf("-> toggled_evaluation_cell -> no parent \n");
+				return;
+			}
+
+
+			if(Cell is TextCell) {
+				stderr.printf("-> toggled_evaluation_cell -> Cell is TextCell \n");
+				for(pos=0; pos < parent->Children.data.length; pos++) {
+					if(parent->Children.data[pos].name == Cell->name)
+						break;
+				}
+
+				if(pos >= parent->Children.data.length)
+					return;
+
+				EvaluationCell* newCell = new EvaluationCell(Cell->Parent);
+				newCell->set_text(Cell->get_text());
+				parent->add_before(pos, { newCell });
+				newCell->focus();
+				parent->remove_from(pos+1, 1, true);
+
+				return;
+			}
+			if(Cell is CellContainer) {
+				stderr.printf("-> toggled_evaluation_cell -> Cell is CellContainer \n");
+				uint level = Cell->get_level();
+				if(level<=0)
+					return;
+				if(level > 1) {
+					toggled_container(1);
+				} stderr.printf("-> toggled_evaluation_cell -> Cell is CellContainer -> reduced to level 1\n");
+
+				parent = Cell->Parent;
+				if(parent == null) { stderr.printf("-> toggled_evaluation_cell -> Cell is CellContainer -> no parent\n");
+					return;
+				}
+
+				for(pos=0; pos < parent->Children.data.length; pos++) {
+					if(parent->Children.data[pos].name == Cell->name)
+						break;
+				} stderr.printf("-> toggled_evaluation_cell -> Cell is CellContainer -> parent position " + pos.to_string() + "\n");
+
+				if(pos >= parent->Children.data.length)
+					return;
+
+				//add new cell
+				EvaluationCell* newCell = new EvaluationCell(parent);
+				var offspring = ((ICellContainer*)Cell)->Children.data; 
+				newCell->set_text(Cell->get_text());
+				parent->remove_from(pos, 1, true);
+				parent->add_before(pos, { newCell });
+				newCell->focus();
+						
+				if(pos > 0) {
+					if(parent->Children.data[pos-1].get_level() >= 0) {
+						// hand children to older silbling
+						
+						parent->Children.data[pos-1].add_before(-1, offspring);
+						return;
+					}
+				}
+
+				stderr.printf("-> toggled_evaluation_cell -> Cell is CellContainer -> offspring length " + offspring.length.to_string() + "\n");
+				stderr.printf("-> toggled_evaluation_cell -> Cell is CellContainer -> offspring first name " + offspring[0].name + "\n");
+						
+				// give children to parent
+				parent->add_before(pos+1, offspring);
+				return;
+
+			}
+		}
+
+		private void toggled_text_cell() {stderr.printf("-> toggled_text_cell\n");
+			if(Cell is TextCell) { stderr.printf("-> toggled_text_cell -> already TextCell\n");
+				return;
+			}
 			int pos;
 			
-			if(Cell is EvaluationCell || Cell is TextCell) {
+			ICellContainer* parent = Cell->Parent;
+			if(parent == null) { stderr.printf("-> toggled_text_cell -> no parent\n");
+				return;
+			}
+
+			if(Cell is EvaluationCell) {stderr.printf("-> toggled_text_cell -> Cell is EvaluationCell\n");
+				for(pos=0; pos < parent->Children.data.length; pos++) {
+					if(parent->Children.data[pos].name == Cell->name)
+						break;
+				}
+
+				if(pos >= parent->Children.data.length)
+					return;
+
+				TextCell* newCell = new TextCell(parent);
+				newCell->set_text(Cell->get_text().printf());
+				parent->add_before(pos, { newCell });
+				newCell->focus();
+				parent->remove_from(pos+1, 1, true);
+
+				return;
+			}
+			if(Cell is CellContainer) {stderr.printf("-> toggled_text_cell -> Cell is CellContainer\n");
+
+				uint level = Cell->get_level();
+				if(level<=0)
+					return;
+				if(level > 1) {
+					for(; level > 1;)
+						toggled_container(level--);
+				}
+
+				for(pos=0; pos < parent->Children.data.length; pos++) {
+					if(parent->Children.data[pos].name == Cell->name)
+						break;
+				}
+
+				if(pos >= parent->Children.data.length)
+					return;
+
+				//add new cell
+				TextCell* newCell = new TextCell(parent);
+				var offspring = ((ICellContainer*)Cell)->Children.data;
+				newCell->set_text(Cell->get_text());
+				parent->remove_from(pos, 1, true);
+				parent->add_before(pos, { newCell });
+				newCell->focus();
+						
+				if(pos > 0) {
+					if(parent->Children.data[pos-1].get_level() > 0) {
+						// hand children to older silbling
+						parent->Children.data[pos-1].add_before(-1, offspring);
+						return;
+					}
+				}
+						
+				// give children to parent
+				parent->add_before(pos+1, offspring);
+				return;
+
+			}
+		}
+
+		private void toggled_container(uint toggled_level) {stderr.printf("-> toggled_container\n");
+			ICellContainer* parent = Cell->Parent;
+			if(parent == null) {stderr.printf("-> toggled_container -> no parent\n");
+				return;
+			}
+
+			int pos;
+			
+			if(Cell is EvaluationCell || Cell is TextCell) { stderr.printf("-> toggled_container -> Cell is TextCell || EvaluationCell\n");
 				for(pos=0; pos < parent->Children.data.length; pos++) {
 					if(parent->Children.data[pos].name == Cell->name)
 						break;
@@ -1081,12 +1132,13 @@ namespace Seaborg {
 
 				return;
 			}
-			if(Cell is CellContainer) {
+			if(Cell is CellContainer) {stderr.printf("-> toggled_container -> Cell is CellContainer\n");
 
 				uint old_level = Cell->get_level();
 				
-				if(old_level == toggled_level)
+				if(old_level == toggled_level) { stderr.printf("-> toggled_container -> already correct container\n");
 					return;
+				}
 
 				// this is an level-up -- just eat a couple of more children
 				if(old_level<toggled_level) {
@@ -1100,7 +1152,8 @@ namespace Seaborg {
 
 					// gradually lower level, so there is no need for nested eating silblings
 					((CellContainer*)Cell)->set_level(old_level-1);
-					
+					parent = Cell->Parent;
+
 					// find cell within parent
 					for(pos=0; pos < parent->Children.data.length; pos++) {
 						if(parent->Children.data[pos].name == Cell->name)
@@ -1157,4 +1210,5 @@ namespace Seaborg {
 		private RadioMenuItem SubSubSectionType;
 	}
 
+	public static void Debug(string str) {stderr.printf(str + "\n");}
 }
