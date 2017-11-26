@@ -1011,7 +1011,8 @@ namespace Seaborg {
 
 				//add new cell
 				EvaluationCell* newCell = new EvaluationCell(parent);
-				var offspring = ((ICellContainer*)Cell)->Children.data; 
+				var offspring = ((ICellContainer*)Cell)->Children.data;
+				((ICellContainer*)Cell)->remove_from(0, offspring.length, false); 
 				newCell->set_text(Cell->get_text());
 				parent->remove_from(pos, 1, true);
 				parent->add_before(pos, { newCell });
