@@ -1031,22 +1031,17 @@ namespace Seaborg {
 				newCell->set_text(Cell->get_text());
 				parent->remove_from(pos, 1, true);
 				parent->add_before(pos, { newCell });
+				parent->add_before(pos+1, offspring);
 				newCell->focus();
 						
 				if(pos > 0) {
-					if(parent->Children.data[pos-1].get_level() >= 0) {
-						// hand children to older silbling
-						
-						parent->Children.data[pos-1].add_before(-1, offspring);
-						return;
+					if(parent->Children.data[pos-1].get_level() >= 0 && parent->Children.data[pos-1] is CellContainer) {
+						((CellContainer)(parent->Children.data[pos-1])).eat_children();
 					}
 				}
 
 				stderr.printf("-> toggled_evaluation_cell -> Cell is CellContainer -> offspring length " + offspring.length.to_string() + "\n");
-				stderr.printf("-> toggled_evaluation_cell -> Cell is CellContainer -> offspring first name " + offspring[0].name + "\n");
 						
-				// give children to parent
-				parent->add_before(pos+1, offspring);
 				return;
 
 			}
@@ -1080,43 +1075,46 @@ namespace Seaborg {
 
 				return;
 			}
-			if(Cell is CellContainer) {stderr.printf("-> toggled_text_cell -> Cell is CellContainer\n");
-
+			if(Cell is CellContainer) {
+				stderr.printf("-> toggled_text_cell -> Cell is CellContainer \n");
 				uint level = Cell->get_level();
 				if(level<=0)
 					return;
 				if(level > 1) {
-					for(; level > 1;)
-						toggled_container(level--);
+					toggled_container(1);
+				} stderr.printf("-> toggled_text_cell -> Cell is CellContainer -> reduced to level 1\n");
+
+				parent = Cell->Parent;
+				if(parent == null) { stderr.printf("-> toggled_text_cell -> Cell is CellContainer -> no parent\n");
+					return;
 				}
 
 				for(pos=0; pos < parent->Children.data.length; pos++) {
 					if(parent->Children.data[pos].name == Cell->name)
 						break;
-				}
+				} stderr.printf("-> toggled_text_cell -> Cell is CellContainer -> parent position " + pos.to_string() + "\n");
 
 				if(pos >= parent->Children.data.length)
 					return;
 
 				//add new cell
-				TextCell* newCell = new TextCell(parent);
+				EvaluationCell* newCell = new TextCell(parent);
 				var offspring = ((ICellContainer*)Cell)->Children.data;
 				((ICellContainer*)Cell)->remove_from(0, offspring.length, false); 
 				newCell->set_text(Cell->get_text());
 				parent->remove_from(pos, 1, true);
 				parent->add_before(pos, { newCell });
+				parent->add_before(pos+1, offspring);
 				newCell->focus();
 						
 				if(pos > 0) {
-					if(parent->Children.data[pos-1].get_level() > 0) {
-						// hand children to older silbling
-						parent->Children.data[pos-1].add_before(-1, offspring);
-						return;
+					if(parent->Children.data[pos-1].get_level() >= 0 && parent->Children.data[pos-1] is CellContainer) {
+						((CellContainer)(parent->Children.data[pos-1])).eat_children();
 					}
 				}
+
+				stderr.printf("-> toggled_text_cell -> Cell is CellContainer -> offspring length " + offspring.length.to_string() + "\n");
 						
-				// give children to parent
-				parent->add_before(pos+1, offspring);
 				return;
 
 			}
@@ -1159,6 +1157,7 @@ namespace Seaborg {
 
 				// this is an level-up -- just eat a couple of more children
 				if(old_level<toggled_level) {
+					Debug("-> toggled_container -> container upgrade");
 					((CellContainer*)Cell)->set_level(toggled_level);
 					((CellContainer*)Cell)->eat_children();
 					return;
@@ -1166,6 +1165,7 @@ namespace Seaborg {
 
 				// downgrade - throw up some children
 				if(old_level > toggled_level) {
+					Debug("-> toggled_container -> container downgrade (" + old_level.to_string() + "->" + toggled_level.to_string() + ")");
 
 					// gradually lower level, so there is no need for nested eating silblings
 					((CellContainer*)Cell)->set_level(old_level-1);
@@ -1186,25 +1186,31 @@ namespace Seaborg {
 					}
 
 					// no need to throw up children
-					if(internal_pos >= offspring.length)
-						return;
+					if(internal_pos < offspring.length) {
+						Debug("-> toggled_container -> children to throw up");
 
-					// transfer to parent
-					offspring = offspring[internal_pos : offspring.length];
-					((CellContainer*)Cell)->remove_from(internal_pos, offspring.length, false);
-					parent->add_before(pos+1, offspring);
+						// transfer to parent
+						offspring = offspring[internal_pos : offspring.length];
+						((CellContainer*)Cell)->remove_from(internal_pos, offspring.length, false);
+						parent->add_before(pos+1, offspring);
+						string dbgstr = "-> toggled_container -> throw up children[" + parent->Children.data.length.to_string() + "] { ";
+						for(int d=0; d<parent->Children.data.length; d++) dbgstr += parent->Children.data[d].Parent->name + "." + parent->Children.data[d].name + ", ";
+						Debug(dbgstr + " }");
 
-					// let last released child eat former uncle
-					if(pos+offspring.length+1 < parent->Children.data.length) {
-						if(parent->Children.data[pos+offspring.length+1].get_level() < parent->Children.data[pos+offspring.length].get_level()) {
-							((CellContainer)parent->Children.data[pos+offspring.length]).eat_children();
+						// let last released child eat former uncle
+						if(pos+offspring.length+1 < parent->Children.data.length) {
+							if(parent->Children.data[pos+offspring.length+1].get_level() < parent->Children.data[pos+offspring.length].get_level()) {
+								((CellContainer)parent->Children.data[pos+offspring.length]).eat_children();
+								Debug("-> toggled_container -> released child eats uncle");
+							}
 						}
-					}
 
-					// let next oldest silbling of Cell eat children now
-					if(pos > 0) {
-						if(parent->Children.data[pos-1].get_level() > parent->Children.data[pos].get_level())
-							((CellContainer)parent->Children.data[pos-1]).eat_children();
+						// let next oldest silbling of Cell eat children now
+						if(pos > 0) {
+							if(parent->Children.data[pos-1].get_level() > parent->Children.data[pos].get_level())
+								((CellContainer)parent->Children.data[pos-1]).eat_children();
+								Debug("-> toggled_container -> older sibling eats some children");
+						}
 					}
 
 					//next recursion step
