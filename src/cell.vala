@@ -137,7 +137,7 @@ namespace Seaborg {
 					attach(AddButtons.data[pos+1+i], 1,  2*(pos+i)+2, 1, 1);
 			}
 			dbgstr = "-> Notebook " + this.name + " -> add_before -> children[" + Children.data.length.to_string() + "] {";
-			for(int d=0; d<Children.data.length; d++) dbgstr +=  list[d].Parent->name + "." + list[d].name + ", ";
+			for(int d=0; d<Children.data.length; d++) dbgstr +=  Children.data[d].Parent->name + "." + Children.data[d].name + ", ";
 			Debug(dbgstr + "}");
 			this.show_all();
 
