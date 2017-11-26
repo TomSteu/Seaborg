@@ -115,9 +115,6 @@ namespace Seaborg {
 		}
 
 		public void add_before(int pos, ICell[] list) {
-			var dbgstr = "-> Notebook " + this.name +" -> add_before(" + pos.to_string() + ", {";
-			for(int d=0; d<list.length; d++) dbgstr +=  list[d].name + ", ";
-			Debug(dbgstr + "})");
 
 			int old_len = (int)(Children.length);
 			if(pos < 0 ) pos += old_len + 1;
@@ -136,15 +133,13 @@ namespace Seaborg {
 					attach(Children.data[pos+i], 1, 2*(pos+i)+1, 1, 1);
 					attach(AddButtons.data[pos+1+i], 1,  2*(pos+i)+2, 1, 1);
 			}
-			dbgstr = "-> Notebook " + this.name + " -> add_before -> children[" + Children.data.length.to_string() + "] {";
-			for(int d=0; d<Children.data.length; d++) dbgstr +=  Children.data[d].Parent->name + "." + Children.data[d].name + ", ";
-			Debug(dbgstr + "}");
+
 			this.show_all();
 
 		}
 
 		public void remove_from(int pos, int number, bool trash) {
-			Debug("-> Notebook " + this.name + " -> remove_from(" + pos.to_string() + ", " + number.to_string() + ", " + trash.to_string() + ")");
+
 			if(pos < 0 || number <= 0)
 				return;
 
@@ -167,9 +162,6 @@ namespace Seaborg {
 			Children.remove_range(pos, number);
 			AddButtons.remove_range(pos+1, number);
 			for(int i=1; i <= 2*number; i++) remove_row(2*pos+1);
-			string dbgstr = "-> Notebook " + this.name + " -> remove_from -> children[" + Children.data.length.to_string() + "] { ";
-			for(int d=0; d<Children.data.length; d++) dbgstr += Children.data[d].Parent->name + "." + Children.data[d].name + ", ";
-			Debug(dbgstr + "}");
 
 		}
 
@@ -302,7 +294,6 @@ namespace Seaborg {
 		}
 
 		public void eat_children() {
-			Debug("-> Container " + this.name + " -> eat_children");
 
 			if(Parent == null) return;
 
@@ -310,7 +301,7 @@ namespace Seaborg {
 
 			// eat younger silblings and transfer to parent
 			if(Parent->get_level() <= Level) {
-				Debug("-> Container " + this.name + " -> eat_children -> fall through parent");
+
 				int par_len = Parent->Children.data.length;
 
 				// find out position within parent
@@ -325,12 +316,6 @@ namespace Seaborg {
 					Parent->remove_from(this_position+1, par_len - 1 - this_position, false);
 					add_before(-1, cells);					
 				}
-
-					string dbgstr = "-> Container " + this.name + " -> eat_children -> fall through parent -> absorbed children[" + Children.data.length.to_string() + "] {";
-					for(int d=0; d<Children.data.length; d++) {
-						dbgstr += Children.data[d].Parent->name + "." + Children.data[d].name + ", ";
-					}
-					Debug(dbgstr + "}");
 				
 				// put Container from parent into grandparent
 				if(Parent->Parent != null) {
@@ -352,11 +337,8 @@ namespace Seaborg {
 
 				}
 
-				Debug("-> Container " + this.name + " -> eat_children -> fall through parent -> no grandparent");
-
 			} else {
 
-				Debug("-> Container " + this.name + " -> eat_children -> no fall-through");
 				int next_position=-1;
 				
 				// find out where the next container (e.g. section) of the same or higher level is
@@ -405,9 +387,6 @@ namespace Seaborg {
 		}
 
 		public void add_before(int pos, ICell[] list) {
-			var dbgstr = "-> Container " + this.name +" -> add_before(" + pos.to_string() + ", {";
-			for(int d=0; d<list.length; d++) dbgstr +=  list[d].name + ", ";
-			Debug(dbgstr + "})");
 
 			int old_len = (int)(Children.length);
 			if(pos < 0 ) pos += old_len + 1;
@@ -434,15 +413,13 @@ namespace Seaborg {
 				insert_column(0);
 				attach(Marker, 0, 0, 1, 2*((int)(Children.length)+1));
 			}
-			dbgstr = "-> Container " + this.name + " -> add_before -> children[" + Children.data.length.to_string() + "] {";
-			for(int d=0; d<Children.data.length; d++) dbgstr +=  Children.data[d].Parent->name + "." + Children.data[d].name + ", ";
-			Debug(dbgstr + "}");
+
 			show_all();
 
 		}
 
 		public void remove_from(int pos, int number, bool trash) {
-			Debug("-> Container " + this.name + " -> remove_from(" + pos.to_string() + ", " + number.to_string() + ", " + trash.to_string() + ")");			
+
 			if(pos < 0 || number <= 0)
 				return;
 
@@ -464,9 +441,6 @@ namespace Seaborg {
 			Children.remove_range(pos, number);
 			AddButtons.remove_range(pos+1, number);
 			for(int i=1; i <= 2*number; i++) remove_row(2*pos+2);
-			string dbgstr = "-> Container " + this.name + " -> remove_from -> children[" + Children.data.length.to_string() + "] { ";
-			for(int d=0; d<Children.data.length; d++) dbgstr += Children.data[d].Parent->name + "." + Children.data[d].name + ", ";
-			Debug(dbgstr + "}");
 		}
 
 		public void toggle_all() {
@@ -972,20 +946,17 @@ namespace Seaborg {
 		}
 
 		private void toggled_evaluation_cell() {
-			stderr.printf("-> toggled_evaluation_cell \n");
-			if(Cell is EvaluationCell) {stderr.printf("-> toggled_evaluation_cell -> already EvaluationCell \n");
+
+			if(Cell is EvaluationCell) 
 				return;
-			}
+
 
 			int pos;
 			ICellContainer* parent = Cell->Parent;
-			if(parent == null) { stderr.printf("-> toggled_evaluation_cell -> no parent \n");
+			if(parent == null) 
 				return;
-			}
-
 
 			if(Cell is TextCell) {
-				stderr.printf("-> toggled_evaluation_cell -> Cell is TextCell \n");
 				for(pos=0; pos < parent->Children.data.length; pos++) {
 					if(parent->Children.data[pos].name == Cell->name)
 						break;
@@ -1003,23 +974,22 @@ namespace Seaborg {
 				return;
 			}
 			if(Cell is CellContainer) {
-				stderr.printf("-> toggled_evaluation_cell -> Cell is CellContainer \n");
+
 				uint level = Cell->get_level();
 				if(level<=0)
 					return;
 				if(level > 1) {
 					toggled_container(1);
-				} stderr.printf("-> toggled_evaluation_cell -> Cell is CellContainer -> reduced to level 1\n");
+				}
 
 				parent = Cell->Parent;
-				if(parent == null) { stderr.printf("-> toggled_evaluation_cell -> Cell is CellContainer -> no parent\n");
+				if(parent == null)
 					return;
-				}
 
 				for(pos=0; pos < parent->Children.data.length; pos++) {
 					if(parent->Children.data[pos].name == Cell->name)
 						break;
-				} stderr.printf("-> toggled_evaluation_cell -> Cell is CellContainer -> parent position " + pos.to_string() + "\n");
+				}
 
 				if(pos >= parent->Children.data.length)
 					return;
@@ -1039,26 +1009,23 @@ namespace Seaborg {
 						((CellContainer)(parent->Children.data[pos-1])).eat_children();
 					}
 				}
-
-				stderr.printf("-> toggled_evaluation_cell -> Cell is CellContainer -> offspring length " + offspring.length.to_string() + "\n");
 						
 				return;
 
 			}
 		}
 
-		private void toggled_text_cell() {stderr.printf("-> toggled_text_cell\n");
-			if(Cell is TextCell) { stderr.printf("-> toggled_text_cell -> already TextCell\n");
+		private void toggled_text_cell() {
+			if(Cell is TextCell)
 				return;
-			}
+
 			int pos;
 			
 			ICellContainer* parent = Cell->Parent;
-			if(parent == null) { stderr.printf("-> toggled_text_cell -> no parent\n");
+			if(parent == null)
 				return;
-			}
 
-			if(Cell is EvaluationCell) {stderr.printf("-> toggled_text_cell -> Cell is EvaluationCell\n");
+			if(Cell is EvaluationCell) {
 				for(pos=0; pos < parent->Children.data.length; pos++) {
 					if(parent->Children.data[pos].name == Cell->name)
 						break;
@@ -1068,7 +1035,7 @@ namespace Seaborg {
 					return;
 
 				TextCell* newCell = new TextCell(parent);
-				newCell->set_text(Cell->get_text().printf());
+				newCell->set_text(Cell->get_text());
 				parent->add_before(pos, { newCell });
 				newCell->focus();
 				parent->remove_from(pos+1, 1, true);
@@ -1076,23 +1043,22 @@ namespace Seaborg {
 				return;
 			}
 			if(Cell is CellContainer) {
-				stderr.printf("-> toggled_text_cell -> Cell is CellContainer \n");
+
 				uint level = Cell->get_level();
 				if(level<=0)
 					return;
 				if(level > 1) {
 					toggled_container(1);
-				} stderr.printf("-> toggled_text_cell -> Cell is CellContainer -> reduced to level 1\n");
+				}
 
 				parent = Cell->Parent;
-				if(parent == null) { stderr.printf("-> toggled_text_cell -> Cell is CellContainer -> no parent\n");
+				if(parent == null)
 					return;
-				}
 
 				for(pos=0; pos < parent->Children.data.length; pos++) {
 					if(parent->Children.data[pos].name == Cell->name)
 						break;
-				} stderr.printf("-> toggled_text_cell -> Cell is CellContainer -> parent position " + pos.to_string() + "\n");
+				}
 
 				if(pos >= parent->Children.data.length)
 					return;
@@ -1113,22 +1079,19 @@ namespace Seaborg {
 					}
 				}
 
-				stderr.printf("-> toggled_text_cell -> Cell is CellContainer -> offspring length " + offspring.length.to_string() + "\n");
-						
 				return;
 
 			}
 		}
 
-		private void toggled_container(uint toggled_level) {stderr.printf("-> toggled_container\n");
+		private void toggled_container(uint toggled_level) {
 			ICellContainer* parent = Cell->Parent;
-			if(parent == null) {stderr.printf("-> toggled_container -> no parent\n");
+			if(parent == null)
 				return;
-			}
 
 			int pos;
 			
-			if(Cell is EvaluationCell || Cell is TextCell) { stderr.printf("-> toggled_container -> Cell is TextCell || EvaluationCell\n");
+			if(Cell is EvaluationCell || Cell is TextCell) {
 				for(pos=0; pos < parent->Children.data.length; pos++) {
 					if(parent->Children.data[pos].name == Cell->name)
 						break;
@@ -1147,17 +1110,15 @@ namespace Seaborg {
 
 				return;
 			}
-			if(Cell is CellContainer) {stderr.printf("-> toggled_container -> Cell is CellContainer\n");
+			if(Cell is CellContainer) {
 
 				uint old_level = Cell->get_level();
 				
-				if(old_level == toggled_level) { stderr.printf("-> toggled_container -> already correct container\n");
+				if(old_level == toggled_level)
 					return;
-				}
 
 				// this is an level-up -- just eat a couple of more children
 				if(old_level<toggled_level) {
-					Debug("-> toggled_container -> container upgrade");
 					((CellContainer*)Cell)->set_level(toggled_level);
 					((CellContainer*)Cell)->eat_children();
 					return;
@@ -1165,7 +1126,6 @@ namespace Seaborg {
 
 				// downgrade - throw up some children
 				if(old_level > toggled_level) {
-					Debug("-> toggled_container -> container downgrade (" + old_level.to_string() + "->" + toggled_level.to_string() + ")");
 
 					// gradually lower level, so there is no need for nested eating silblings
 					((CellContainer*)Cell)->set_level(old_level-1);
@@ -1187,21 +1147,16 @@ namespace Seaborg {
 
 					// no need to throw up children
 					if(internal_pos < offspring.length) {
-						Debug("-> toggled_container -> children to throw up");
 
 						// transfer to parent
 						offspring = offspring[internal_pos : offspring.length];
 						((CellContainer*)Cell)->remove_from(internal_pos, offspring.length, false);
 						parent->add_before(pos+1, offspring);
-						string dbgstr = "-> toggled_container -> throw up children[" + parent->Children.data.length.to_string() + "] { ";
-						for(int d=0; d<parent->Children.data.length; d++) dbgstr += parent->Children.data[d].Parent->name + "." + parent->Children.data[d].name + ", ";
-						Debug(dbgstr + " }");
 
 						// let last released child eat former uncle
 						if(pos+offspring.length+1 < parent->Children.data.length) {
 							if(parent->Children.data[pos+offspring.length+1].get_level() < parent->Children.data[pos+offspring.length].get_level()) {
 								((CellContainer)parent->Children.data[pos+offspring.length]).eat_children();
-								Debug("-> toggled_container -> released child eats uncle");
 							}
 						}
 
@@ -1209,7 +1164,6 @@ namespace Seaborg {
 						if(pos > 0) {
 							if(parent->Children.data[pos-1].get_level() > parent->Children.data[pos].get_level())
 								((CellContainer)parent->Children.data[pos-1]).eat_children();
-								Debug("-> toggled_container -> older sibling eats some children");
 						}
 					}
 
@@ -1232,6 +1186,4 @@ namespace Seaborg {
 		private RadioMenuItem SubSectionType;
 		private RadioMenuItem SubSubSectionType;
 	}
-
-	public static void Debug(string str) {stderr.printf(str + "\n");}
 }
