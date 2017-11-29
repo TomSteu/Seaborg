@@ -67,13 +67,6 @@ namespace Seaborg {
 				            "<child>"+
 				              "<object class=\"GtkShortcutsShortcut\">"+
 				                "<property name=\"visible\">1</property>"+
-				                "<property name=\"accelerator\">&lt;Primary&gt;Escape</property>"+
-				                "<property name=\"title\" translatable=\"yes\">Untoggle all cells</property>"+
-				              "</object>"+
-				            "</child>"+
-				            "<child>"+
-				              "<object class=\"GtkShortcutsShortcut\">"+
-				                "<property name=\"visible\">1</property>"+
 				                "<property name=\"accelerator\">&lt;ctrl&gt;D &lt;ctrl&gt;Delete</property>"+
 				                "<property name=\"title\" translatable=\"yes\">Delete selected cells</property>"+
 				              "</object>"+
@@ -134,7 +127,6 @@ namespace Seaborg {
 			var open_action = new GLib.SimpleAction("open", null);
 			var save_action = new GLib.SimpleAction("save", null);
 			var remove_action = new GLib.SimpleAction("rm", null);
-			var untoggle_action = new GLib.SimpleAction("untoggle", null);
 
 			new_action.activate.connect(() => {
 			});
@@ -149,10 +141,6 @@ namespace Seaborg {
 				notebook.remove_recursively();
 			});
 
-			untoggle_action.activate.connect(() => {
-				notebook.untoggle_all();
-			});
-
 
 			this.add_action(new_action);
 			this.add_action(open_action);
@@ -165,14 +153,12 @@ namespace Seaborg {
 			const string[] open_accels = {"<Control>O", null};
 			const string[] save_accels = {"<Control>S", null};
 			const string[] rm_accels = {"<Control>Delete","<Control>D", null};
-			const string[] untoggle_accels ={"Escape", null};
 			const string[] shortcut_accels ={"<Control>F1", "<Control>question",null};
 
 			this.set_accels_for_action("app.new", new_accels);
 			this.set_accels_for_action("app.open", open_accels);
 			this.set_accels_for_action("app.save", save_accels);
 			this.set_accels_for_action("app.rm", rm_accels);
-			this.set_accels_for_action("app.untoggle", untoggle_accels);
 			this.set_accels_for_action("win.show-help-overlay", shortcut_accels);
 			
 			// connecting kernel
