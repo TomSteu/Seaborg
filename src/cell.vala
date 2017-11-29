@@ -21,6 +21,26 @@ namespace Seaborg {
 		public abstract void set_text(string _text);
 		public abstract string get_text();
 
+		public bool untoggle_handler(EventButton event) {
+
+			if(event.type == Gdk.EventType.BUTTON_PRESS && event.button == 1) {
+				if(Parent == null) {
+					untoggle_all();
+				} else {
+					ICellContainer* par = Parent;
+					while(true) {
+						if(par->Parent == null)
+							break;
+						par = par->Parent;
+					}
+					par->untoggle_all();
+				}
+			}
+
+			return false;
+
+		}
+
 	}
 
 	public interface ICellContainer : ICell {
@@ -270,6 +290,7 @@ namespace Seaborg {
 			Title.right_margin = 0;
 			Title.top_margin = 0;
 			Title.bottom_margin = 0;
+			Title.button_press_event.connect(untoggle_handler);
 
 
 			set_level(level);
@@ -596,7 +617,8 @@ namespace Seaborg {
 			InputCell.left_margin = 0;
 			InputCell.right_margin = 0;
 			InputCell.top_margin = 0;
-			InputCell.bottom_margin = 0;		
+			InputCell.bottom_margin = 0;
+			InputCell.button_press_event.connect(untoggle_handler);	
 
 			OutputBuffer = new Gtk.SourceBuffer(null);
 			OutputBuffer.highlight_matching_brackets = true;
@@ -620,6 +642,7 @@ namespace Seaborg {
 			OutputCell.right_margin = 0;
 			OutputCell.top_margin = 0;
 			OutputCell.bottom_margin = 0;
+			OutputCell.button_press_event.connect(untoggle_handler);
 
 			Marker = new Gtk.ToggleButton();
 			var style_context = Marker.get_style_context();
@@ -756,6 +779,7 @@ namespace Seaborg {
 			Cell.right_margin = 0;
 			Cell.top_margin = 0;
 			Cell.bottom_margin = 0;
+			Cell.button_press_event.connect(untoggle_handler);
 
 			Marker = new Gtk.ToggleButton();
 			Marker.get_style_context().add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
