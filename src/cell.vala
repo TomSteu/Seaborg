@@ -16,7 +16,7 @@ namespace Seaborg {
 		public abstract void remove_recursively();
 		public abstract void add_before(int pos, ICell[] list);
 		public abstract void remove_from(int pos, int number, bool trash);
-		public abstract void focus();
+		public abstract void focus_cell();
 		public abstract ICellContainer* Parent {get; set;}
 		public abstract void set_text(string _text);
 		public abstract string get_text();
@@ -231,9 +231,9 @@ namespace Seaborg {
 			return Level;
 		}
 
-		public void focus() {
+		public void focus_cell() {
 			if(Children.length > 0)
-				Children.data[0].focus();
+				Children.data[0].focus_cell();
 		}
 
 		public void set_text(string _text) {}
@@ -541,7 +541,7 @@ namespace Seaborg {
 
 		}
 
-		public void focus() {
+		public void focus_cell() {
 			Title.grab_focus();
 		}
 
@@ -707,7 +707,7 @@ namespace Seaborg {
 			return Marker.sensitive ? Marker.active : false;
 		}
 
-		public void focus() {
+		public void focus_cell() {
 			InputCell.grab_focus();
 		}
 
@@ -810,7 +810,7 @@ namespace Seaborg {
 			return 0;
 		}
 
-		public void focus() {
+		public void focus_cell() {
 			Cell.grab_focus();
 		}
 
@@ -889,7 +889,7 @@ namespace Seaborg {
 						CellContainer* newCell = new CellContainer(Parent, lev);
 						Parent->add_before(pos, {newCell});
 						newCell->eat_children();
-						newCell->focus();
+						newCell->focus_cell();
 						return;
 					}
 				}
@@ -897,7 +897,7 @@ namespace Seaborg {
 				// add evaluation cell as default behaviour
 				EvaluationCell* newCell = new EvaluationCell(Parent);
 				Parent->add_before(pos, {newCell});
-				newCell->focus();
+				newCell->focus_cell();
 			}
 		}
 
@@ -992,7 +992,7 @@ namespace Seaborg {
 				EvaluationCell* newCell = new EvaluationCell(Cell->Parent);
 				newCell->set_text(Cell->get_text());
 				parent->add_before(pos, { newCell });
-				newCell->focus();
+				newCell->focus_cell();
 				parent->remove_from(pos+1, 1, true);
 
 				return;
@@ -1026,7 +1026,7 @@ namespace Seaborg {
 				parent->remove_from(pos, 1, true);
 				parent->add_before(pos, { newCell });
 				parent->add_before(pos+1, offspring);
-				newCell->focus();
+				newCell->focus_cell();
 						
 				if(pos > 0) {
 					if(parent->Children.data[pos-1].get_level() >= 0 && parent->Children.data[pos-1] is CellContainer) {
@@ -1061,7 +1061,7 @@ namespace Seaborg {
 				TextCell* newCell = new TextCell(parent);
 				newCell->set_text(Cell->get_text());
 				parent->add_before(pos, { newCell });
-				newCell->focus();
+				newCell->focus_cell();
 				parent->remove_from(pos+1, 1, true);
 
 				return;
@@ -1095,7 +1095,7 @@ namespace Seaborg {
 				parent->remove_from(pos, 1, true);
 				parent->add_before(pos, { newCell });
 				parent->add_before(pos+1, offspring);
-				newCell->focus();
+				newCell->focus_cell();
 						
 				if(pos > 0) {
 					if(parent->Children.data[pos-1].get_level() >= 0 && parent->Children.data[pos-1] is CellContainer) {
@@ -1127,7 +1127,7 @@ namespace Seaborg {
 
 				CellContainer* newCell = new CellContainer(parent, toggled_level);	
 				newCell->set_text(Cell->get_text());	
-				newCell->focus();
+				newCell->focus_cell();
 				parent->remove_from(pos, 1, true);
 				parent->add_before(pos, { newCell });
 				((CellContainer)(parent->Children.data[pos])).eat_children();
