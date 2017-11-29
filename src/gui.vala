@@ -146,7 +146,6 @@ namespace Seaborg {
 			this.add_action(open_action);
 			this.add_action(save_action);
 			this.add_action(remove_action);
-			this.add_action(untoggle_action);
 
 
 			const string[] new_accels = {"<Control>N", null};
