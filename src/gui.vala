@@ -1,20 +1,10 @@
 using Gtk;
 using GLib;
 
-// [CCode (cheader_filename = "include/wstp_connection.h")]
 namespace Seaborg {
 
-	/*[SimpleType]
-    [CCode (cname = "WstpConnection", has_type_id = false)]
-    public struct WstpConnection {
-    }*/
-    
-
-	/*[CCode(cname = "init_connection", cheader_filename = "wstp_connection.h")]
-	public extern WstpConnection init_connection(string  path);*/
-
 	public class SeaborgApplication : Gtk.Application {
-		
+
 		protected override void activate() {
 
 			this.set_resource_base_path("/tst/seaborg/./res/");
@@ -190,6 +180,20 @@ namespace Seaborg {
 
 		}
 
+		[CCode(cname = "init_connection", cheader_filename = "wstp_connection.h")]
+		private extern void* init_connection(char* path);
+
+		[CCode(cname = "close_connection", cheader_filename = "wstp_connection.h")]
+		private extern void close_connection(void* connection);
+
+		[CCode(cname = "abort_calculation", cheader_filename = "wstp_connection.h")]
+		private extern int abort_calculation(void* connection);
+
+		private static delegate void callback_str(char* string_to_write);
+
+		[CCode(cname = "evaluate", cheader_filename = "wstp_connection.h")]
+		private extern void evaluate(void* con, char* input, callback_str callback);
+
 		private Gtk.ApplicationWindow main_window;
 		private Gtk.HeaderBar main_headerbar;
 		private Gtk.StackSwitcher tab_switcher;
@@ -198,6 +202,7 @@ namespace Seaborg {
 		private Gtk.ScrolledWindow notebook_scroll;
 		private Seaborg.Notebook notebook;
 		private Gtk.ShortcutsWindow shortcuts;
+		private void* kernel_connection;
 	}
 
 

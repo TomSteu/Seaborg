@@ -21,14 +21,14 @@ typedef struct {
 	LINKPREFIXENV env;
 } WstpConnection;
 
-WstpConnection init_connection(const char*);
+void* init_connection(const char*);
 
-void close_connection(WstpConnection*);
+void close_connection(void*);
 
-int abort_calculation(WstpConnection*);
+int abort_calculation(void*);
 
-char* handle_link_error(WstpConnection*);
+char* handle_link_error(void*);
 
-void evaluate(WstpConnection* connection, const char* input, void (*callback)(char*));
+void evaluate(void* con, const char* input, void (*callback)(char*));
 
 #endif // header guard
