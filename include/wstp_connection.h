@@ -21,6 +21,10 @@ typedef struct {
 	LINKPREFIXENV env;
 } WstpConnection;
 
+int check_connection(void* con);
+
+int try_abort(void* con);
+
 void* init_connection(const char*);
 
 void close_connection(void*);

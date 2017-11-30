@@ -161,8 +161,16 @@ namespace Seaborg {
 			this.set_accels_for_action("win.show-help-overlay", shortcut_accels);
 			
 			// connecting kernel
+			reset_kernel();
 
 
+		}
+
+		private void reset_kernel() {
+			/*if(check_connection(kernel_connection) != -1)
+				close_connection(kernel_connection);
+
+			kernel_connection = init_connection("math"); */
 		}
 
 		[CCode(cname = "init_connection", cheader_filename = "wstp_connection.h")]
@@ -178,6 +186,12 @@ namespace Seaborg {
 
 		[CCode(cname = "evaluate", cheader_filename = "wstp_connection.h")]
 		private extern void evaluate(void* con, char* input, callback_str callback);
+
+		[CCode(cname = "check_connection", cheader_filename = "wstp_connection.h")]
+		private extern int check_connection(void* con);
+
+		[CCode(cname = "try_abort", cheader_filename = "wstp_connection.h")]
+		private extern int try_abort(void* con);
 
 		private Gtk.ApplicationWindow main_window;
 		private Gtk.HeaderBar main_headerbar;

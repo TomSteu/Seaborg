@@ -63,6 +63,27 @@
 
 #endif
 
+int check_connection(void* con) {
+	WstpConnection* connection = (WstpConnection*) con;
+	if(!connection)
+		return -1;
+	return connection->active;
+}
+
+int try_abort(void* con) {
+	
+	WstpConnection* connection = (WstpConnection*) con;
+	if(!connection)
+		return -1;
+
+	if(connection->active == 1) {
+		connection->active=2;
+	}
+
+	return connection->active;
+
+}
+
 void* init_connection(const char* path) {
 	
 	int error = 0;
@@ -130,6 +151,12 @@ void evaluate(void* con, const char* input, void (*callback)(char*))
 	if(!connection)
 		return;
 
+	// if abort was sent but got stuck
+	if(connection->active == 2) {
+		connection->active = 1;
+		return;
+	}
+
 	// send input
 	if(connection->active != 1) return;
 	if(! LINKPREFIXPUTFUNCTION(connection->link, "EvaluatePacket", 1)) {
@@ -169,7 +196,7 @@ void evaluate(void* con, const char* input, void (*callback)(char*))
 	while(await == 0) 
 	{
 		// check for abort
-		if(connection->active = -1) {
+		if(connection->active == 2) {
 			if(! abort_calculation(connection)) {
 				// abort failed
 				connection->active = 0;

@@ -12,7 +12,9 @@ wstp_connection.o:
 	$(CC) $(CCFLAGS) -c ./src/wstp_connection.c -o ./build/wstp_connection.o -I./include/ -I$(WSTPDIR) 
 
 .PHONY: all
-all: wstp_connection.o
+all: wstp_connection.o vala
+	$(CC) $(CCFLAGS) -c ./build/src/cell.c -o ./build/cell.o
+	$(CC) $(CCFLAGS) -c ./build/src/gui.c -o ./build/gui.o
 	
 .PHONY: vala
 vala:
@@ -24,5 +26,5 @@ clean:
 
 .PHONY: test
 test: 
-	$(VALAC) $(VALAFLAGS) ./src/gui.vala  ./src/cell.vala -o ./bin/seaborg  --pkg gtk+-3.0 --pkg gtksourceview-3.0
+	$(VALAC) $(VALAFLAGS) ./src/gui.vala  ./src/cell.vala  -o ./bin/seaborg  --pkg gtk+-3.0 --pkg gtksourceview-3.0
 	./bin/seaborg
