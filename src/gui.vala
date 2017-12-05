@@ -167,10 +167,13 @@ namespace Seaborg {
 		}
 
 		private void reset_kernel() {
-			/*if(check_connection(kernel_connection) != -1)
-				close_connection(kernel_connection);
+			if(kernel_connection != null) {
+				if(check_connection(kernel_connection) != -1) {
+					close_connection(kernel_connection);
+				}
+			}
 
-			kernel_connection = init_connection("math"); */
+			kernel_connection = init_connection("math");
 		}
 
 		[CCode(cname = "init_connection", cheader_filename = "wstp_connection.h")]
