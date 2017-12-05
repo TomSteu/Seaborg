@@ -124,7 +124,7 @@ namespace Seaborg {
 		public void remove_recursively() {
 			int i;
 			for(i=(int)(Children.length)-1; i >= 0; i--) {
-				if(Children.data[i].marker_selected()) {
+				if(Children.data[i].marker_selected() && (! Children.data[i].lock)) {
 					remove_from(i,1,true);
 				}
 			}
@@ -218,7 +218,11 @@ namespace Seaborg {
 			}
 
 			get {
-				return false;
+				for(int i=0; i<Children.data.length; i++) {
+					if(Children.data[i].lock)
+						return true;
+				}
+				 return false;
 			}
 		}
 		
@@ -398,7 +402,7 @@ namespace Seaborg {
 		public void remove_recursively() {
 			int i;
 			for(i=(int)(Children.length)-1; i >= 0; i--) {
-				if(Children.index(i).marker_selected()) {
+				if(Children.index(i).marker_selected() && (! Children.index(i).lock)) {
 					remove_from(i,1,true);
 				}
 			}
@@ -505,15 +509,17 @@ namespace Seaborg {
 
 		public bool lock {
 			set {
-
 				for(int i=0; i<Children.data.length; i++) {
 					Children.data[i].lock = value;
 				}
 			}
 
 			get {
-
-				return false;
+				for(int i=0; i<Children.data.length; i++) {
+					if(Children.data[i].lock)
+						return true;
+				}
+				 return false;
 			}
 		}
 
