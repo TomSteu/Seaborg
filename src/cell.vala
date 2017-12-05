@@ -9,8 +9,6 @@ namespace Seaborg {
 		public abstract void untoggle_all();
 		public abstract void expand_all();
 		public abstract void collapse_all();
-		public abstract void schedule_evaluation();
-		public abstract void unschedule_evaluation();
 		public abstract bool marker_selected();
 		public abstract uint get_level();
 		public abstract void remove_recursively();
@@ -20,6 +18,7 @@ namespace Seaborg {
 		public abstract ICellContainer* Parent {get; set;}
 		public abstract void set_text(string _text);
 		public abstract string get_text();
+		public abstract bool lock {get; set;}
 
 		public bool untoggle_handler(EventButton event) {
 
@@ -211,17 +210,18 @@ namespace Seaborg {
 			}
 		}
 
-		public void schedule_evaluation() {
-			for(int i=0; i<Children.data.length; i++) {
-				Children.data[i].schedule_evaluation();
+		public bool lock {
+			set {
+				for(int i=0; i<Children.data.length; i++) {
+					Children.data[i].lock = value;
+				}
 			}
-		}
 
-		public void unschedule_evaluation() {
-			for(int i=0; i<Children.data.length; i++) {
-				Children.data[i].unschedule_evaluation();
+			get {
+				return false;
 			}
 		}
+		
 
 		public bool marker_selected() {
 			return Marker.sensitive ? Marker.active : false;
@@ -503,15 +503,17 @@ namespace Seaborg {
 			}
 		}
 
-		public void schedule_evaluation() {
-			for(int i=0; i<Children.data.length; i++) {
-				Children.data[i].schedule_evaluation();
-			}
-		}
+		public bool lock {
+			set {
 
-		public void unschedule_evaluation() {
-			for(int i=0; i<Children.data.length; i++) {
-				Children.data[i].unschedule_evaluation();
+				for(int i=0; i<Children.data.length; i++) {
+					Children.data[i].lock = value;
+				}
+			}
+
+			get {
+
+				return false;
 			}
 		}
 
@@ -581,6 +583,7 @@ namespace Seaborg {
 			column_spacing = 4;
 			css = new CssProvider();
 			this.get_style_context().add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
+			_lock = false;
 
 			try {
 
@@ -692,15 +695,17 @@ namespace Seaborg {
 			}
 		}
 
-		public void schedule_evaluation() {
-			InputCell.editable = false;
-			Marker.sensitive = false;
+		public bool lock {
+			get {return _lock;}
+			set {
 
-		}
+				if(value == _lock)
+					return;
 
-		public void unschedule_evaluation() {
-			InputCell.editable = true;
-			Marker.sensitive = true;
+				InputCell.editable = !value;
+				Marker.sensitive = !value;
+				_lock = value;
+			}
 		}
 
 		public bool marker_selected() {
@@ -747,6 +752,7 @@ namespace Seaborg {
 		private Gtk.SourceBuffer OutputBuffer;
 		private Gtk.ToggleButton Marker;
 		private bool isExpanded;
+		private bool _lock;
 		private CssProvider css;
 
 	}
@@ -825,8 +831,10 @@ namespace Seaborg {
 		public void remove_recursively() {}
 		public void collapse_all() {}
 		public void expand_all() {}
-		public void schedule_evaluation() {}
-		public void unschedule_evaluation() {}
+		public bool lock {
+			set {}
+			get {return false;}
+		}
 		public void add_before(int pos, ICell[] list) {}
 		public void remove_from(int pos, int number, bool trash) {}
 		public ICellContainer* Parent {get; set;}

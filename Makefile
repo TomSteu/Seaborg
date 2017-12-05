@@ -4,8 +4,6 @@ CC=gcc
 CCFLAGS= -O3 -w
 WSTPDIR=/usr/local/Wolfram/Mathematica/11.1/SystemFiles/Links/WSTP/DeveloperKit/Linux-x86-64/CompilerAdditions/
 WSTPLIB=WSTP64i4
-VALAC=valac
-VALAFLAGS=
 
 ### DO NOT MODIFY ###
 
@@ -17,7 +15,7 @@ all: wstp_connection.o vala
 	
 .PHONY: vala
 vala:
-	$(VALAC) $(VALAFLAGS) ./src/gui.vala ./src/cell.vala -d ./build/ -C --pkg gtk+-3.0 --pkg gtksourceview-3.0
+	valac --thread ./src/gui.vala ./src/cell.vala -d ./build/ -C --pkg gtk+-3.0 --pkg gtksourceview-3.0
 
 wstp_connection.o: 
 	$(CC) $(CCFLAGS) -c ./src/wstp_connection.c -o ./build/wstp_connection.o -I./include/ -I$(WSTPDIR) 
