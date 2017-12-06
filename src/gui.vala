@@ -166,6 +166,23 @@ namespace Seaborg {
 
 		}
 
+		public void schedule_evaluation(ICellContainer container) {
+			lock(eval_queque) {
+				for(int i=0; i<container.Children.data.length; i++) {
+					
+					if(container.Children.data[i] is ICellContainer)
+						schedule_evaluation((ICellContainer) container.Children.data[i]);
+
+					if(container.Children.data[i].marker_selected() && (! container.Children.data[i].lock) && container.Children.data[i] is EvaluationCell) {
+						container.Children.data[i].lock = true;
+						eval_queque.append_val((EvaluationCell) container.Children.data[i]);
+					}
+				}
+			}
+			// start evaluation thread, if not already running
+
+		}
+
 		private void reset_kernel() {
 			if(kernel_connection != null) {
 				if(check_connection(kernel_connection) != -1) {
@@ -205,6 +222,7 @@ namespace Seaborg {
 		private Seaborg.Notebook notebook;
 		private Gtk.ShortcutsWindow shortcuts;
 		private void* kernel_connection;
+		private GLib.Array<EvaluationCell> eval_queque;
 	}
 
 
