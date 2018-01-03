@@ -607,7 +607,7 @@ namespace Seaborg {
 			
  			InputBuffer = new Gtk.SourceBuffer(null);
 			InputBuffer.highlight_matching_brackets = true;
-			InputBuffer.style_scheme = sm.get_scheme("classic");
+			InputBuffer.style_scheme = sm.get_scheme("seaborg");
 			InputBuffer.language =  lm.get_language("wolfram");
 			InputCell = new Gtk.SourceView.with_buffer(InputBuffer);
 			InputCell.show_line_numbers = false;
@@ -631,7 +631,7 @@ namespace Seaborg {
 
 			OutputBuffer = new Gtk.SourceBuffer(null);
 			OutputBuffer.highlight_matching_brackets = true;
-			OutputBuffer.style_scheme = sm.get_scheme("classic");
+			OutputBuffer.style_scheme = sm.get_scheme("seaborg");
 			OutputBuffer.language = lm.get_language("wolfram");
 			OutputCell = new Gtk.SourceView.with_buffer(OutputBuffer);
 			OutputCell.show_line_numbers = false;

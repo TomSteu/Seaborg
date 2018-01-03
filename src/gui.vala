@@ -162,6 +162,7 @@ namespace Seaborg {
 			
 			// connecting kernel
 			reset_kernel();
+			eval_queque = new Array<EvaluationCell>();
 
 
 		}
@@ -198,9 +199,6 @@ namespace Seaborg {
 
 		[CCode(cname = "close_connection", cheader_filename = "wstp_connection.h")]
 		private extern void close_connection(void* connection);
-
-		[CCode(cname = "abort_calculation", cheader_filename = "wstp_connection.h")]
-		private extern int abort_calculation(void* connection);
 
 		private static delegate void callback_str(char* string_to_write);
 
