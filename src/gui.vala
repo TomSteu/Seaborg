@@ -3,6 +3,12 @@ using GLib;
 
 namespace Seaborg {
 
+	public struct EvaluationData {
+		public void* cell;
+		public string input;
+		
+	}
+
 	public class SeaborgApplication : Gtk.Application {
 
 		protected override void activate() {
@@ -127,6 +133,7 @@ namespace Seaborg {
 			var open_action = new GLib.SimpleAction("open", null);
 			var save_action = new GLib.SimpleAction("save", null);
 			var remove_action = new GLib.SimpleAction("rm", null);
+			var eval_action = new GLib.SimpleAction("eval", null);
 
 			new_action.activate.connect(() => {
 			});
@@ -141,34 +148,42 @@ namespace Seaborg {
 				notebook.remove_recursively();
 			});
 
+			eval_action.activate.connect(() => {
+				
+			});
+
 
 			this.add_action(new_action);
 			this.add_action(open_action);
 			this.add_action(save_action);
 			this.add_action(remove_action);
+			this.add_action(eval_action);
 
 
 			const string[] new_accels = {"<Control>N", null};
 			const string[] open_accels = {"<Control>O", null};
 			const string[] save_accels = {"<Control>S", null};
 			const string[] rm_accels = {"<Control>Delete","<Control>D", null};
-			const string[] shortcut_accels ={"<Control>F1", "<Control>question",null};
+			const string[] shortcut_accels = {"<Control>F1", "<Control>question", null};
+			const string[] eval_accels = {"<Shift>enter", null};
 
 			this.set_accels_for_action("app.new", new_accels);
 			this.set_accels_for_action("app.open", open_accels);
 			this.set_accels_for_action("app.save", save_accels);
 			this.set_accels_for_action("app.rm", rm_accels);
 			this.set_accels_for_action("win.show-help-overlay", shortcut_accels);
+			this.set_accels_for_action("win.eval", eval_accels);
 			
 			// connecting kernel
 			reset_kernel();
-			eval_queque = new Array<EvaluationCell>();
+			eval_queue = new Queue<EvaluationData?>();
 
 
 		}
 
 		public void schedule_evaluation(ICellContainer container) {
-			lock(eval_queque) {
+			lock(eval_queue) {
+				// add evalutation cells to be evaluated
 				for(int i=0; i<container.Children.data.length; i++) {
 					
 					if(container.Children.data[i] is ICellContainer)
@@ -176,13 +191,118 @@ namespace Seaborg {
 
 					if(container.Children.data[i].marker_selected() && (! container.Children.data[i].lock) && container.Children.data[i] is EvaluationCell) {
 						container.Children.data[i].lock = true;
-						eval_queque.append_val((EvaluationCell) container.Children.data[i]);
+						eval_queue.push_tail( EvaluationData() { 
+							cell = (void*) container.Children.data[i],
+							input = ((EvaluationCell) container.Children.data[i]).get_text()
+						});
 					}
 				}
 			}
+			
 			// start evaluation thread, if not already running
+			if(listener_thread == null) {
+
+				try {
+					listener_thread = new GLib.Thread<void*>.try("seaborg-listener", () => {
+						current_cell = EvaluationData();
+						while(true) {
+
+							//get next cell data
+							lock(eval_queue) {
+								
+								if(eval_queue.length <= 0)
+									break;
+
+								current_cell = eval_queue.pop_head();
+							}
+
+							// something is wrong
+							if(check_connection(kernel_connection) != 1) {
+								GLib.Idle.add( () => {
+									abort_eval();
+									return true;
+								});
+								return null;
+							}
+
+							// do the evaluation
+							evaluate(kernel_connection, current_cell.input, write_to_evaluation_cell, current_cell.cell);
+
+							// something is wrong
+							if(check_connection(kernel_connection) != 1) {
+    								GLib.Idle.add( () => {
+									abort_eval();
+									return true;
+								});
+								return null;
+							}
+
+							//unlock cell at the end
+							GLib.Idle.add( () => {
+
+									Seaborg.EvaluationCell* output_cell = (Seaborg.EvaluationCell*) current_cell.cell;
+									
+									if( output_cell != null)
+										output_cell->lock = false;
+									return true;
+							});
+
+						}
+
+						return null;
+					});
+
+				} catch (GLib.Error err) {
+
+					GLib.Idle.add( () => {
+						abort_eval();
+						return true;
+					});
+
+				} finally {
+
+					GLib.Idle.add( () => {
+						abort_eval();
+						return true;
+					});
+
+				}
+			}
+		}
+
+		// aborts current evaluation and reset everything
+		private void abort_eval() {
+			
+			// remove locks
+			EvaluationCell* cell = (EvaluationCell*)current_cell.cell;
+			if(cell != null) cell->lock = false;
+			lock(eval_queue) {
+				while(true) {
+					
+					if(eval_queue.length <= 0)
+						break;
+
+					cell = (EvaluationCell*) eval_queue.pop_head().cell;
+					if(cell != null) cell->lock = false;
+				}
+			}
+
+			// reset connection and check sanity
+			int res = check_connection(kernel_connection);
+			if(res != 1) {
+				if(res == 2) {
+
+					try_reset_after_abort(kernel_connection);
+					if(check_connection(kernel_connection) != 1)
+						kernel_msg("Kernel connection lost");
+
+				} else {
+					kernel_msg("Kernel connection lost");
+				}
+			}
 
 		}
+
 
 		private void reset_kernel() {
 			if(kernel_connection != null) {
@@ -192,7 +312,31 @@ namespace Seaborg {
 			}
 
 			kernel_connection = init_connection("math");
+			if(check_connection(kernel_connection) != 1)
+				kernel_msg("Error reseting connection");
 		}
+
+		public void kernel_msg(string error) {}
+
+		private static delegate void callback_str(char* string_to_write, void* callback_data);
+
+		private callback_str write_to_evaluation_cell = (string_to_write, cell_ptr) => {
+			
+			//append to GLib main loop
+			GLib.Idle.add( () => {
+
+				Seaborg.EvaluationCell* cell_to_write = (Seaborg.EvaluationCell*) cell_ptr;
+					
+				if( cell_to_write != null)
+					cell_to_write->set_text((string)string_to_write);
+									
+				return true;
+			});
+
+			return;
+		};
+
+		private EvaluationData current_cell;
 
 		[CCode(cname = "init_connection", cheader_filename = "wstp_connection.h")]
 		private extern void* init_connection(char* path);
@@ -200,10 +344,8 @@ namespace Seaborg {
 		[CCode(cname = "close_connection", cheader_filename = "wstp_connection.h")]
 		private extern void close_connection(void* connection);
 
-		private static delegate void callback_str(char* string_to_write);
-
 		[CCode(cname = "evaluate", cheader_filename = "wstp_connection.h")]
-		private extern void evaluate(void* con, char* input, callback_str callback);
+		private extern void evaluate(void* con, char* input, callback_str callback, void* callback_data);
 
 		[CCode(cname = "check_connection", cheader_filename = "wstp_connection.h")]
 		private extern int check_connection(void* con);
@@ -211,16 +353,20 @@ namespace Seaborg {
 		[CCode(cname = "try_abort", cheader_filename = "wstp_connection.h")]
 		private extern int try_abort(void* con);
 
+		[CCode(cname = "try_reset_after_abort", cheader_filename = "wstp_connection.h")]
+		private extern int try_reset_after_abort(void* con);
+
 		private Gtk.ApplicationWindow main_window;
 		private Gtk.HeaderBar main_headerbar;
 		private Gtk.StackSwitcher tab_switcher;
 		private Gtk.Stack notebook_stack;
 		private GLib.Menu main_menu;
 		private Gtk.ScrolledWindow notebook_scroll;
-		private Seaborg.Notebook notebook;
+		public Seaborg.Notebook notebook;
 		private Gtk.ShortcutsWindow shortcuts;
 		private void* kernel_connection;
-		private GLib.Array<EvaluationCell> eval_queque;
+		private GLib.Queue<EvaluationData?> eval_queue;
+		private GLib.Thread<void*> listener_thread;
 	}
 
 

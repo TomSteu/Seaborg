@@ -45,6 +45,23 @@ namespace Seaborg {
 	public interface ICellContainer : ICell {
 		public abstract GLib.Array<ICell> Children {get; set;}
 		public abstract GLib.Array<AddButton> AddButtons {get; set;}
+		public ICell* get_child_by_name(string child_name) {
+			ICell* child_cell = null;
+			for(int i=0; i<Children.data.length; i++) {
+				
+				if((ICellContainer*) Children.data[i] != null) {
+					child_cell = ((ICellContainer*) Children.data[i])->get_child_by_name(child_name);
+					if(child_cell != null)
+						break;
+				}
+				
+				if(Children.data[i].name == child_name) {
+					child_cell = Children.data[i];
+					break;
+				}
+			}
+			return child_cell;
+		}
 	}
 
 	

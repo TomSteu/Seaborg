@@ -33,6 +33,6 @@ int abort_calculation(void*);
 
 char* handle_link_error(void*);
 
-void evaluate(void* con, const char* input, void (*callback)(char*));
+void evaluate(void* con, const char* input, void (*callback)(char*, void*), void* callback_data);
 
 #endif // header guard

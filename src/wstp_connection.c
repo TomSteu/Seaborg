@@ -29,7 +29,7 @@
 #define LINKPREFIXNEXTPACKET(X) MLNextPacket(X)
 #define LINKPREFIXGETSTRING(X,Y) MLGetString(X,Y)
 #define LINKPREFIXRELEASESTRING(X,Y) MLReleaseString(X,Y)
-#define CONNECTION_STRING " -mathlink -linkmode launch -linkprotocol SharedMemory -linkname gtklink"
+#define CONNECTION_STRING " -mathlink -linkmode launch -linkprotocol SharedMemory -linkname seaborglink"
 
 #else
 
@@ -58,7 +58,7 @@
 #define LINKPREFIXNEXTPACKET(X) WSNextPacket(X)
 #define LINKPREFIXGETSTRING(X,Y) WSGetString(X,Y)
 #define LINKPREFIXRELEASESTRING(X,Y) WSReleaseString(X,Y)
-#define CONNECTION_STRING " -wstp -linklaunch -linkprotocol SharedMemory -linkname gtklink"
+#define CONNECTION_STRING " -wstp -linklaunch -linkprotocol SharedMemory -linkname seaborglink"
 
 
 #endif
@@ -82,6 +82,18 @@ int try_abort(void* con) {
 
 	return connection->active;
 
+}
+
+int try_reset_after_abort(void* con) {
+
+	WstpConnection* connection = (WstpConnection*) con;
+	
+	if(!connection)
+		return -1;
+
+	if(connection->active==2) connection->active = 1;
+
+	return connection->active;
 }
 
 void* init_connection(const char* path) {
@@ -145,7 +157,7 @@ char* handle_link_error(void* con) {
 	return error_string;
 }
 
-void evaluate(void* con, const char* input, void (*callback)(char*))
+void evaluate(void* con, const char* input, void (*callback)(char*, void*), void* callback_data)
 {
 	WstpConnection* connection = (WstpConnection*) con;
 	if(!connection)
@@ -160,30 +172,30 @@ void evaluate(void* con, const char* input, void (*callback)(char*))
 	// send input
 	if(connection->active != 1) return;
 	if(! LINKPREFIXPUTFUNCTION(connection->link, "EvaluatePacket", 1)) {
-		(*callback)(handle_link_error(connection)); 
+		(*callback)(handle_link_error(connection), callback_data); 
 		return; 
 	}
 	if(! LINKPREFIXPUTFUNCTION(connection->link, "ToExpression", 1)) { 
 		char* err = handle_link_error(connection);
-		(*callback)(err);
+		(*callback)(err, callback_data);
 		 if(err) LINKPREFIXRELEASEERRORMESSAGE(connection->link, err);
 		return;
 	}
 	if(! LINKPREFIXPUTSTRING(connection->link, input))	{
 		char* err = handle_link_error(connection);
-		(*callback)(err);
+		(*callback)(err, callback_data);
 		 if(err) LINKPREFIXRELEASEERRORMESSAGE(connection->link, err);
 		return;
 	}
 	if(! LINKPREFIXENDPACKET(connection->link))	{
 		char* err = handle_link_error(connection);
-		(*callback)(err);
+		(*callback)(err, callback_data);
 		 if(err) LINKPREFIXRELEASEERRORMESSAGE(connection->link, err);
 		return;
 	}
 	if(! LINKPREFIXFLUSH(connection->link))	{
 		char* err = handle_link_error(connection);
-		(*callback)(err);
+		(*callback)(err, callback_data);
 		 if(err) LINKPREFIXRELEASEERRORMESSAGE(connection->link, err);
 		return;
 	}
@@ -220,41 +232,41 @@ void evaluate(void* con, const char* input, void (*callback)(char*))
 				case ENTEREXPRPKT:
 					if(! LINKPREFIXGETSTRING(connection->link, str)) {
 						err = handle_link_error(connection);
-						(*callback)(err);
+						(*callback)(err, callback_data);
 		 				if(err) LINKPREFIXRELEASEERRORMESSAGE(connection->link, err);
 						if(connection->active == 0) return;
 					}
-					(*callback)(str);
+					(*callback)(str, callback_data);
 					LINKPREFIXRELEASESTRING(connection->link, str);
 					break;
 				case ENTERTEXTPKT:
 					if(! LINKPREFIXGETSTRING(connection->link, str)) {
 						err = handle_link_error(connection);
-						(*callback)(err);
+						(*callback)(err, callback_data);
 		 				if(err) LINKPREFIXRELEASEERRORMESSAGE(connection->link, err);
 						if(connection->active == 0) return;
 					}
-					(*callback)(str);
+					(*callback)(str, callback_data);
 					LINKPREFIXRELEASESTRING(connection->link, str);
 					break;
 				case EVALUATEPKT:
 					if(! LINKPREFIXGETSTRING(connection->link, str)) {
 						err = handle_link_error(connection);
-						(*callback)(err);
+						(*callback)(err, callback_data);
 		 				if(err) LINKPREFIXRELEASEERRORMESSAGE(connection->link, err);
 						if(connection->active == 0) return;
 					}
-					(*callback)(str);
+					(*callback)(str, callback_data);
 					LINKPREFIXRELEASESTRING(connection->link, str);
 					break;
 				case INPUTNAMEPKT:
 					if(! LINKPREFIXGETSTRING(connection->link, str)) {
 						err = handle_link_error(connection);
-						(*callback)(err);
+						(*callback)(err, callback_data);
 		 				if(err) LINKPREFIXRELEASEERRORMESSAGE(connection->link, err);
 						if(connection->active == 0) return;
 					}
-					(*callback)(str);
+					(*callback)(str, callback_data);
 					LINKPREFIXRELEASESTRING(connection->link, str);
 					break;
 				case INPUTPKT:
@@ -266,21 +278,21 @@ void evaluate(void* con, const char* input, void (*callback)(char*))
 				case MESSAGEPKT:
 					if(! LINKPREFIXGETSTRING(connection->link, str)) {
 						err = handle_link_error(connection);
-						(*callback)(err);
+						(*callback)(err, callback_data);
 		 				if(err) LINKPREFIXRELEASEERRORMESSAGE(connection->link, err);
 						if(connection->active == 0) return;
 					}
-					(*callback)(str);
+					(*callback)(str, callback_data);
 					LINKPREFIXRELEASESTRING(connection->link, str);
 					break;
 				case OUTPUTNAMEPKT:
 					if(! LINKPREFIXGETSTRING(connection->link, str)) {
 						err = handle_link_error(connection);
-						(*callback)(err);
+						(*callback)(err, callback_data);
 		 				if(err) LINKPREFIXRELEASEERRORMESSAGE(connection->link, err);
 						if(connection->active == 0) return;
 					}
-					(*callback)(str);
+					(*callback)(str, callback_data);
 					LINKPREFIXRELEASESTRING(connection->link, str);
 					break;
 				case RESUMEPKT:
@@ -288,33 +300,33 @@ void evaluate(void* con, const char* input, void (*callback)(char*))
 				case RETURNEXPRPKT:
 					if(! LINKPREFIXGETSTRING(connection->link, str)) {
 						err = handle_link_error(connection);
-						(*callback)(err);
+						(*callback)(err, callback_data);
 		 				if(err) LINKPREFIXRELEASEERRORMESSAGE(connection->link, err);
 						if(connection->active == 0) return;
 					}
-					(*callback)(str);
+					(*callback)(str, callback_data);
 					LINKPREFIXRELEASESTRING(connection->link, str);
 					await++;
 					break;
 				case RETURNPKT:
 					if(! LINKPREFIXGETSTRING(connection->link, str)) {
 						err = handle_link_error(connection);
-						(*callback)(err);
+						(*callback)(err, callback_data);
 		 				if(err) LINKPREFIXRELEASEERRORMESSAGE(connection->link, err);
 						if(connection->active == 0) return;
 					}
-					(*callback)(str);
+					(*callback)(str, callback_data);
 					LINKPREFIXRELEASESTRING(connection->link, str);
 					await++;
 					break;
 				case RETURNTEXTPKT:
 					if(! LINKPREFIXGETSTRING(connection->link, str)) {
 						err = handle_link_error(connection);
-						(*callback)(err);
+						(*callback)(err, callback_data);
 		 				if(err) LINKPREFIXRELEASEERRORMESSAGE(connection->link, err);
 						if(connection->active == 0) return;
 					}
-					(*callback)(str);
+					(*callback)(str, callback_data);
 					LINKPREFIXRELEASESTRING(connection->link, str);
 					await++;
 					break;
@@ -325,18 +337,18 @@ void evaluate(void* con, const char* input, void (*callback)(char*))
 				case TEXTPKT:
 					if(! LINKPREFIXGETSTRING(connection->link, str)) {
 						err = handle_link_error(connection);
-						(*callback)(err);
+						(*callback)(err, callback_data);
 		 				if(err) LINKPREFIXRELEASEERRORMESSAGE(connection->link, err);
 						if(connection->active == 0) return;
 					}
-					(*callback)(str);
+					(*callback)(str, callback_data);
 					LINKPREFIXRELEASESTRING(connection->link, str);
 					break;
 				case ILLEGALPKT: 
-					(*callback)((char*)"(* Unknown error from kernel: consider killing the computation *)");
+					(*callback)((char*)"(* Unknown error from kernel: consider killing the computation *)", callback_data);
 					break; 
 				default:
-					(*callback)((char*)"(* Unknown packet from kernel: consider killing the computation *)");
+					(*callback)((char*)"(* Unknown packet from kernel: consider killing the computation *)", callback_data);
 			}
 		}
 
