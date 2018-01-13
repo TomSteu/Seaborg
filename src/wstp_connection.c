@@ -1,7 +1,10 @@
 #include "wstp_connection.h"
-/*#include <string.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
 #include <unistd.h>
-*/
+
+
 #ifdef MATHLINK
 
 #include "mathlink.h"
@@ -29,7 +32,8 @@
 #define LINKPREFIXNEXTPACKET(X) MLNextPacket(X)
 #define LINKPREFIXGETSTRING(X,Y) MLGetString(X,Y)
 #define LINKPREFIXRELEASESTRING(X,Y) MLReleaseString(X,Y)
-#define CONNECTION_STRING " -mathlink -linkmode launch -linkprotocol SharedMemory -linkname seaborglink"
+
+#define LINKPREFIXERRORTYPE int
 
 #else
 
@@ -58,7 +62,11 @@
 #define LINKPREFIXNEXTPACKET(X) WSNextPacket(X)
 #define LINKPREFIXGETSTRING(X,Y) WSGetString(X,Y)
 #define LINKPREFIXRELEASESTRING(X,Y) WSReleaseString(X,Y)
-#define CONNECTION_STRING " -wstp -linklaunch -linkprotocol SharedMemory -linkname seaborglink"
+#if WSINTERFACE > 4
+#define LINKPREFIXERRORTYPE long
+#else
+#define LINKPREFIXERRORTYPE int
+#endif
 
 
 #endif
@@ -98,22 +106,19 @@ int try_reset_after_abort(void* con) {
 
 void* init_connection(const char* path) {
 	
-	int error = 0;
+	LINKPREFIXERRORTYPE error = 0;
+	
 	WstpConnection* connection = (WstpConnection*) malloc(sizeof(WstpConnection));
 	connection->active = 0;
 
 	connection->env = LINKPREFIXINITIALIZE((LINKPREFIXENVIRONMENTPARAMETER)0);
-	if(0 == connection->env) return (void*)connection;
+	if((LINKPREFIXENV)0 == connection->env) return (void*)connection;
 
-	char  init_kernel[strlen(path) + strlen(CONNECTION_STRING) + 1];
-	memcpy(init_kernel, path, strlen(path));
-	memcpy(init_kernel + strlen(path), CONNECTION_STRING, strlen(CONNECTION_STRING) + 1);
-
-	connection->link = LINKPREFIXOPENSTRING(connection->env, init_kernel, error);
-
-	if(!connection->link || error != WSEOK) return (void*)connection;
-	if(! LINKPREFIXACTIVATE(connection->link)) return (void*)connection;
+	connection->link = LINKPREFIXOPENSTRING(connection->env, path, &error);
+	if(!connection->link || error != LINKPREFIXEOK) return (void*)connection;
+	if(! LINKPREFIXACTIVATE(connection->link))  return (void*)connection;
 	connection->active=1;
+
 	return (void*)connection;
 
 }
@@ -137,11 +142,11 @@ int abort_calculation(void* con) {
 	return 0;
 }
 
-char* handle_link_error(void* con) {
+const char* handle_link_error(void* con) {
 
 	WstpConnection* connection = (WstpConnection*) con;
 	if(!connection)
-		return;
+		return NULL;
 	
 	if(connection->active == 0) return 0;
 
@@ -149,7 +154,7 @@ char* handle_link_error(void* con) {
 	if(error == LINKPREFIXEOK) return 0;
 
  
-	char* error_string = LINKPREFIXERRORMESSAGE(connection->link);
+	const char* error_string = LINKPREFIXERRORMESSAGE(connection->link);
 
 	if(! LINKPREFIXCLEARERROR(connection->link))
 		connection->active = 0;
@@ -170,35 +175,35 @@ void evaluate(void* con, const char* input, void (*callback)(char*, void*), void
 	}
 
 	// send input
-	if(connection->active != 1) return;
+	if(connection->active != 1) return; fprintf(stderr, "WSTP: connection ready to send: %s\n", input);
 	if(! LINKPREFIXPUTFUNCTION(connection->link, "EvaluatePacket", 1)) {
-		(*callback)(handle_link_error(connection), callback_data); 
+		(*callback)((char*) handle_link_error((void*) connection), callback_data); 
 		return; 
 	}
 	if(! LINKPREFIXPUTFUNCTION(connection->link, "ToExpression", 1)) { 
-		char* err = handle_link_error(connection);
+		char* err = (char*) handle_link_error(connection);
 		(*callback)(err, callback_data);
 		 if(err) LINKPREFIXRELEASEERRORMESSAGE(connection->link, err);
 		return;
 	}
 	if(! LINKPREFIXPUTSTRING(connection->link, input))	{
-		char* err = handle_link_error(connection);
+		char* err = (char*) handle_link_error(connection);
 		(*callback)(err, callback_data);
 		 if(err) LINKPREFIXRELEASEERRORMESSAGE(connection->link, err);
 		return;
 	}
 	if(! LINKPREFIXENDPACKET(connection->link))	{
-		char* err = handle_link_error(connection);
+		char* err = (char*) handle_link_error(connection);
 		(*callback)(err, callback_data);
 		 if(err) LINKPREFIXRELEASEERRORMESSAGE(connection->link, err);
 		return;
 	}
 	if(! LINKPREFIXFLUSH(connection->link))	{
-		char* err = handle_link_error(connection);
+		char* err = (char*) handle_link_error(connection);
 		(*callback)(err, callback_data);
 		 if(err) LINKPREFIXRELEASEERRORMESSAGE(connection->link, err);
 		return;
-	}
+	} fprintf(stderr, "WSTP: package sent\n" );
 
 	int await = 0;
 
@@ -217,142 +222,144 @@ void evaluate(void* con, const char* input, void (*callback)(char*, void*), void
 		}
 
 		// check if data can be read
-		if(LINKPREFIXREADY(connection->link)) {
+		if(LINKPREFIXREADY(connection->link)) { 
 			switch(LINKPREFIXNEXTPACKET(connection->link)) {
-				case BEGINDLGPKT:
+				case BEGINDLGPKT: fprintf(stderr, "WSTP: package received: BEGINDLGPKT\n" );
 					break;
-				case CALLPKT:
+				case CALLPKT: fprintf(stderr, "WSTP: package received: CALLPKT\n" );
 					break;
-				case DISPLAYENDPKT:
+				case DISPLAYENDPKT: fprintf(stderr, "WSTP: package received: DISPLAYENDPKT\n" );
 					break;
-				case DISPLAYPKT:
+				case DISPLAYPKT: fprintf(stderr, "WSTP: package received: DISPLAYPKT\n" );
 					break;
-				case ENDDLGPKT:
+				case ENDDLGPKT: fprintf(stderr, "WSTP: package received: ENDDLGPKT\n" );
 					break;
-				case ENTEREXPRPKT:
-					if(! LINKPREFIXGETSTRING(connection->link, str)) {
-						err = handle_link_error(connection);
+				case ENTEREXPRPKT: fprintf(stderr, "WSTP: package received: ENTEREXPRPKT\n" );
+					if(! LINKPREFIXGETSTRING(connection->link, (const char**) &str)) {
+						err = (char*) handle_link_error(connection);
 						(*callback)(err, callback_data);
 		 				if(err) LINKPREFIXRELEASEERRORMESSAGE(connection->link, err);
 						if(connection->active == 0) return;
 					}
 					(*callback)(str, callback_data);
-					LINKPREFIXRELEASESTRING(connection->link, str);
+					LINKPREFIXRELEASESTRING(connection->link, (const char*) str);
 					break;
-				case ENTERTEXTPKT:
-					if(! LINKPREFIXGETSTRING(connection->link, str)) {
-						err = handle_link_error(connection);
+				case ENTERTEXTPKT: fprintf(stderr, "WSTP: package received: ENTERTEXTPKT\n" );
+					if(! LINKPREFIXGETSTRING(connection->link, (const char**) &str)) {
+						err = (char*) handle_link_error(connection);
 						(*callback)(err, callback_data);
 		 				if(err) LINKPREFIXRELEASEERRORMESSAGE(connection->link, err);
 						if(connection->active == 0) return;
 					}
 					(*callback)(str, callback_data);
-					LINKPREFIXRELEASESTRING(connection->link, str);
+					LINKPREFIXRELEASESTRING(connection->link, (const char*) str);
 					break;
-				case EVALUATEPKT:
-					if(! LINKPREFIXGETSTRING(connection->link, str)) {
-						err = handle_link_error(connection);
+				case EVALUATEPKT: fprintf(stderr, "WSTP: package received: EVALUATEPKT\n" );
+					if(! LINKPREFIXGETSTRING(connection->link, (const char**) &str)) {
+						err = (char*) handle_link_error(connection);
 						(*callback)(err, callback_data);
 		 				if(err) LINKPREFIXRELEASEERRORMESSAGE(connection->link, err);
 						if(connection->active == 0) return;
 					}
 					(*callback)(str, callback_data);
-					LINKPREFIXRELEASESTRING(connection->link, str);
+					LINKPREFIXRELEASESTRING(connection->link, (const char*) str);
 					break;
-				case INPUTNAMEPKT:
-					if(! LINKPREFIXGETSTRING(connection->link, str)) {
-						err = handle_link_error(connection);
+				case INPUTNAMEPKT: fprintf(stderr, "WSTP: package received: INPUTNAMEPKT\n" );
+					if(! LINKPREFIXGETSTRING(connection->link, (const char**) &str)) {
+						err = (char*) handle_link_error(connection);
 						(*callback)(err, callback_data);
 		 				if(err) LINKPREFIXRELEASEERRORMESSAGE(connection->link, err);
 						if(connection->active == 0) return;
 					}
 					(*callback)(str, callback_data);
-					LINKPREFIXRELEASESTRING(connection->link, str);
+					LINKPREFIXRELEASESTRING(connection->link, (const char*) str);
 					break;
-				case INPUTPKT:
+				case INPUTPKT: fprintf(stderr, "WSTP: package received: INPUTPKT\n" );
 					break;
-				case INPUTSTRPKT:
+				case INPUTSTRPKT: fprintf(stderr, "WSTP: package received: INPUTSTRPKT\n" );
 					break;
-				case MENUPKT:
+				case MENUPKT: fprintf(stderr, "WSTP: package received: MENUPKT\n" );
 					break;
-				case MESSAGEPKT:
-					if(! LINKPREFIXGETSTRING(connection->link, str)) {
-						err = handle_link_error(connection);
+				case MESSAGEPKT: fprintf(stderr, "WSTP: package received: MESSAGEPKT\n" );
+					if(! LINKPREFIXGETSTRING(connection->link, (const char**) &str)) {
+						err = (char*) handle_link_error(connection);
 						(*callback)(err, callback_data);
 		 				if(err) LINKPREFIXRELEASEERRORMESSAGE(connection->link, err);
 						if(connection->active == 0) return;
 					}
 					(*callback)(str, callback_data);
-					LINKPREFIXRELEASESTRING(connection->link, str);
+					LINKPREFIXRELEASESTRING(connection->link, (const char*) str);
 					break;
-				case OUTPUTNAMEPKT:
-					if(! LINKPREFIXGETSTRING(connection->link, str)) {
-						err = handle_link_error(connection);
+				case OUTPUTNAMEPKT: fprintf(stderr, "WSTP: package received: OUTPUTNAMEPKT\n" );
+					if(! LINKPREFIXGETSTRING(connection->link, (const char**) &str)) {
+						err = (char*) handle_link_error(connection);
 						(*callback)(err, callback_data);
 		 				if(err) LINKPREFIXRELEASEERRORMESSAGE(connection->link, err);
 						if(connection->active == 0) return;
 					}
 					(*callback)(str, callback_data);
-					LINKPREFIXRELEASESTRING(connection->link, str);
+					LINKPREFIXRELEASESTRING(connection->link, (const char*) str);
 					break;
-				case RESUMEPKT:
+				case RESUMEPKT: fprintf(stderr, "WSTP: package received: RESUMEPKT\n" );
 					break;
-				case RETURNEXPRPKT:
-					if(! LINKPREFIXGETSTRING(connection->link, str)) {
-						err = handle_link_error(connection);
+				case RETURNEXPRPKT: fprintf(stderr, "WSTP: package received: RETURNEXPRPKT\n" );
+					if(! LINKPREFIXGETSTRING(connection->link, (const char**) &str)) {
+						err = (char*) handle_link_error(connection);
 						(*callback)(err, callback_data);
 		 				if(err) LINKPREFIXRELEASEERRORMESSAGE(connection->link, err);
 						if(connection->active == 0) return;
 					}
 					(*callback)(str, callback_data);
-					LINKPREFIXRELEASESTRING(connection->link, str);
+					LINKPREFIXRELEASESTRING(connection->link, (const char*) str);
 					await++;
 					break;
-				case RETURNPKT:
-					if(! LINKPREFIXGETSTRING(connection->link, str)) {
-						err = handle_link_error(connection);
+				case RETURNPKT: fprintf(stderr, "WSTP: package received: RETURNPKT\n" );
+					if(! LINKPREFIXGETSTRING(connection->link, (const char**) &str)) {
+						fprintf(stderr, "WSTP: RETURNPKT: error extracting string \n" );
+						err = (char*) handle_link_error(connection);
 						(*callback)(err, callback_data);
 		 				if(err) LINKPREFIXRELEASEERRORMESSAGE(connection->link, err);
 						if(connection->active == 0) return;
 					}
 					(*callback)(str, callback_data);
-					LINKPREFIXRELEASESTRING(connection->link, str);
+					LINKPREFIXRELEASESTRING(connection->link, (const char*) str);
+					await++;
+					fprintf(stderr, "WSTP: RETURNPKT: finished \n" );
+					break;
+				case RETURNTEXTPKT: fprintf(stderr, "WSTP: package received: RETURNTEXTPKT\n" );
+					if(! LINKPREFIXGETSTRING(connection->link, (const char**) &str)) {
+						err = (char*) handle_link_error(connection);
+						(*callback)(err, callback_data);
+		 				if(err) LINKPREFIXRELEASEERRORMESSAGE(connection->link, err);
+						if(connection->active == 0) return;
+					}
+					(*callback)(str, callback_data);
+					LINKPREFIXRELEASESTRING(connection->link, (const char*) str);
 					await++;
 					break;
-				case RETURNTEXTPKT:
-					if(! LINKPREFIXGETSTRING(connection->link, str)) {
-						err = handle_link_error(connection);
+				case SUSPENDPKT: fprintf(stderr, "WSTP: package received: SUSPENDPKT\n" );
+					break;
+				case SYNTAXPKT: fprintf(stderr, "WSTP: package received: SYNTAXPKT\n" );
+					break;
+				case TEXTPKT: fprintf(stderr, "WSTP: package received: TEXTPKT\n" );
+					if(! LINKPREFIXGETSTRING(connection->link, (const char**) &str)) {
+						err = (char*) handle_link_error(connection);
 						(*callback)(err, callback_data);
 		 				if(err) LINKPREFIXRELEASEERRORMESSAGE(connection->link, err);
 						if(connection->active == 0) return;
 					}
 					(*callback)(str, callback_data);
-					LINKPREFIXRELEASESTRING(connection->link, str);
-					await++;
+					LINKPREFIXRELEASESTRING(connection->link, (const char*) str);
 					break;
-				case SUSPENDPKT:
-					break;
-				case SYNTAXPKT:
-					break;
-				case TEXTPKT:
-					if(! LINKPREFIXGETSTRING(connection->link, str)) {
-						err = handle_link_error(connection);
-						(*callback)(err, callback_data);
-		 				if(err) LINKPREFIXRELEASEERRORMESSAGE(connection->link, err);
-						if(connection->active == 0) return;
-					}
-					(*callback)(str, callback_data);
-					LINKPREFIXRELEASESTRING(connection->link, str);
-					break;
-				case ILLEGALPKT: 
+				case ILLEGALPKT: fprintf(stderr, "WSTP: package received: ILLEGALPKT\n" );
 					(*callback)((char*)"(* Unknown error from kernel: consider killing the computation *)", callback_data);
 					break; 
-				default:
+				default: fprintf(stderr, "WSTP: package received: unknown\n" );
 					(*callback)((char*)"(* Unknown packet from kernel: consider killing the computation *)", callback_data);
 			}
 		}
 
-		if(await != 0) break;
+		if(await != 0) {fprintf(stderr, "WSTP: leaving loop \n" ); break;}
 		usleep(200);
 	}
 

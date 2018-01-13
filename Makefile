@@ -1,7 +1,7 @@
 ### MODIFY ###
 
 CC=gcc
-CCFLAGS= -O3 -w
+CCFLAGS= #-O3 -w
 WSTPDIR=/usr/local/Wolfram/Mathematica/11.1/SystemFiles/Links/WSTP/DeveloperKit/Linux-x86-64/CompilerAdditions/
 WSTPLIB=WSTP64i4
 
@@ -25,5 +25,6 @@ clean:
 	rm ./build/wstp_connection.o
 
 .PHONY: run
-run: 
+run:
+	rm log.log
 	LD_LIBRARY_PATH=$(WSTPDIR):$(LD_LIBRARY_PATH) ./bin/seaborg

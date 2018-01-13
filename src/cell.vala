@@ -23,24 +23,33 @@ namespace Seaborg {
 		public bool untoggle_handler(EventButton event) {
 
 			if(event.type == Gdk.EventType.BUTTON_PRESS && event.button == 1) {
-				if(Parent == null) {
-					untoggle_all();
-				} else {
-					ICellContainer* par = Parent;
-					while(true) {
-						if(par->Parent == null)
-							break;
-						par = par->Parent;
-					}
-					par->untoggle_all();
-				}
+				
+				recursive_untoggle_all();
+				toggle_all();
+
 			}
 
 			return false;
 
 		}
 
+		public void recursive_untoggle_all() {
+			if(Parent == null) {
+				untoggle_all();
+			} else {
+				ICellContainer* par = Parent;
+				while(true) {
+					if(par->Parent == null)
+						break;
+					par = par->Parent;
+				}
+				par->untoggle_all();
+			}
+		}
+
 	}
+
+	
 
 	public interface ICellContainer : ICell {
 		public abstract GLib.Array<ICell> Children {get; set;}
@@ -764,6 +773,10 @@ namespace Seaborg {
 			InputBuffer.text = _text;
 		}
 
+		public void add_text(string _text) {
+			OutputBuffer.text = OutputBuffer.text + _text;
+		}
+
 		public string get_text() {
 			return InputBuffer.text;
 		}
@@ -921,6 +934,8 @@ namespace Seaborg {
 						Parent->add_before(pos, {newCell});
 						newCell->eat_children();
 						newCell->focus_cell();
+						newCell->recursive_untoggle_all();
+						newCell->toggle_all();
 						return;
 					}
 				}
@@ -929,6 +944,8 @@ namespace Seaborg {
 				EvaluationCell* newCell = new EvaluationCell(Parent);
 				Parent->add_before(pos, {newCell});
 				newCell->focus_cell();
+				newCell->recursive_untoggle_all();
+				newCell->toggle_all();
 			}
 		}
 
@@ -1024,6 +1041,8 @@ namespace Seaborg {
 				newCell->set_text(Cell->get_text());
 				parent->add_before(pos, { newCell });
 				newCell->focus_cell();
+				newCell->recursive_untoggle_all();
+				newCell->toggle_all();
 				parent->remove_from(pos+1, 1, true);
 
 				return;
@@ -1058,6 +1077,8 @@ namespace Seaborg {
 				parent->add_before(pos, { newCell });
 				parent->add_before(pos+1, offspring);
 				newCell->focus_cell();
+				newCell->recursive_untoggle_all();
+				newCell->toggle_all();
 						
 				if(pos > 0) {
 					if(parent->Children.data[pos-1].get_level() >= 0 && parent->Children.data[pos-1] is CellContainer) {
@@ -1093,6 +1114,8 @@ namespace Seaborg {
 				newCell->set_text(Cell->get_text());
 				parent->add_before(pos, { newCell });
 				newCell->focus_cell();
+				newCell->recursive_untoggle_all();
+				newCell->toggle_all();
 				parent->remove_from(pos+1, 1, true);
 
 				return;
@@ -1127,6 +1150,8 @@ namespace Seaborg {
 				parent->add_before(pos, { newCell });
 				parent->add_before(pos+1, offspring);
 				newCell->focus_cell();
+				newCell->recursive_untoggle_all();
+				newCell->toggle_all();
 						
 				if(pos > 0) {
 					if(parent->Children.data[pos-1].get_level() >= 0 && parent->Children.data[pos-1] is CellContainer) {
@@ -1158,10 +1183,12 @@ namespace Seaborg {
 
 				CellContainer* newCell = new CellContainer(parent, toggled_level);	
 				newCell->set_text(Cell->get_text());	
-				newCell->focus_cell();
 				parent->remove_from(pos, 1, true);
 				parent->add_before(pos, { newCell });
 				((CellContainer)(parent->Children.data[pos])).eat_children();
+				newCell->focus_cell();
+				newCell->recursive_untoggle_all();
+				newCell->toggle_all();
 
 				return;
 			}
