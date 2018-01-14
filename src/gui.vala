@@ -246,7 +246,8 @@ namespace Seaborg {
 							cell = (void*) container.Children.data[i],
 							input = ((EvaluationCell) container.Children.data[i]).get_text()
 						});
-						DEBUG("Add to Evaluation " + ((EvaluationCell) container.Children.data[i]).get_text());
+						DEBUG("Add to Evaluation " + ((EvaluationCell) container.Children.data[i]).get_text() + " at adress: " + (string) container.Children.data[i]);
+
 
 					}
 				}
@@ -281,7 +282,7 @@ namespace Seaborg {
 								DEBUG("Error before Evaluation: " + check_connection(kernel_connection).to_string());
 								GLib.Idle.add( () => {
 									abort_eval();
-									return true;
+									return false;
 								});
 								return null;
 							}
@@ -294,7 +295,7 @@ namespace Seaborg {
     								DEBUG("Error after Evaluation: " + check_connection(kernel_connection).to_string());
     								GLib.Idle.add( () => {
 										abort_eval();
-										return true;
+										return false;
 									});
 								return null;
 							}
@@ -306,7 +307,7 @@ namespace Seaborg {
 									
 									if( output_cell != null)
 										output_cell->lock = false;
-									return true;
+									return false;
 							});
 
 						}
@@ -318,14 +319,14 @@ namespace Seaborg {
 
 					GLib.Idle.add( () => {
 						abort_eval();
-						return true;
+						return false;
 					});
 
 				} finally {
 
 					GLib.Idle.add( () => {
 						abort_eval();
-						return true;
+						return false;
 					});
 
 				}
@@ -387,19 +388,22 @@ namespace Seaborg {
 
 		private static delegate void callback_str(char* string_to_write, void* callback_data);
 
-		private callback_str write_to_evaluation_cell = (string_to_write, cell_ptr) => {
-			
+		private static  callback_str write_to_evaluation_cell = (_string_to_write, cell_ptr) => {
+			string string_to_write = (string) _string_to_write;
+			DEBUG("Callback for: " + (string)string_to_write +" and callback_data: " + (string)cell_ptr);
 			//append to GLib main loop
-			/*GLib.Idle.add( () => {
-				DEBUG("Add to main_loop: " + (string)string_to_write);
+			GLib.Idle.add( () => {
+				DEBUG("Add to main_loop: " + string_to_write);
 				Seaborg.EvaluationCell* cell_to_write = (Seaborg.EvaluationCell*) cell_ptr;
-				if(cell_to_write == null) DEBUG("Cell to write not found");	
-				if( cell_to_write != null)
-					cell_to_write->add_text((string)string_to_write);
+				if(cell_to_write == null) DEBUG("Cell to write not found");
+				
+				if( cell_to_write != null) {
+					DEBUG("Managed to gain non-null pointer to EvaluationCell");
+					cell_to_write->add_text("\n"+string_to_write);
 					cell_to_write->expand_all();
-									
-				return true;
-			});*/
+				}									
+				return false;
+			});
 
 			return;
 		};
