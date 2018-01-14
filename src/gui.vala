@@ -162,15 +162,9 @@ namespace Seaborg {
 
 			eval_action.activate.connect(() => {
 
-				/*.EvaluationCell focus_cell = (Seaborg.EvaluationCell) main_window.get_focus();
-				if(focus_cell != null) {
-					stderr.printf("\nSingle-Evaluation\n");
-					schedule_evaluation(focus_cell);
+				stderr.printf("\nSchedule Evaluation\n");
+				schedule_evaluation(notebook);
 
-				} else {
-*/					stderr.printf("\nMulti-Evaluation\n");
-					multischedule_evaluation(notebook);
-/*				}*/
 			});
 
 			stop_eval_action.activate.connect(() => {
@@ -214,26 +208,9 @@ namespace Seaborg {
 
 		}
 
-		public void schedule_evaluation(EvaluationCell* eval_cell) {
-			if(eval_cell == null)
-				return;
-
-			if(eval_cell->lock)
-				return;
-			
+		public void schedule_evaluation(ICellContainer container) {
 			lock(eval_queue) {
-				eval_cell->lock = true;
-				eval_queue.push_tail(EvaluationData() {
-					cell = (void*) eval_cell,
-					input = eval_cell->get_text()
-				});	
-			}
-
-			start_evalutation_thread();
-		}
-
-		public void multischedule_evaluation(ICellContainer container) {
-			lock(eval_queue) {
+				DEBUG("Evaluation Queue Mutex acquired");
 				// add evalutation cells to be evaluated
 				for(int i=0; i<container.Children.data.length; i++) {
 					
@@ -259,10 +236,14 @@ namespace Seaborg {
 			// start evaluation thread, if not already running
 		public void start_evalutation_thread() {
 
-			if(listener_thread == null) {
+			if(listener_thread != null && (!listener_thread_is_running))
+				listener_thread.join();
+
+			if(! listener_thread_is_running) {
 
 				try {
 					listener_thread = new GLib.Thread<void*>.try("seaborg-listener", () => {
+						listener_thread_is_running = true;
 						current_cell = EvaluationData();
 						while(true) {
 
@@ -312,6 +293,7 @@ namespace Seaborg {
 
 						}
 
+						listener_thread_is_running = false;
 						return null;
 					});
 
@@ -348,6 +330,7 @@ namespace Seaborg {
 					cell = (EvaluationCell*) eval_queue.pop_head().cell;
 					if(cell != null) cell->lock = false;
 				}
+
 			}
 
 			// reset connection and check sanity
@@ -363,6 +346,8 @@ namespace Seaborg {
 					kernel_msg("Kernel connection lost");
 				}
 			}
+
+			listener_thread_is_running = false;
 
 		}
 
@@ -439,6 +424,7 @@ namespace Seaborg {
 		private void* kernel_connection;
 		private GLib.Queue<EvaluationData?> eval_queue;
 		private GLib.Thread<void*> listener_thread;
+		private bool listener_thread_is_running=false;
 	}
 
 
