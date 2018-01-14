@@ -244,7 +244,7 @@ namespace Seaborg {
 						container.Children.data[i].lock = true;
 						eval_queue.push_tail( EvaluationData() { 
 							cell = (void*) container.Children.data[i],
-							input = ((EvaluationCell) container.Children.data[i]).get_text()
+							input = "ToString[InputForm[" + ((EvaluationCell) container.Children.data[i]).get_text() + "]]"
 						});
 						DEBUG("Add to Evaluation " + ((EvaluationCell) container.Children.data[i]).get_text() + " at adress: " + (string) container.Children.data[i]);
 
