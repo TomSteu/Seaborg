@@ -162,7 +162,6 @@ namespace Seaborg {
 
 			eval_action.activate.connect(() => {
 
-				stderr.printf("\nSchedule Evaluation\n");
 				schedule_evaluation(notebook);
 
 			});
@@ -268,7 +267,7 @@ namespace Seaborg {
 								return null;
 							}
 
-							DEBUG("Start Evaluation ...");							// do the evaluation
+							DEBUG("Start Evaluation ...");	// do the evaluation
 							evaluate(kernel_connection, current_cell.input, write_to_evaluation_cell, current_cell.cell);
 
 							// something is wrong
@@ -362,6 +361,7 @@ namespace Seaborg {
 			}
 
 			string init_string = "-linkname \"math -wstp -mathlink\"".to_ascii();
+			//string init_string = "-linkname \"math.old  -mathlink\"".to_ascii();
 			kernel_connection = init_connection(init_string);
 			if(check_connection(kernel_connection) != 1) {
 				kernel_msg("Error resetting connection");

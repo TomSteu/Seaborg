@@ -644,7 +644,7 @@ namespace Seaborg {
 			InputCell.insert_spaces_instead_of_tabs = false;
 			InputCell.smart_backspace = true;
 			InputCell.show_line_marks = false;
-			InputCell.wrap_mode = Gtk.WrapMode.WORD;
+			InputCell.wrap_mode = Gtk.WrapMode.WORD_CHAR;
 			InputCell.monospace = true;
 			InputCell.editable = true;
 			InputCell.hexpand = true;
@@ -668,7 +668,7 @@ namespace Seaborg {
 			OutputCell.insert_spaces_instead_of_tabs = false;
 			OutputCell.smart_backspace = true;
 			OutputCell.show_line_marks = false;
-			OutputCell.wrap_mode = Gtk.WrapMode.WORD;
+			OutputCell.wrap_mode = Gtk.WrapMode.WORD_CHAR;
 			OutputCell.monospace = true;
 			OutputCell.editable = false;
 			OutputCell.hexpand = true;
@@ -678,6 +678,7 @@ namespace Seaborg {
 			OutputCell.top_margin = 0;
 			OutputCell.bottom_margin = 0;
 			OutputCell.button_press_event.connect(untoggle_handler);
+
 
 			Marker = new Gtk.ToggleButton();
 			var style_context = Marker.get_style_context();

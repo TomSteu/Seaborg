@@ -43,6 +43,9 @@
   <style name="def:comment"                 foreground="gray"/>
   <style name="def:string"                  foreground="magenta"/>
   <style name="def:keyword"                 foreground="sky_blue"/>
+  <style name="def:keyword1"                 foreground="sky_blue"/>
+  <style name="def:keyword2"                 foreground="sky_blue"/>
+  <style name="def:keyword3"                 foreground="sky_blue"/>
   <style name="def:argument"                foreground="cyan"/>
   <style name="def:error"                   foreground="red" bold="true"/>
 

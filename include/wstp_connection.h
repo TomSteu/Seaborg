@@ -4,24 +4,24 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
+//#define DEBUG
+//#define MATHLINK
+
 #ifdef MATHLINK
-
 #include <mathlink.h>
-#define LINKPREFIXLINK MLINK
-#define LINKPREFIXENV MLENV
-
+#define WSLINK MLINK
+#define WSENV MLENV
 #else
-
 #include <wstp.h>
-#define LINKPREFIXLINK WSLINK
-#define LINKPREFIXENV WSENV
-
+#define WSLINK WSLINK
+#define WSENV WSENV
 #endif
 
 typedef struct {
 	int active;
-	LINKPREFIXLINK link;
-	LINKPREFIXENV env;
+	WSLINK link;
+	WSENV env;
 } WstpConnection;
 
 int check_connection(void* con);
