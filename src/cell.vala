@@ -782,6 +782,10 @@ namespace Seaborg {
 			return InputBuffer.text;
 		}
 
+		public void remove_text() {
+			OutputBuffer.text = "";
+		}
+
 		public ICellContainer* Parent {get; set;}
 		private Gtk.SourceView InputCell;
 		private Gtk.SourceBuffer InputBuffer;
