@@ -46,7 +46,7 @@
   <style name="def:comment"                 foreground="gray"/>
   <style name="def:string"                  foreground="some_purple"/>
   <style name="def:keyword"                 foreground="some_blue"/>
-  <style name="def:argument"                foreground="cyan"/>
+  <style name="def:operator"                foreground="cyan"/>
   <style name="def:error"                   foreground="some_red" bold="true"/>
 
 

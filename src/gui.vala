@@ -233,7 +233,6 @@ namespace Seaborg {
 							});
 							DEBUG("Add to Evaluation " + ((EvaluationCell) container.Children.data[i]).get_text() + " at adress: " + (string) container.Children.data[i]);
 						}
-
 					}
 				}
 			}

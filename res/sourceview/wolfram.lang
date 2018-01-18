@@ -26,7 +26,7 @@
 		<style id="comment" _name="Comment" map-to="def:comment"/>
 		<style id="string" _name="String" map-to="def:string"/>
 		<style id="error" _name="Error" map-to="def:error"/>
-		<style id="argument" _name="Argument" map-to="def:argument"/>
+		<style id="argument" _name="Argument" map-to="def:operator"/>
 		<style id="keyword" _name="Keyword" map-to="def:keyword"/>
 	</styles>
 	<definitions>
