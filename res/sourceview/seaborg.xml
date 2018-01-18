@@ -35,19 +35,19 @@
   <color name="red"        value="#FF0000"/>
   <color name="yellow"     value="#FFFF00"/>
   <color name="sky_blue"   value="#0088ff"/>
+  <color name="some_blue"   value="#729FDF"/>
+  <color name="some_purple"   value="#C792EA"/>
+  <color name="some_red"   value="#F07178"/>
 
 
   <style name="bracket-match"               foreground="green" bold="true"/>
   <style name="bracket-mismatch"            foreground="red" bold="true"/>
   <style name="search-match"                background="yellow"/>
   <style name="def:comment"                 foreground="gray"/>
-  <style name="def:string"                  foreground="magenta"/>
-  <style name="def:keyword"                 foreground="sky_blue"/>
-  <style name="def:keyword1"                 foreground="sky_blue"/>
-  <style name="def:keyword2"                 foreground="sky_blue"/>
-  <style name="def:keyword3"                 foreground="sky_blue"/>
+  <style name="def:string"                  foreground="some_purple"/>
+  <style name="def:keyword"                 foreground="some_blue"/>
   <style name="def:argument"                foreground="cyan"/>
-  <style name="def:error"                   foreground="red" bold="true"/>
+  <style name="def:error"                   foreground="some_red" bold="true"/>
 
 
 </style-scheme>

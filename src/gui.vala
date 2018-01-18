@@ -89,6 +89,13 @@ namespace Seaborg {
 				                "<property name=\"title\" translatable=\"yes\">Evaluate cells</property>"+
 				              "</object>"+
 				            "</child>"+
+				            "<child>"+
+				              "<object class=\"GtkShortcutsShortcut\">"+
+				                "<property name=\"visible\">1</property>"+
+				                "<property name=\"accelerator\">&lt;ctrl&gt;period</property>"+
+				                "<property name=\"title\" translatable=\"yes\">Abort evaluation</property>"+
+				              "</object>"+
+				            "</child>"+
 				          "</object>"+
 				        "</child>"+
 				      "</object>"+

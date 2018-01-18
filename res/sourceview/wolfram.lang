@@ -25,14 +25,18 @@
 	<styles>
 		<style id="comment" _name="Comment" map-to="def:comment"/>
 		<style id="string" _name="String" map-to="def:string"/>
-		<style id="keyword" _name="Keyword" map-to="def:keyword"/>
-		<style id="argument" _name="Argument" map-to="def:argument"/>
 		<style id="error" _name="Error" map-to="def:error"/>
+		<style id="argument" _name="Argument" map-to="def:argument"/>
+		<style id="keyword" _name="Keyword" map-to="def:keyword"/>
 	</styles>
 	<definitions>
 		<context id="block-comment" style-ref="comment" end-at-line-end="false">
 			<start>\(\*</start>
 			<end>\*\)</end>
+		</context>
+		<context id="arg-context" style-ref="argument" end-at-line-end="true">
+			<start>#</start>
+			<end>(?=[^0-9a-zA-Z])</end>
 		</context>
 		<context id="string" style-ref="string" end-at-line-end="true">
 			<start>L?"</start>
@@ -5235,12 +5239,13 @@
 		<context id="wolfram">
 			<include>
 				<context ref="block-comment"/>
+				<context ref="string"/>
+				<context ref="error"/>
+				<context ref="arg-context"/>
+				<context ref="argument"/>
 				<context ref="keywords1"/>
 				<context ref="keywords2"/>
 				<context ref="keywords3"/>
-				<context ref="string"/>
-				<context ref="argument"/>
-				<context ref="error"/>
 			</include>
 		</context>
 	</definitions>
