@@ -1,18 +1,18 @@
 ### MODIFY ###
 
 CC=gcc
-CCFLAGS= #-O3 -w
-WSTPDIR=/usr/local/Wolfram/Mathematica/11.1/SystemFiles/Links/WSTP/DeveloperKit/Linux-x86-64/CompilerAdditions/
+CCFLAGS= #-O3 -w 
+WSTPDIR=/usr/local/Wolfram/Mathematica/11.2/SystemFiles/Links/WSTP/DeveloperKit/Linux-x86-64/CompilerAdditions/
 WSTPLIB=WSTP64i4
 
 ### DO NOT MODIFY ###
 
 .PHONY: all
 all: wstp_connection.o vala
-	$(CC) $(CCFLAGS) `pkg-config --cflags gtk+-3.0 gtksourceview-3.0` -c ./build/src/cell.c -o ./build/cell.o `pkg-config --libs gtk+-3.0 gtksourceview-3.0`
-	$(CC) $(CCFLAGS) `pkg-config --cflags gtk+-3.0 gtksourceview-3.0` -c ./build/src/gui.c -o ./build/gui.o `pkg-config --libs gtk+-3.0 gtksourceview-3.0`
-	$(CC) $(CCFLAGS) `pkg-config --cflags gtk+-3.0 gtksourceview-3.0` -c ./build/src/string.c -o ./build/string.o `pkg-config --libs gtk+-3.0 gtksourceview-3.0`
-	$(CC) $(CCFLAGS) -L$(WSTPDIR)  ./build/cell.o ./build/gui.o ./build/string.o ./build/wstp_connection.o -o ./bin/seaborg `pkg-config --libs gtk+-3.0 gtksourceview-3.0` -l$(WSTPLIB)
+	$(CC) $(CCFLAGS) `pkg-config --cflags gtk+-3.0 gtksourceview-3.0 glib-2.0` -c ./build/src/cell.c -o ./build/cell.o `pkg-config --libs gtk+-3.0 gtksourceview-3.0 glib-2.0`
+	$(CC) $(CCFLAGS) `pkg-config --cflags gtk+-3.0 gtksourceview-3.0 glib-2.0` -c ./build/src/gui.c -o ./build/gui.o `pkg-config --libs gtk+-3.0 gtksourceview-3.0 glib-2.0`
+	$(CC) $(CCFLAGS) `pkg-config --cflags gtk+-3.0 gtksourceview-3.0 glib-2.0 ` -c ./build/src/string.c -o ./build/string.o `pkg-config --libs gtk+-3.0 gtksourceview-3.0 glib-2.0`
+	$(CC) $(CCFLAGS) -L$(WSTPDIR)  ./build/cell.o ./build/gui.o ./build/string.o ./build/wstp_connection.o -o ./bin/seaborg `pkg-config --libs gtk+-3.0 gtksourceview-3.0 glib-2.0` -l$(WSTPLIB)
 	
 .PHONY: vala
 vala:

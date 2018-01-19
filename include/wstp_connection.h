@@ -38,6 +38,6 @@ int abort_calculation(void*);
 
 const char* handle_link_error(void*);
 
-void evaluate(void* con, const char* input, void (*callback)(char*, void*), void* callback_data);
+void evaluate(void* con, const char* input, void (*callback)(char*, void*, unsigned long, int), void* callback_data);
 
 #endif // header guard

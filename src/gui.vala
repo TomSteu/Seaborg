@@ -3,10 +3,7 @@ using GLib;
 
 namespace Seaborg {
 
-	public void DEBUG(string msg) {
-		GLib.FileStream fs = GLib.FileStream.open("log.log", "a");
-		fs.printf("\n Seaborg: "+msg);
-	}
+
 
 	public struct EvaluationData {
 		public void* cell;
@@ -15,6 +12,8 @@ namespace Seaborg {
 	}
 
 	public class SeaborgApplication : Gtk.Application {
+
+		public static ulong global_stamp = 0;
 
 		protected override void activate() {
 
@@ -216,7 +215,7 @@ namespace Seaborg {
 
 		public void schedule_evaluation(ICellContainer container) {
 			lock(eval_queue) {
-				DEBUG("Evaluation Queue Mutex acquired");
+
 				// add evalutation cells to be evaluated
 				for(int i=0; i<container.Children.data.length; i++) {
 					
@@ -231,7 +230,7 @@ namespace Seaborg {
 								cell = (void*) container.Children.data[i],
 								input = "ToString[InputForm[" + ((EvaluationCell) container.Children.data[i]).get_text() + "]]"
 							});
-							DEBUG("Add to Evaluation " + ((EvaluationCell) container.Children.data[i]).get_text() + " at adress: " + (string) container.Children.data[i]);
+
 						}
 					}
 				}
@@ -248,85 +247,75 @@ namespace Seaborg {
 
 			if(! listener_thread_is_running) {
 
-				try {
-					listener_thread = new GLib.Thread<void*>.try("seaborg-listener", () => {
-						listener_thread_is_running = true;
-						current_cell = EvaluationData();
-						while(true) {
+				listener_thread = new GLib.Thread<void*>("seaborg-listener", () => {
 
-							//get next cell data
-							lock(eval_queue) {
+					listener_thread_is_running = true;
+					current_cell = EvaluationData();
+					while(true) {
+
+						//get next cell data
+						lock(eval_queue) {
 								
-								if(eval_queue.length <= 0)
-									break;
+							if(eval_queue.length <= 0)
+								break;
 
-								current_cell = eval_queue.pop_head();
-							}
+							current_cell = eval_queue.pop_head();
+						}
 
-							DEBUG("Evaluate:  " + current_cell.input);
+						// wait for fist packet
+						lock(global_stamp) {
+							global_stamp = 1;
+						}
 
-							// something is wrong
-							if(check_connection(kernel_connection) != 1) {
-								DEBUG("Error before Evaluation: " + check_connection(kernel_connection).to_string());
-								GLib.Idle.add( () => {
+						// something is wrong
+						if(check_connection(kernel_connection) != 1) {
+							GLib.Idle.add( () => {
+								abort_eval();
+								return false;
+							});
+							return null;
+						}
+
+						evaluate(kernel_connection, current_cell.input, write_to_evaluation_cell, current_cell.cell);
+
+						// something is wrong
+						if(check_connection(kernel_connection) != 1) {
+
+   								GLib.Idle.add( () => {
 									abort_eval();
 									return false;
 								});
-								return null;
-							}
-
-							DEBUG("Start Evaluation ...");	// do the evaluation
-							evaluate(kernel_connection, current_cell.input, write_to_evaluation_cell, current_cell.cell);
-
-							// something is wrong
-							if(check_connection(kernel_connection) != 1) {
-    								DEBUG("Error after Evaluation: " + check_connection(kernel_connection).to_string());
-    								GLib.Idle.add( () => {
-										abort_eval();
-										return false;
-									});
-								return null;
-							}
-
-							//unlock cell at the end
-							GLib.Idle.add( () => {
-
-									Seaborg.EvaluationCell* output_cell = (Seaborg.EvaluationCell*) current_cell.cell;
-									
-									if( output_cell != null)
-										output_cell->lock = false;
-									return false;
-							});
-
+							return null;
 						}
 
-						listener_thread_is_running = false;
-						return null;
-					});
+						while(true) {
+							lock(global_stamp) {
+								if(global_stamp == 0)
+									break;
+							}
+							GLib.Thread.usleep(200);
+						}
 
-				} catch (GLib.Error err) {
+							
+					}
 
-					GLib.Idle.add( () => {
-						abort_eval();
-						return false;
-					});
-
-				} finally {
-
-					GLib.Idle.add( () => {
-						abort_eval();
-						return false;
-					});
-
-				}
+					listener_thread_is_running = false;
+					return null;
+				});
 			}
 		}
 
 		// aborts current evaluation and reset everything
 		private void abort_eval() {
-			
+
+			// no new packets to be written
+			lock(global_stamp) {
+				global_stamp = 0;
+			}
+
 			// remove locks
 			EvaluationCell* cell = (EvaluationCell*)current_cell.cell;
+
 			if(cell != null) cell->lock = false;
 			lock(eval_queue) {
 				while(true) {
@@ -360,10 +349,9 @@ namespace Seaborg {
 
 
 		private void reset_kernel() {
-			DEBUG("Starting connection");
+
 			if(kernel_connection != null) {
 				if(check_connection(kernel_connection) != -1) {
-					DEBUG("Closing obsolete connection first");
 					close_connection(kernel_connection);
 				}
 			}
@@ -373,35 +361,62 @@ namespace Seaborg {
 			kernel_connection = init_connection(init_string);
 			if(check_connection(kernel_connection) != 1) {
 				kernel_msg("Error resetting connection");
-				DEBUG("Error resetting kernel: " + check_connection(kernel_connection).to_string());
 			}
 		}
 
 		public void kernel_msg(string error) {}
 
-		private static delegate void callback_str(char* string_to_write, void* callback_data);
+		private static delegate void callback_str(char* string_to_write, void* callback_data, ulong stamp, int break_after);
 
-		private static  callback_str write_to_evaluation_cell = (_string_to_write, cell_ptr) => {
-			string string_to_write = (string) _string_to_write;
-			DEBUG("Callback for: " + (string)string_to_write +" and callback_data: " + (string)cell_ptr);
+		private static  callback_str write_to_evaluation_cell = (_string_to_write, cell_ptr, _stamp, _break) => {
+			string string_to_write;
+
+			if(_string_to_write == null) {
+				string_to_write = "";
+			} else {
+				string_to_write = (string) _string_to_write;
+			}
+
 			//append to GLib main loop
 			GLib.Idle.add( () => {
-				DEBUG("Add to main_loop: " + string_to_write);
-				Seaborg.EvaluationCell* cell_to_write = (Seaborg.EvaluationCell*) cell_ptr;
-				if(cell_to_write == null) DEBUG("Cell to write not found");
+
+				lock(global_stamp) {
+
+					// get packet with right stamp
+					if(global_stamp != _stamp) {
+
+						// abort has been sent already, throw away packet
+						if(global_stamp == 0)
+							return false;
+						return true;
+					}
 				
-				if( cell_to_write != null) {
-					DEBUG("Managed to gain non-null pointer to EvaluationCell");
-					cell_to_write->add_text("\n"+string_to_write);
-					cell_to_write->expand_all();
-				}									
-				return false;
+					Seaborg.EvaluationCell* cell_to_write = (Seaborg.EvaluationCell*) cell_ptr;
+					
+					if( cell_to_write != null) {
+
+						if(string_to_write != "") {
+							cell_to_write->add_text("\n"+string_to_write);
+							cell_to_write->expand_all();
+						}
+
+						if(_break != 0) {
+							cell_to_write->lock=false;
+							global_stamp = 0;
+							return false;
+						}
+					}
+
+					global_stamp++;
+
+					return false;
+				}
 			});
 
 			return;
 		};
 
-		private EvaluationData current_cell;	
+		private EvaluationData current_cell; 
 
 		[CCode(cname = "init_connection", cheader_filename = "wstp_connection.h")]
 		private extern static void* init_connection(char* path);
