@@ -14,11 +14,20 @@
 	border-bottom-width: 0px;
 	border-right-width: 0px; 
 	border-left-width: 0px;
-	min-width: 8px;
+	/* marker width */
+	min-width: .3em;
+	/* marker color */
+	background-color: #555555 
 }
 
+/* computation running */
 .cell-marker:disabled {
-	background-color: #2ca5e0;
+	background-color: #0088ff;
+}
+
+/* marker selected */
+.cell-marker:checked {
+	background-color: #0088ff;
 }
 
 .container-grid {

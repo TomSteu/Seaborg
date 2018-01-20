@@ -27,5 +27,4 @@ clean:
 
 .PHONY: run
 run:
-	rm log.log
 	LD_LIBRARY_PATH=$(WSTPDIR):$(LD_LIBRARY_PATH) ./bin/seaborg
