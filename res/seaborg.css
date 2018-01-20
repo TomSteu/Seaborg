@@ -16,6 +16,7 @@
 	border-left-width: 0px;
 	/* marker width */
 	min-width: .3em;
+	/* marker background color */
 	background-color: mix( @theme_text_color, @theme_base_color, .8);
 
 }
