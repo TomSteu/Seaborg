@@ -16,18 +16,18 @@
 	border-left-width: 0px;
 	/* marker width */
 	min-width: .3em;
-	/* marker color */
-	background-color: #555555 
+	background-color: mix( @theme_text_color, @theme_base_color, .8);
+
 }
 
 /* computation running */
 .cell-marker:disabled {
-	background-color: #0088ff;
+	background-color: @theme_selected_bg_color;
 }
 
 /* marker selected */
 .cell-marker:checked {
-	background-color: #0088ff;
+	background-color: @theme_selected_bg_color;
 }
 
 .container-grid {

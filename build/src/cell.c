@@ -999,6 +999,7 @@ SeaborgNotebook* seaborg_notebook_construct (GType object_type) {
 	style_context = _tmp15_;
 	_tmp16_ = self->priv->css;
 	gtk_style_context_add_provider (style_context, (GtkStyleProvider*) _tmp16_, (guint) GTK_STYLE_PROVIDER_PRIORITY_USER);
+	gtk_style_context_add_class (style_context, "titlebar");
 	gtk_style_context_add_class (style_context, "cell-marker");
 	_tmp17_ = gtk_widget_get_style_context ((GtkWidget*) self);
 	gtk_style_context_add_class (_tmp17_, "view");
@@ -2287,6 +2288,7 @@ SeaborgCellContainer* seaborg_cell_container_construct (GType object_type, Seabo
 	style_context = _tmp40_;
 	_tmp41_ = self->priv->css;
 	gtk_style_context_add_provider (style_context, (GtkStyleProvider*) _tmp41_, (guint) GTK_STYLE_PROVIDER_PRIORITY_USER);
+	gtk_style_context_add_class (style_context, "titlebar");
 	gtk_style_context_add_class (style_context, "cell-marker");
 	_tmp42_ = gtk_widget_get_style_context ((GtkWidget*) self);
 	gtk_style_context_add_class (_tmp42_, "view");
@@ -4314,6 +4316,7 @@ SeaborgEvaluationCell* seaborg_evaluation_cell_construct (GType object_type, Sea
 	_tmp73_ = self->priv->css;
 	gtk_style_context_add_provider (style_context, (GtkStyleProvider*) _tmp73_, (guint) GTK_STYLE_PROVIDER_PRIORITY_USER);
 	gtk_style_context_add_class (style_context, "cell-marker");
+	gtk_style_context_add_class (style_context, "titlebar");
 	_tmp74_ = gtk_widget_get_style_context ((GtkWidget*) self);
 	gtk_style_context_add_class (_tmp74_, "cell-grid");
 	_tmp75_ = self->priv->Marker;
