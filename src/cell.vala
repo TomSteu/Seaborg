@@ -33,15 +33,6 @@ namespace Seaborg {
 
 		}
 
-		public bool special_character_handler(EventKey key) {
-			
-			if(key.type == Gdk.EventType.KEY_PRESS && key.keyval == Gdk.Key.Escape) {
-				set_text(replace_characters(get_text()));
-			}
-
-			return false;
-		}
-
 		public void recursive_untoggle_all() {
 			if(Parent == null) {
 				untoggle_all();
@@ -331,7 +322,6 @@ namespace Seaborg {
 			Title.bottom_margin = 0;
 			Title.button_press_event.connect(untoggle_handler);
 			Title.key_press_event.connect(insert_ellipsis);
-			Title.key_press_event.connect(special_character_handler);
 
 
 			set_level(level);
@@ -608,8 +598,15 @@ namespace Seaborg {
 
 		private bool insert_ellipsis(EventKey key) {
 
-			if(key.type == Gdk.EventType.KEY_PRESS && key.keyval == Gdk.Key.Escape)
+			if(key.type == Gdk.EventType.KEY_PRESS && key.keyval == Gdk.Key.Escape) {
 				Title.buffer.insert_at_cursor("⋮", "⋮".length);
+				TextIter iter;
+				int pos = Title.buffer.get_char_count() -  Title.buffer.cursor_position;
+				set_text(replace_characters(get_text()));
+				Title.buffer.get_iter_at_offset(out iter, Title.buffer.get_char_count() - pos);
+				Title.buffer.place_cursor(iter);
+
+			}
 
 			return false;
 		}
@@ -652,8 +649,10 @@ namespace Seaborg {
 			
  			InputBuffer = new Gtk.SourceBuffer(null);
 			InputBuffer.highlight_matching_brackets = true;
-			InputBuffer.style_scheme = sm.get_scheme("seaborg");
-			InputBuffer.language =  lm.get_language("wolfram");
+			if(Parameter.code_highlighting) {
+				InputBuffer.style_scheme = sm.get_scheme("seaborg");
+				InputBuffer.language =  lm.get_language("wolfram");
+			}
 			InputCell = new Gtk.SourceView.with_buffer(InputBuffer);
 			InputCell.show_line_numbers = false;
 			InputCell.highlight_current_line = false;
@@ -674,12 +673,14 @@ namespace Seaborg {
 			InputCell.bottom_margin = 0;
 			InputCell.button_press_event.connect(untoggle_handler);
 			InputCell.key_press_event.connect(insert_ellipsis);
-			InputCell.key_press_event.connect(special_character_handler);
 
 			OutputBuffer = new Gtk.SourceBuffer(null);
 			OutputBuffer.highlight_matching_brackets = true;
-			OutputBuffer.style_scheme = sm.get_scheme("seaborg");
-			OutputBuffer.language = lm.get_language("wolfram");
+			if(Parameter.code_highlighting) {
+				OutputBuffer.style_scheme = sm.get_scheme("seaborg");
+				OutputBuffer.language =  lm.get_language("wolfram");
+			}
+
 			OutputCell = new Gtk.SourceView.with_buffer(OutputBuffer);
 			OutputCell.show_line_numbers = false;
 			OutputCell.highlight_current_line = false;
@@ -793,8 +794,15 @@ namespace Seaborg {
 
 		private bool insert_ellipsis(EventKey key) {
 
-			if(key.type == Gdk.EventType.KEY_PRESS && key.keyval == Gdk.Key.Escape)
+			if(key.type == Gdk.EventType.KEY_PRESS && key.keyval == Gdk.Key.Escape) {
 				InputCell.buffer.insert_at_cursor("⋮", "⋮".length);
+				TextIter iter;
+				int pos = InputCell.buffer.get_char_count() -  InputCell.buffer.cursor_position;
+				set_text(replace_characters(get_text()));
+				InputCell.buffer.get_iter_at_offset(out iter, InputCell.buffer.get_char_count() - pos);
+				InputCell.buffer.place_cursor(iter);
+
+			}
 
 			return false;
 		}
@@ -857,7 +865,6 @@ namespace Seaborg {
 			Cell.bottom_margin = 0;
 			Cell.button_press_event.connect(untoggle_handler);
 			Cell.key_press_event.connect(insert_ellipsis);
-			Cell.key_press_event.connect(special_character_handler);
 
 			Marker = new Gtk.ToggleButton();
 			Marker.get_style_context().add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
@@ -922,9 +929,16 @@ namespace Seaborg {
 		}
 
 		private bool insert_ellipsis(EventKey key) {
-			
-			if(key.type == Gdk.EventType.KEY_PRESS && key.keyval == Gdk.Key.Escape)
+
+			if(key.type == Gdk.EventType.KEY_PRESS && key.keyval == Gdk.Key.Escape) {
 				Cell.buffer.insert_at_cursor("⋮", "⋮".length);
+				TextIter iter;
+				int pos = Cell.buffer.get_char_count() -  Cell.buffer.cursor_position;
+				set_text(replace_characters(get_text()));
+				Cell.buffer.get_iter_at_offset(out iter, Cell.buffer.get_char_count() - pos);
+				Cell.buffer.place_cursor(iter);
+
+			}
 
 			return false;
 		}
