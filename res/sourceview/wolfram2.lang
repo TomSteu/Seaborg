@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+ GtkSourceView is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+
+ GtkSourceView is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public License
+ along with this library; if not, see <http://www.gnu.org/licenses/>.
+
+-->
+
+<language id="wolfram-nostdlib" _name="Wolfram Language" version="2.0" _section="Scientific" >
+	<metadata>
+		<property name="mimetypes">application/vnd.wolfram.mathematica</property>
+		<property name="globs">*.nb;*.m</property>
+		<property name="block-comment-start">(*</property>
+		<property name="block-comment-end">*)</property>
+	</metadata>
+	<styles>
+		<style id="comment" _name="Comment" map-to="def:comment"/>
+		<style id="string" _name="String" map-to="def:string"/>
+		<style id="error" _name="Error" map-to="def:error"/>
+		<style id="argument" _name="Argument" map-to="def:operator"/>
+	</styles>
+	<definitions>
+		<context id="block-comment" style-ref="comment" end-at-line-end="false">
+			<start>\(\*</start>
+			<end>\*\)</end>
+		</context>
+		<context id="arg-context" style-ref="argument" end-at-line-end="true">
+			<start>#</start>
+			<end>(?=[^0-9a-zA-Z])</end>
+		</context>
+		<context id="string" style-ref="string" end-at-line-end="true">
+			<start>L?"</start>
+			<end>"</end>
+		</context>
+		<context id="error" style-ref="error">
+			<keyword>[0-9a-zA-Z]*::[0-9a-zA-Z]*</keyword>
+		</context>
+		<context id="argument" style-ref="argument">
+			<keyword>[0-9a-zA-Z]*_[0-9a-zA-Z]*</keyword>
+			<keyword>[0-9a-zA-Z]*__[0-9a-zA-Z]*</keyword>
+			<keyword>[0-9a-zA-Z]*___[0-9a-zA-Z]*</keyword>
+		</context>
+		<context id="wolfram-nostdlib">
+			<include>
+				<context ref="block-comment"/>
+				<context ref="string"/>
+				<context ref="error"/>
+				<context ref="arg-context"/>
+				<context ref="argument"/>
+			</include>
+		</context>
+	</definitions>
+</language>
