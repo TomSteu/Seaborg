@@ -651,7 +651,12 @@ namespace Seaborg {
 			InputBuffer.highlight_matching_brackets = true;
 			if(Parameter.code_highlighting) {
 				InputBuffer.style_scheme = sm.get_scheme("seaborg");
-				InputBuffer.language =  lm.get_language("wolfram");
+				if(Parameter.stdlib_highlighting){
+					InputBuffer.language =  lm.get_language("wolfram");
+				}
+				else {
+					InputBuffer.language =  lm.get_language("wolfram-nostdlib");
+				}
 			}
 			InputCell = new Gtk.SourceView.with_buffer(InputBuffer);
 			InputCell.show_line_numbers = false;
@@ -678,7 +683,12 @@ namespace Seaborg {
 			OutputBuffer.highlight_matching_brackets = true;
 			if(Parameter.code_highlighting) {
 				OutputBuffer.style_scheme = sm.get_scheme("seaborg");
-				OutputBuffer.language =  lm.get_language("wolfram");
+				if(Parameter.stdlib_highlighting){
+					OutputBuffer.language =  lm.get_language("wolfram");
+				}
+				else {
+					OutputBuffer.language =  lm.get_language("wolfram-nostdlib");
+				}
 			}
 
 			OutputCell = new Gtk.SourceView.with_buffer(OutputBuffer);
