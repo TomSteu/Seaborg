@@ -170,7 +170,6 @@ static void block1_data_unref (void * _userdata_);
 static gboolean __lambda5_ (Block1Data* _data1_);
 GType seaborg_evaluation_cell_get_type (void) G_GNUC_CONST;
 void seaborg_evaluation_cell_add_text (SeaborgEvaluationCell* self, const gchar* _text);
-gchar* seaborg_replace_output (const gchar* _str);
 GType seaborg_add_button_get_type (void) G_GNUC_CONST;
 GType seaborg_icell_container_get_type (void) G_GNUC_CONST;
 GType seaborg_icell_get_type (void) G_GNUC_CONST;
@@ -211,6 +210,7 @@ gboolean seaborg_icell_get_lock (SeaborgICell* self);
 gboolean seaborg_check_input_packet (const gchar* _str);
 gchar* seaborg_icell_get_text (SeaborgICell* self);
 void seaborg_evaluation_cell_remove_text (SeaborgEvaluationCell* self);
+gchar* seaborg_replace_characters (const gchar* _str);
 void seaborg_seaborg_application_start_evalutation_thread (SeaborgSeaborgApplication* self);
 static void* ___lambda21_ (SeaborgSeaborgApplication* self);
 gint check_connection (void* con);
@@ -321,7 +321,7 @@ static gboolean __lambda5_ (Block1Data* _data1_) {
 			SeaborgEvaluationCell* cell_to_write = NULL;
 			void* _tmp6_;
 			SeaborgEvaluationCell* _tmp7_;
-			gulong _tmp24_;
+			gulong _tmp22_;
 			_tmp1_ = seaborg_seaborg_application_global_stamp;
 			_tmp2_ = _data1_->_stamp;
 			if (_tmp1_ != _tmp2_) {
@@ -349,7 +349,7 @@ static gboolean __lambda5_ (Block1Data* _data1_) {
 			_tmp7_ = cell_to_write;
 			if (_tmp7_ != NULL) {
 				const gchar* _tmp8_;
-				gint _tmp21_;
+				gint _tmp19_;
 				_tmp8_ = _data1_->string_to_write;
 				if (g_strcmp0 (_tmp8_, "") != 0) {
 					gsize bytes_read = 0UL;
@@ -363,9 +363,7 @@ static gboolean __lambda5_ (Block1Data* _data1_) {
 					const gchar* _tmp15_;
 					gchar* _tmp16_;
 					gchar* _tmp17_;
-					gchar* _tmp18_;
-					gchar* _tmp19_;
-					SeaborgEvaluationCell* _tmp20_;
+					SeaborgEvaluationCell* _tmp18_;
 					_tmp9_ = stderr;
 					_tmp10_ = _data1_->string_to_write;
 					_tmp11_ = g_utf8_validate (_tmp10_, (gssize) -1, NULL);
@@ -375,52 +373,49 @@ static gboolean __lambda5_ (Block1Data* _data1_) {
 					_g_free0 (_tmp13_);
 					_tmp14_ = cell_to_write;
 					_tmp15_ = _data1_->string_to_write;
-					_tmp16_ = seaborg_replace_output (_tmp15_);
+					_tmp16_ = g_strconcat ("\n", _tmp15_, NULL);
 					_tmp17_ = _tmp16_;
-					_tmp18_ = g_strconcat ("\n", _tmp17_, NULL);
-					_tmp19_ = _tmp18_;
-					seaborg_evaluation_cell_add_text (_tmp14_, _tmp19_);
-					_g_free0 (_tmp19_);
+					seaborg_evaluation_cell_add_text (_tmp14_, _tmp17_);
 					_g_free0 (_tmp17_);
-					_tmp20_ = cell_to_write;
-					seaborg_icell_expand_all ((SeaborgICell*) _tmp20_);
+					_tmp18_ = cell_to_write;
+					seaborg_icell_expand_all ((SeaborgICell*) _tmp18_);
 				}
-				_tmp21_ = _data1_->_break;
-				if (_tmp21_ != 0) {
-					SeaborgEvaluationCell* _tmp22_;
-					_tmp22_ = cell_to_write;
-					seaborg_icell_set_lock ((SeaborgICell*) _tmp22_, FALSE);
+				_tmp19_ = _data1_->_break;
+				if (_tmp19_ != 0) {
+					SeaborgEvaluationCell* _tmp20_;
+					_tmp20_ = cell_to_write;
+					seaborg_icell_set_lock ((SeaborgICell*) _tmp20_, FALSE);
 					seaborg_seaborg_application_global_stamp = (gulong) 0;
 					result = FALSE;
 					{
-						gulong _tmp23_;
-						_tmp23_ = seaborg_seaborg_application_global_stamp;
+						gulong _tmp21_;
+						_tmp21_ = seaborg_seaborg_application_global_stamp;
 						g_rec_mutex_unlock (&__lock_seaborg_seaborg_application_global_stamp);
 					}
 					return result;
 				}
 			}
-			_tmp24_ = seaborg_seaborg_application_global_stamp;
-			seaborg_seaborg_application_global_stamp = _tmp24_ + 1;
+			_tmp22_ = seaborg_seaborg_application_global_stamp;
+			seaborg_seaborg_application_global_stamp = _tmp22_ + 1;
 			result = FALSE;
 			{
-				gulong _tmp25_;
-				_tmp25_ = seaborg_seaborg_application_global_stamp;
+				gulong _tmp23_;
+				_tmp23_ = seaborg_seaborg_application_global_stamp;
 				g_rec_mutex_unlock (&__lock_seaborg_seaborg_application_global_stamp);
 			}
 			return result;
 		}
 		__finally0:
 		{
-			gulong _tmp26_;
-			_tmp26_ = seaborg_seaborg_application_global_stamp;
+			gulong _tmp24_;
+			_tmp24_ = seaborg_seaborg_application_global_stamp;
 			g_rec_mutex_unlock (&__lock_seaborg_seaborg_application_global_stamp);
 		}
 		if (G_UNLIKELY (_inner_error_ != NULL)) {
-			gboolean _tmp27_ = FALSE;
+			gboolean _tmp25_ = FALSE;
 			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
 			g_clear_error (&_inner_error_);
-			return _tmp27_;
+			return _tmp25_;
 		}
 	}
 }
@@ -989,9 +984,11 @@ void seaborg_seaborg_application_schedule_evaluation (SeaborgSeaborgApplication*
 								gchar* _tmp80_;
 								gchar* _tmp81_;
 								gchar* _tmp82_;
-								SeaborgEvaluationData _tmp83_ = {0};
-								SeaborgEvaluationData _tmp84_;
-								SeaborgEvaluationData* _tmp85_;
+								gchar* _tmp83_;
+								gchar* _tmp84_;
+								SeaborgEvaluationData _tmp85_ = {0};
+								SeaborgEvaluationData _tmp86_;
+								SeaborgEvaluationData* _tmp87_;
 								_tmp53_ = container;
 								_tmp54_ = seaborg_icell_container_get_Children (_tmp53_);
 								_tmp55_ = _tmp54_;
@@ -1025,17 +1022,20 @@ void seaborg_seaborg_application_schedule_evaluation (SeaborgSeaborgApplication*
 								_tmp77_ = _tmp75_[_tmp76_];
 								_tmp78_ = seaborg_icell_get_text ((SeaborgICell*) G_TYPE_CHECK_INSTANCE_CAST (_tmp77_, SEABORG_TYPE_EVALUATION_CELL, SeaborgEvaluationCell));
 								_tmp79_ = _tmp78_;
-								_tmp80_ = g_strconcat ("ToString[InputForm[", _tmp79_, NULL);
+								_tmp80_ = seaborg_replace_characters (_tmp79_);
 								_tmp81_ = _tmp80_;
-								_tmp82_ = g_strconcat (_tmp81_, "]]", NULL);
-								memset (&_tmp83_, 0, sizeof (SeaborgEvaluationData));
-								_tmp83_.cell = (void*) _tmp71_;
-								_g_free0 (_tmp83_.input);
-								_tmp83_.input = _tmp82_;
-								_tmp84_ = _tmp83_;
-								_tmp85_ = _seaborg_evaluation_data_dup0 (&_tmp84_);
-								g_queue_push_tail (_tmp65_, _tmp85_);
-								seaborg_evaluation_data_destroy (&_tmp84_);
+								_tmp82_ = g_strconcat ("ToString[InputForm[", _tmp81_, NULL);
+								_tmp83_ = _tmp82_;
+								_tmp84_ = g_strconcat (_tmp83_, "]]", NULL);
+								memset (&_tmp85_, 0, sizeof (SeaborgEvaluationData));
+								_tmp85_.cell = (void*) _tmp71_;
+								_g_free0 (_tmp85_.input);
+								_tmp85_.input = _tmp84_;
+								_tmp86_ = _tmp85_;
+								_tmp87_ = _seaborg_evaluation_data_dup0 (&_tmp86_);
+								g_queue_push_tail (_tmp65_, _tmp87_);
+								seaborg_evaluation_data_destroy (&_tmp86_);
+								_g_free0 (_tmp83_);
 								_g_free0 (_tmp81_);
 								_g_free0 (_tmp79_);
 							}
@@ -1046,8 +1046,8 @@ void seaborg_seaborg_application_schedule_evaluation (SeaborgSeaborgApplication*
 		}
 		__finally1:
 		{
-			GQueue* _tmp86_;
-			_tmp86_ = self->priv->eval_queue;
+			GQueue* _tmp88_;
+			_tmp88_ = self->priv->eval_queue;
 			g_rec_mutex_unlock (&self->priv->__lock_eval_queue);
 		}
 		if (G_UNLIKELY (_inner_error_ != NULL)) {

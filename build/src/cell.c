@@ -36,6 +36,7 @@ typedef struct _SeaborgICellContainerIface SeaborgICellContainerIface;
 
 typedef struct _SeaborgAddButton SeaborgAddButton;
 typedef struct _SeaborgAddButtonClass SeaborgAddButtonClass;
+#define _g_free0(var) (var = (g_free (var), NULL))
 
 #define SEABORG_TYPE_ID_GENERATOR (seaborg_id_generator_get_type ())
 #define SEABORG_ID_GENERATOR(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), SEABORG_TYPE_ID_GENERATOR, SeaborgIdGenerator))
@@ -60,7 +61,6 @@ typedef struct _SeaborgNotebookClass SeaborgNotebookClass;
 typedef struct _SeaborgNotebookPrivate SeaborgNotebookPrivate;
 #define _g_array_unref0(var) ((var == NULL) ? NULL : (var = (g_array_unref (var), NULL)))
 #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
-#define _g_free0(var) (var = (g_free (var), NULL))
 #define _g_error_free0(var) ((var == NULL) ? NULL : (var = (g_error_free (var), NULL)))
 
 #define SEABORG_TYPE_CELL_CONTAINER (seaborg_cell_container_get_type ())
@@ -288,6 +288,8 @@ void seaborg_icell_set_text (SeaborgICell* self, const gchar* _text);
 gchar* seaborg_icell_get_text (SeaborgICell* self);
 gboolean seaborg_icell_untoggle_handler (SeaborgICell* self, GdkEventButton* event);
 void seaborg_icell_recursive_untoggle_all (SeaborgICell* self);
+gboolean seaborg_icell_special_character_handler (SeaborgICell* self, GdkEventKey* key);
+gchar* seaborg_replace_characters (const gchar* _str);
 SeaborgICellContainer* seaborg_icell_get_Parent (SeaborgICell* self);
 void seaborg_icell_set_Parent (SeaborgICell* self, SeaborgICellContainer* value);
 gboolean seaborg_icell_get_lock (SeaborgICell* self);
@@ -349,6 +351,9 @@ enum  {
 SeaborgCellContainer* seaborg_cell_container_new (SeaborgICellContainer* parent, guint level);
 SeaborgCellContainer* seaborg_cell_container_construct (GType object_type, SeaborgICellContainer* parent, guint level);
 static gboolean _seaborg_icell_untoggle_handler_gtk_widget_button_press_event (GtkWidget* _sender, GdkEventButton* event, gpointer self);
+static gboolean seaborg_cell_container_insert_ellipsis (SeaborgCellContainer* self, GdkEventKey* key);
+static gboolean _seaborg_cell_container_insert_ellipsis_gtk_widget_key_press_event (GtkWidget* _sender, GdkEventKey* event, gpointer self);
+static gboolean _seaborg_icell_special_character_handler_gtk_widget_key_press_event (GtkWidget* _sender, GdkEventKey* event, gpointer self);
 void seaborg_cell_container_set_level (SeaborgCellContainer* self, guint level);
 static gboolean seaborg_cell_container_press_handler (SeaborgCellContainer* self, GdkEventButton* event);
 static gboolean _seaborg_cell_container_press_handler_gtk_widget_button_press_event (GtkWidget* _sender, GdkEventButton* event, gpointer self);
@@ -382,6 +387,8 @@ enum  {
 };
 SeaborgEvaluationCell* seaborg_evaluation_cell_new (SeaborgICellContainer* par);
 SeaborgEvaluationCell* seaborg_evaluation_cell_construct (GType object_type, SeaborgICellContainer* par);
+static gboolean seaborg_evaluation_cell_insert_ellipsis (SeaborgEvaluationCell* self, GdkEventKey* key);
+static gboolean _seaborg_evaluation_cell_insert_ellipsis_gtk_widget_key_press_event (GtkWidget* _sender, GdkEventKey* event, gpointer self);
 static gboolean seaborg_evaluation_cell_press_handler (SeaborgEvaluationCell* self, GdkEventButton* event);
 static gboolean _seaborg_evaluation_cell_press_handler_gtk_widget_button_press_event (GtkWidget* _sender, GdkEventButton* event, gpointer self);
 static void seaborg_evaluation_cell_real_toggle_all (SeaborgICell* base);
@@ -410,6 +417,8 @@ enum  {
 };
 SeaborgTextCell* seaborg_text_cell_new (SeaborgICellContainer* par);
 SeaborgTextCell* seaborg_text_cell_construct (GType object_type, SeaborgICellContainer* par);
+static gboolean seaborg_text_cell_insert_ellipsis (SeaborgTextCell* self, GdkEventKey* key);
+static gboolean _seaborg_text_cell_insert_ellipsis_gtk_widget_key_press_event (GtkWidget* _sender, GdkEventKey* event, gpointer self);
 static gboolean seaborg_text_cell_press_handler (SeaborgTextCell* self, GdkEventButton* event);
 static gboolean _seaborg_text_cell_press_handler_gtk_widget_button_press_event (GtkWidget* _sender, GdkEventButton* event, gpointer self);
 static void seaborg_text_cell_real_toggle_all (SeaborgICell* base);
@@ -557,6 +566,41 @@ gboolean seaborg_icell_untoggle_handler (SeaborgICell* self, GdkEventButton* eve
 	if (_tmp0_) {
 		seaborg_icell_recursive_untoggle_all (self);
 		seaborg_icell_toggle_all (self);
+	}
+	result = FALSE;
+	return result;
+}
+
+
+gboolean seaborg_icell_special_character_handler (SeaborgICell* self, GdkEventKey* key) {
+	gboolean result = FALSE;
+	gboolean _tmp0_ = FALSE;
+	GdkEventKey* _tmp1_;
+	GdkEventType _tmp2_;
+	g_return_val_if_fail (key != NULL, FALSE);
+	_tmp1_ = key;
+	_tmp2_ = _tmp1_->type;
+	if (_tmp2_ == GDK_KEY_PRESS) {
+		GdkEventKey* _tmp3_;
+		guint _tmp4_;
+		_tmp3_ = key;
+		_tmp4_ = _tmp3_->keyval;
+		_tmp0_ = _tmp4_ == ((guint) GDK_KEY_Escape);
+	} else {
+		_tmp0_ = FALSE;
+	}
+	if (_tmp0_) {
+		gchar* _tmp5_;
+		gchar* _tmp6_;
+		gchar* _tmp7_;
+		gchar* _tmp8_;
+		_tmp5_ = seaborg_icell_get_text (self);
+		_tmp6_ = _tmp5_;
+		_tmp7_ = seaborg_replace_characters (_tmp6_);
+		_tmp8_ = _tmp7_;
+		seaborg_icell_set_text (self, _tmp8_);
+		_g_free0 (_tmp8_);
+		_g_free0 (_tmp6_);
 	}
 	result = FALSE;
 	return result;
@@ -2117,6 +2161,20 @@ static gboolean _seaborg_icell_untoggle_handler_gtk_widget_button_press_event (G
 }
 
 
+static gboolean _seaborg_cell_container_insert_ellipsis_gtk_widget_key_press_event (GtkWidget* _sender, GdkEventKey* event, gpointer self) {
+	gboolean result;
+	result = seaborg_cell_container_insert_ellipsis ((SeaborgCellContainer*) self, event);
+	return result;
+}
+
+
+static gboolean _seaborg_icell_special_character_handler_gtk_widget_key_press_event (GtkWidget* _sender, GdkEventKey* event, gpointer self) {
+	gboolean result;
+	result = seaborg_icell_special_character_handler ((SeaborgICell*) self, event);
+	return result;
+}
+
+
 static gboolean _seaborg_cell_container_press_handler_gtk_widget_button_press_event (GtkWidget* _sender, GdkEventButton* event, gpointer self) {
 	gboolean result;
 	result = seaborg_cell_container_press_handler ((SeaborgCellContainer*) self, event);
@@ -2159,24 +2217,26 @@ SeaborgCellContainer* seaborg_cell_container_construct (GType object_type, Seabo
 	GtkTextView* _tmp33_;
 	GtkTextView* _tmp34_;
 	GtkTextView* _tmp35_;
-	guint _tmp36_;
-	GtkToggleButton* _tmp37_;
+	GtkTextView* _tmp36_;
+	GtkTextView* _tmp37_;
+	guint _tmp38_;
+	GtkToggleButton* _tmp39_;
 	GtkStyleContext* style_context = NULL;
-	GtkToggleButton* _tmp38_;
-	GtkStyleContext* _tmp39_;
-	GtkStyleContext* _tmp40_;
-	GtkCssProvider* _tmp41_;
+	GtkToggleButton* _tmp40_;
+	GtkStyleContext* _tmp41_;
 	GtkStyleContext* _tmp42_;
-	GtkStyleContext* _tmp43_;
-	GtkToggleButton* _tmp44_;
-	GtkTextView* _tmp45_;
-	GArray* _tmp46_;
-	GArray* _tmp47_;
-	SeaborgAddButton* _tmp48_;
+	GtkCssProvider* _tmp43_;
+	GtkStyleContext* _tmp44_;
+	GtkStyleContext* _tmp45_;
+	GtkToggleButton* _tmp46_;
+	GtkTextView* _tmp47_;
+	GArray* _tmp48_;
 	GArray* _tmp49_;
-	GArray* _tmp50_;
-	SeaborgAddButton* _tmp51_;
-	GtkToggleButton* _tmp52_;
+	SeaborgAddButton* _tmp50_;
+	GArray* _tmp51_;
+	GArray* _tmp52_;
+	SeaborgAddButton* _tmp53_;
+	GtkToggleButton* _tmp54_;
 	GError * _inner_error_ = NULL;
 	self = (SeaborgCellContainer*) g_object_new (object_type, NULL);
 	_tmp0_ = seaborg_id_generator_get_id ();
@@ -2275,38 +2335,42 @@ SeaborgCellContainer* seaborg_cell_container_construct (GType object_type, Seabo
 	gtk_text_view_set_bottom_margin (_tmp34_, 0);
 	_tmp35_ = self->priv->Title;
 	g_signal_connect_object ((GtkWidget*) _tmp35_, "button-press-event", (GCallback) _seaborg_icell_untoggle_handler_gtk_widget_button_press_event, (SeaborgICell*) self, 0);
-	_tmp36_ = level;
-	seaborg_cell_container_set_level (self, _tmp36_);
-	_tmp37_ = (GtkToggleButton*) gtk_toggle_button_new ();
-	g_object_ref_sink (_tmp37_);
+	_tmp36_ = self->priv->Title;
+	g_signal_connect_object ((GtkWidget*) _tmp36_, "key-press-event", (GCallback) _seaborg_cell_container_insert_ellipsis_gtk_widget_key_press_event, self, 0);
+	_tmp37_ = self->priv->Title;
+	g_signal_connect_object ((GtkWidget*) _tmp37_, "key-press-event", (GCallback) _seaborg_icell_special_character_handler_gtk_widget_key_press_event, (SeaborgICell*) self, 0);
+	_tmp38_ = level;
+	seaborg_cell_container_set_level (self, _tmp38_);
+	_tmp39_ = (GtkToggleButton*) gtk_toggle_button_new ();
+	g_object_ref_sink (_tmp39_);
 	_g_object_unref0 (self->priv->Marker);
-	self->priv->Marker = _tmp37_;
-	_tmp38_ = self->priv->Marker;
-	_tmp39_ = gtk_widget_get_style_context ((GtkWidget*) _tmp38_);
-	_tmp40_ = _g_object_ref0 (_tmp39_);
-	style_context = _tmp40_;
-	_tmp41_ = self->priv->css;
-	gtk_style_context_add_provider (style_context, (GtkStyleProvider*) _tmp41_, (guint) GTK_STYLE_PROVIDER_PRIORITY_USER);
+	self->priv->Marker = _tmp39_;
+	_tmp40_ = self->priv->Marker;
+	_tmp41_ = gtk_widget_get_style_context ((GtkWidget*) _tmp40_);
+	_tmp42_ = _g_object_ref0 (_tmp41_);
+	style_context = _tmp42_;
+	_tmp43_ = self->priv->css;
+	gtk_style_context_add_provider (style_context, (GtkStyleProvider*) _tmp43_, (guint) GTK_STYLE_PROVIDER_PRIORITY_USER);
 	gtk_style_context_add_class (style_context, "cell-marker");
-	_tmp42_ = gtk_widget_get_style_context ((GtkWidget*) self);
-	gtk_style_context_add_class (_tmp42_, "view");
-	_tmp43_ = gtk_widget_get_style_context ((GtkWidget*) self);
-	gtk_style_context_add_class (_tmp43_, "container-grid");
-	_tmp44_ = self->priv->Marker;
-	gtk_grid_attach ((GtkGrid*) self, (GtkWidget*) _tmp44_, 0, 0, 1, 2);
-	_tmp45_ = self->priv->Title;
-	gtk_grid_attach ((GtkGrid*) self, (GtkWidget*) _tmp45_, 1, 0, 1, 1);
-	_tmp46_ = seaborg_icell_container_get_AddButtons ((SeaborgICellContainer*) self);
-	_tmp47_ = _tmp46_;
-	_tmp48_ = seaborg_add_button_new (self);
-	g_object_ref_sink (_tmp48_);
-	g_array_append_val (_tmp47_, _tmp48_);
-	_tmp49_ = seaborg_icell_container_get_AddButtons ((SeaborgICellContainer*) self);
-	_tmp50_ = _tmp49_;
-	_tmp51_ = g_array_index (_tmp50_, SeaborgAddButton*, (guint) 0);
-	gtk_grid_attach ((GtkGrid*) self, (GtkWidget*) _tmp51_, 1, 1, 1, 1);
-	_tmp52_ = self->priv->Marker;
-	g_signal_connect_object ((GtkWidget*) _tmp52_, "button-press-event", (GCallback) _seaborg_cell_container_press_handler_gtk_widget_button_press_event, self, 0);
+	_tmp44_ = gtk_widget_get_style_context ((GtkWidget*) self);
+	gtk_style_context_add_class (_tmp44_, "view");
+	_tmp45_ = gtk_widget_get_style_context ((GtkWidget*) self);
+	gtk_style_context_add_class (_tmp45_, "container-grid");
+	_tmp46_ = self->priv->Marker;
+	gtk_grid_attach ((GtkGrid*) self, (GtkWidget*) _tmp46_, 0, 0, 1, 2);
+	_tmp47_ = self->priv->Title;
+	gtk_grid_attach ((GtkGrid*) self, (GtkWidget*) _tmp47_, 1, 0, 1, 1);
+	_tmp48_ = seaborg_icell_container_get_AddButtons ((SeaborgICellContainer*) self);
+	_tmp49_ = _tmp48_;
+	_tmp50_ = seaborg_add_button_new (self);
+	g_object_ref_sink (_tmp50_);
+	g_array_append_val (_tmp49_, _tmp50_);
+	_tmp51_ = seaborg_icell_container_get_AddButtons ((SeaborgICellContainer*) self);
+	_tmp52_ = _tmp51_;
+	_tmp53_ = g_array_index (_tmp52_, SeaborgAddButton*, (guint) 0);
+	gtk_grid_attach ((GtkGrid*) self, (GtkWidget*) _tmp53_, 1, 1, 1, 1);
+	_tmp54_ = self->priv->Marker;
+	g_signal_connect_object ((GtkWidget*) _tmp54_, "button-press-event", (GCallback) _seaborg_cell_container_press_handler_gtk_widget_button_press_event, self, 0);
 	self->priv->isExpanded = TRUE;
 	gtk_widget_show_all ((GtkWidget*) self);
 	_g_object_unref0 (style_context);
@@ -3742,6 +3806,42 @@ static gboolean seaborg_cell_container_press_handler (SeaborgCellContainer* self
 }
 
 
+static gboolean seaborg_cell_container_insert_ellipsis (SeaborgCellContainer* self, GdkEventKey* key) {
+	gboolean result = FALSE;
+	gboolean _tmp0_ = FALSE;
+	GdkEventKey* _tmp1_;
+	GdkEventType _tmp2_;
+	g_return_val_if_fail (self != NULL, FALSE);
+	g_return_val_if_fail (key != NULL, FALSE);
+	_tmp1_ = key;
+	_tmp2_ = _tmp1_->type;
+	if (_tmp2_ == GDK_KEY_PRESS) {
+		GdkEventKey* _tmp3_;
+		guint _tmp4_;
+		_tmp3_ = key;
+		_tmp4_ = _tmp3_->keyval;
+		_tmp0_ = _tmp4_ == ((guint) GDK_KEY_Escape);
+	} else {
+		_tmp0_ = FALSE;
+	}
+	if (_tmp0_) {
+		GtkTextView* _tmp5_;
+		GtkTextBuffer* _tmp6_;
+		GtkTextBuffer* _tmp7_;
+		gint _tmp8_;
+		gint _tmp9_;
+		_tmp5_ = self->priv->Title;
+		_tmp6_ = gtk_text_view_get_buffer (_tmp5_);
+		_tmp7_ = _tmp6_;
+		_tmp8_ = strlen ("⋮");
+		_tmp9_ = _tmp8_;
+		gtk_text_buffer_insert_at_cursor (_tmp7_, "⋮", _tmp9_);
+	}
+	result = FALSE;
+	return result;
+}
+
+
 static gboolean seaborg_cell_container_real_get_lock (SeaborgICell* base) {
 	gboolean result;
 	SeaborgCellContainer* self;
@@ -4048,6 +4148,13 @@ static void _vala_seaborg_cell_container_set_property (GObject * object, guint p
 }
 
 
+static gboolean _seaborg_evaluation_cell_insert_ellipsis_gtk_widget_key_press_event (GtkWidget* _sender, GdkEventKey* event, gpointer self) {
+	gboolean result;
+	result = seaborg_evaluation_cell_insert_ellipsis ((SeaborgEvaluationCell*) self, event);
+	return result;
+}
+
+
 static gboolean _seaborg_evaluation_cell_press_handler_gtk_widget_button_press_event (GtkWidget* _sender, GdkEventButton* event, gpointer self) {
 	gboolean result;
 	result = seaborg_evaluation_cell_press_handler ((SeaborgEvaluationCell*) self, event);
@@ -4101,15 +4208,15 @@ SeaborgEvaluationCell* seaborg_evaluation_cell_construct (GType object_type, Sea
 	GtkSourceView* _tmp40_;
 	GtkSourceView* _tmp41_;
 	GtkSourceView* _tmp42_;
-	GtkSourceBuffer* _tmp43_;
-	GtkSourceBuffer* _tmp44_;
+	GtkSourceView* _tmp43_;
+	GtkSourceView* _tmp44_;
 	GtkSourceBuffer* _tmp45_;
-	GtkSourceStyleScheme* _tmp46_;
+	GtkSourceBuffer* _tmp46_;
 	GtkSourceBuffer* _tmp47_;
-	GtkSourceLanguage* _tmp48_;
+	GtkSourceStyleScheme* _tmp48_;
 	GtkSourceBuffer* _tmp49_;
-	GtkSourceView* _tmp50_;
-	GtkSourceView* _tmp51_;
+	GtkSourceLanguage* _tmp50_;
+	GtkSourceBuffer* _tmp51_;
 	GtkSourceView* _tmp52_;
 	GtkSourceView* _tmp53_;
 	GtkSourceView* _tmp54_;
@@ -4127,16 +4234,18 @@ SeaborgEvaluationCell* seaborg_evaluation_cell_construct (GType object_type, Sea
 	GtkSourceView* _tmp66_;
 	GtkSourceView* _tmp67_;
 	GtkSourceView* _tmp68_;
-	GtkToggleButton* _tmp69_;
+	GtkSourceView* _tmp69_;
+	GtkSourceView* _tmp70_;
+	GtkToggleButton* _tmp71_;
 	GtkStyleContext* style_context = NULL;
-	GtkToggleButton* _tmp70_;
-	GtkStyleContext* _tmp71_;
-	GtkStyleContext* _tmp72_;
-	GtkCssProvider* _tmp73_;
+	GtkToggleButton* _tmp72_;
+	GtkStyleContext* _tmp73_;
 	GtkStyleContext* _tmp74_;
-	GtkToggleButton* _tmp75_;
-	GtkSourceView* _tmp76_;
+	GtkCssProvider* _tmp75_;
+	GtkStyleContext* _tmp76_;
 	GtkToggleButton* _tmp77_;
+	GtkSourceView* _tmp78_;
+	GtkToggleButton* _tmp79_;
 	GError * _inner_error_ = NULL;
 	self = (SeaborgEvaluationCell*) g_object_new (object_type, NULL);
 	_tmp0_ = seaborg_id_generator_get_id ();
@@ -4251,78 +4360,82 @@ SeaborgEvaluationCell* seaborg_evaluation_cell_construct (GType object_type, Sea
 	gtk_text_view_set_bottom_margin ((GtkTextView*) _tmp41_, 0);
 	_tmp42_ = self->priv->InputCell;
 	g_signal_connect_object ((GtkWidget*) _tmp42_, "button-press-event", (GCallback) _seaborg_icell_untoggle_handler_gtk_widget_button_press_event, (SeaborgICell*) self, 0);
-	_tmp43_ = gtk_source_buffer_new (NULL);
+	_tmp43_ = self->priv->InputCell;
+	g_signal_connect_object ((GtkWidget*) _tmp43_, "key-press-event", (GCallback) _seaborg_evaluation_cell_insert_ellipsis_gtk_widget_key_press_event, self, 0);
+	_tmp44_ = self->priv->InputCell;
+	g_signal_connect_object ((GtkWidget*) _tmp44_, "key-press-event", (GCallback) _seaborg_icell_special_character_handler_gtk_widget_key_press_event, (SeaborgICell*) self, 0);
+	_tmp45_ = gtk_source_buffer_new (NULL);
 	_g_object_unref0 (self->priv->OutputBuffer);
-	self->priv->OutputBuffer = _tmp43_;
-	_tmp44_ = self->priv->OutputBuffer;
-	gtk_source_buffer_set_highlight_matching_brackets (_tmp44_, TRUE);
-	_tmp45_ = self->priv->OutputBuffer;
-	_tmp46_ = gtk_source_style_scheme_manager_get_scheme (sm, "seaborg");
-	gtk_source_buffer_set_style_scheme (_tmp45_, _tmp46_);
+	self->priv->OutputBuffer = _tmp45_;
+	_tmp46_ = self->priv->OutputBuffer;
+	gtk_source_buffer_set_highlight_matching_brackets (_tmp46_, TRUE);
 	_tmp47_ = self->priv->OutputBuffer;
-	_tmp48_ = gtk_source_language_manager_get_language (lm, "wolfram");
-	gtk_source_buffer_set_language (_tmp47_, _tmp48_);
+	_tmp48_ = gtk_source_style_scheme_manager_get_scheme (sm, "seaborg");
+	gtk_source_buffer_set_style_scheme (_tmp47_, _tmp48_);
 	_tmp49_ = self->priv->OutputBuffer;
-	_tmp50_ = (GtkSourceView*) gtk_source_view_new_with_buffer (_tmp49_);
-	g_object_ref_sink (_tmp50_);
+	_tmp50_ = gtk_source_language_manager_get_language (lm, "wolfram");
+	gtk_source_buffer_set_language (_tmp49_, _tmp50_);
+	_tmp51_ = self->priv->OutputBuffer;
+	_tmp52_ = (GtkSourceView*) gtk_source_view_new_with_buffer (_tmp51_);
+	g_object_ref_sink (_tmp52_);
 	_g_object_unref0 (self->priv->OutputCell);
-	self->priv->OutputCell = _tmp50_;
-	_tmp51_ = self->priv->OutputCell;
-	gtk_source_view_set_show_line_numbers (_tmp51_, FALSE);
-	_tmp52_ = self->priv->OutputCell;
-	gtk_source_view_set_highlight_current_line (_tmp52_, FALSE);
+	self->priv->OutputCell = _tmp52_;
 	_tmp53_ = self->priv->OutputCell;
-	gtk_source_view_set_auto_indent (_tmp53_, TRUE);
+	gtk_source_view_set_show_line_numbers (_tmp53_, FALSE);
 	_tmp54_ = self->priv->OutputCell;
-	gtk_source_view_set_indent_on_tab (_tmp54_, TRUE);
+	gtk_source_view_set_highlight_current_line (_tmp54_, FALSE);
 	_tmp55_ = self->priv->OutputCell;
-	gtk_source_view_set_tab_width (_tmp55_, (guint) 3);
+	gtk_source_view_set_auto_indent (_tmp55_, TRUE);
 	_tmp56_ = self->priv->OutputCell;
-	gtk_source_view_set_insert_spaces_instead_of_tabs (_tmp56_, FALSE);
+	gtk_source_view_set_indent_on_tab (_tmp56_, TRUE);
 	_tmp57_ = self->priv->OutputCell;
-	gtk_source_view_set_smart_backspace (_tmp57_, TRUE);
+	gtk_source_view_set_tab_width (_tmp57_, (guint) 3);
 	_tmp58_ = self->priv->OutputCell;
-	gtk_source_view_set_show_line_marks (_tmp58_, FALSE);
+	gtk_source_view_set_insert_spaces_instead_of_tabs (_tmp58_, FALSE);
 	_tmp59_ = self->priv->OutputCell;
-	gtk_text_view_set_wrap_mode ((GtkTextView*) _tmp59_, GTK_WRAP_WORD_CHAR);
+	gtk_source_view_set_smart_backspace (_tmp59_, TRUE);
 	_tmp60_ = self->priv->OutputCell;
-	gtk_text_view_set_monospace ((GtkTextView*) _tmp60_, TRUE);
+	gtk_source_view_set_show_line_marks (_tmp60_, FALSE);
 	_tmp61_ = self->priv->OutputCell;
-	gtk_text_view_set_editable ((GtkTextView*) _tmp61_, FALSE);
+	gtk_text_view_set_wrap_mode ((GtkTextView*) _tmp61_, GTK_WRAP_WORD_CHAR);
 	_tmp62_ = self->priv->OutputCell;
-	gtk_widget_set_hexpand ((GtkWidget*) _tmp62_, TRUE);
+	gtk_text_view_set_monospace ((GtkTextView*) _tmp62_, TRUE);
 	_tmp63_ = self->priv->OutputCell;
-	gtk_widget_set_halign ((GtkWidget*) _tmp63_, GTK_ALIGN_FILL);
+	gtk_text_view_set_editable ((GtkTextView*) _tmp63_, FALSE);
 	_tmp64_ = self->priv->OutputCell;
-	gtk_text_view_set_left_margin ((GtkTextView*) _tmp64_, 0);
+	gtk_widget_set_hexpand ((GtkWidget*) _tmp64_, TRUE);
 	_tmp65_ = self->priv->OutputCell;
-	gtk_text_view_set_right_margin ((GtkTextView*) _tmp65_, 0);
+	gtk_widget_set_halign ((GtkWidget*) _tmp65_, GTK_ALIGN_FILL);
 	_tmp66_ = self->priv->OutputCell;
-	gtk_text_view_set_top_margin ((GtkTextView*) _tmp66_, 0);
+	gtk_text_view_set_left_margin ((GtkTextView*) _tmp66_, 0);
 	_tmp67_ = self->priv->OutputCell;
-	gtk_text_view_set_bottom_margin ((GtkTextView*) _tmp67_, 0);
+	gtk_text_view_set_right_margin ((GtkTextView*) _tmp67_, 0);
 	_tmp68_ = self->priv->OutputCell;
-	g_signal_connect_object ((GtkWidget*) _tmp68_, "button-press-event", (GCallback) _seaborg_icell_untoggle_handler_gtk_widget_button_press_event, (SeaborgICell*) self, 0);
-	_tmp69_ = (GtkToggleButton*) gtk_toggle_button_new ();
-	g_object_ref_sink (_tmp69_);
+	gtk_text_view_set_top_margin ((GtkTextView*) _tmp68_, 0);
+	_tmp69_ = self->priv->OutputCell;
+	gtk_text_view_set_bottom_margin ((GtkTextView*) _tmp69_, 0);
+	_tmp70_ = self->priv->OutputCell;
+	g_signal_connect_object ((GtkWidget*) _tmp70_, "button-press-event", (GCallback) _seaborg_icell_untoggle_handler_gtk_widget_button_press_event, (SeaborgICell*) self, 0);
+	_tmp71_ = (GtkToggleButton*) gtk_toggle_button_new ();
+	g_object_ref_sink (_tmp71_);
 	_g_object_unref0 (self->priv->Marker);
-	self->priv->Marker = _tmp69_;
-	_tmp70_ = self->priv->Marker;
-	_tmp71_ = gtk_widget_get_style_context ((GtkWidget*) _tmp70_);
-	_tmp72_ = _g_object_ref0 (_tmp71_);
-	style_context = _tmp72_;
-	_tmp73_ = self->priv->css;
-	gtk_style_context_add_provider (style_context, (GtkStyleProvider*) _tmp73_, (guint) GTK_STYLE_PROVIDER_PRIORITY_USER);
+	self->priv->Marker = _tmp71_;
+	_tmp72_ = self->priv->Marker;
+	_tmp73_ = gtk_widget_get_style_context ((GtkWidget*) _tmp72_);
+	_tmp74_ = _g_object_ref0 (_tmp73_);
+	style_context = _tmp74_;
+	_tmp75_ = self->priv->css;
+	gtk_style_context_add_provider (style_context, (GtkStyleProvider*) _tmp75_, (guint) GTK_STYLE_PROVIDER_PRIORITY_USER);
 	gtk_style_context_add_class (style_context, "cell-marker");
-	_tmp74_ = gtk_widget_get_style_context ((GtkWidget*) self);
-	gtk_style_context_add_class (_tmp74_, "cell-grid");
-	_tmp75_ = self->priv->Marker;
-	gtk_grid_attach ((GtkGrid*) self, (GtkWidget*) _tmp75_, 0, 0, 1, 1);
-	_tmp76_ = self->priv->InputCell;
-	gtk_grid_attach ((GtkGrid*) self, (GtkWidget*) _tmp76_, 1, 0, 1, 1);
-	self->priv->isExpanded = FALSE;
+	_tmp76_ = gtk_widget_get_style_context ((GtkWidget*) self);
+	gtk_style_context_add_class (_tmp76_, "cell-grid");
 	_tmp77_ = self->priv->Marker;
-	g_signal_connect_object ((GtkWidget*) _tmp77_, "button-press-event", (GCallback) _seaborg_evaluation_cell_press_handler_gtk_widget_button_press_event, self, 0);
+	gtk_grid_attach ((GtkGrid*) self, (GtkWidget*) _tmp77_, 0, 0, 1, 1);
+	_tmp78_ = self->priv->InputCell;
+	gtk_grid_attach ((GtkGrid*) self, (GtkWidget*) _tmp78_, 1, 0, 1, 1);
+	self->priv->isExpanded = FALSE;
+	_tmp79_ = self->priv->Marker;
+	g_signal_connect_object ((GtkWidget*) _tmp79_, "button-press-event", (GCallback) _seaborg_evaluation_cell_press_handler_gtk_widget_button_press_event, self, 0);
 	gtk_widget_show_all ((GtkWidget*) self);
 	_g_object_unref0 (style_context);
 	_g_object_unref0 (sm);
@@ -4505,6 +4618,42 @@ static gboolean seaborg_evaluation_cell_press_handler (SeaborgEvaluationCell* se
 		_tmp13_ = self->priv->Marker;
 		gtk_menu_popup_at_widget ((GtkMenu*) _tmp12_, (GtkWidget*) _tmp13_, GDK_GRAVITY_CENTER, GDK_GRAVITY_WEST, NULL);
 		_g_object_unref0 (context);
+	}
+	result = FALSE;
+	return result;
+}
+
+
+static gboolean seaborg_evaluation_cell_insert_ellipsis (SeaborgEvaluationCell* self, GdkEventKey* key) {
+	gboolean result = FALSE;
+	gboolean _tmp0_ = FALSE;
+	GdkEventKey* _tmp1_;
+	GdkEventType _tmp2_;
+	g_return_val_if_fail (self != NULL, FALSE);
+	g_return_val_if_fail (key != NULL, FALSE);
+	_tmp1_ = key;
+	_tmp2_ = _tmp1_->type;
+	if (_tmp2_ == GDK_KEY_PRESS) {
+		GdkEventKey* _tmp3_;
+		guint _tmp4_;
+		_tmp3_ = key;
+		_tmp4_ = _tmp3_->keyval;
+		_tmp0_ = _tmp4_ == ((guint) GDK_KEY_Escape);
+	} else {
+		_tmp0_ = FALSE;
+	}
+	if (_tmp0_) {
+		GtkSourceView* _tmp5_;
+		GtkTextBuffer* _tmp6_;
+		GtkTextBuffer* _tmp7_;
+		gint _tmp8_;
+		gint _tmp9_;
+		_tmp5_ = self->priv->InputCell;
+		_tmp6_ = gtk_text_view_get_buffer ((GtkTextView*) _tmp5_);
+		_tmp7_ = _tmp6_;
+		_tmp8_ = strlen ("⋮");
+		_tmp9_ = _tmp8_;
+		gtk_text_buffer_insert_at_cursor (_tmp7_, "⋮", _tmp9_);
 	}
 	result = FALSE;
 	return result;
@@ -4730,6 +4879,13 @@ static void _vala_seaborg_evaluation_cell_set_property (GObject * object, guint 
 }
 
 
+static gboolean _seaborg_text_cell_insert_ellipsis_gtk_widget_key_press_event (GtkWidget* _sender, GdkEventKey* event, gpointer self) {
+	gboolean result;
+	result = seaborg_text_cell_insert_ellipsis ((SeaborgTextCell*) self, event);
+	return result;
+}
+
+
 static gboolean _seaborg_text_cell_press_handler_gtk_widget_button_press_event (GtkWidget* _sender, GdkEventButton* event, gpointer self) {
 	gboolean result;
 	result = seaborg_text_cell_press_handler ((SeaborgTextCell*) self, event);
@@ -4757,15 +4913,17 @@ SeaborgTextCell* seaborg_text_cell_construct (GType object_type, SeaborgICellCon
 	GtkTextView* _tmp17_;
 	GtkTextView* _tmp18_;
 	GtkTextView* _tmp19_;
-	GtkToggleButton* _tmp20_;
-	GtkToggleButton* _tmp21_;
-	GtkStyleContext* _tmp22_;
-	GtkCssProvider* _tmp23_;
-	GtkToggleButton* _tmp24_;
-	GtkStyleContext* _tmp25_;
+	GtkTextView* _tmp20_;
+	GtkTextView* _tmp21_;
+	GtkToggleButton* _tmp22_;
+	GtkToggleButton* _tmp23_;
+	GtkStyleContext* _tmp24_;
+	GtkCssProvider* _tmp25_;
 	GtkToggleButton* _tmp26_;
-	GtkTextView* _tmp27_;
+	GtkStyleContext* _tmp27_;
 	GtkToggleButton* _tmp28_;
+	GtkTextView* _tmp29_;
+	GtkToggleButton* _tmp30_;
 	GError * _inner_error_ = NULL;
 	self = (SeaborgTextCell*) g_object_new (object_type, NULL);
 	_tmp0_ = seaborg_id_generator_get_id ();
@@ -4833,23 +4991,27 @@ SeaborgTextCell* seaborg_text_cell_construct (GType object_type, SeaborgICellCon
 	gtk_text_view_set_bottom_margin (_tmp18_, 0);
 	_tmp19_ = self->priv->Cell;
 	g_signal_connect_object ((GtkWidget*) _tmp19_, "button-press-event", (GCallback) _seaborg_icell_untoggle_handler_gtk_widget_button_press_event, (SeaborgICell*) self, 0);
-	_tmp20_ = (GtkToggleButton*) gtk_toggle_button_new ();
-	g_object_ref_sink (_tmp20_);
+	_tmp20_ = self->priv->Cell;
+	g_signal_connect_object ((GtkWidget*) _tmp20_, "key-press-event", (GCallback) _seaborg_text_cell_insert_ellipsis_gtk_widget_key_press_event, self, 0);
+	_tmp21_ = self->priv->Cell;
+	g_signal_connect_object ((GtkWidget*) _tmp21_, "key-press-event", (GCallback) _seaborg_icell_special_character_handler_gtk_widget_key_press_event, (SeaborgICell*) self, 0);
+	_tmp22_ = (GtkToggleButton*) gtk_toggle_button_new ();
+	g_object_ref_sink (_tmp22_);
 	_g_object_unref0 (self->priv->Marker);
-	self->priv->Marker = _tmp20_;
-	_tmp21_ = self->priv->Marker;
-	_tmp22_ = gtk_widget_get_style_context ((GtkWidget*) _tmp21_);
-	_tmp23_ = css;
-	gtk_style_context_add_provider (_tmp22_, (GtkStyleProvider*) _tmp23_, (guint) GTK_STYLE_PROVIDER_PRIORITY_USER);
-	_tmp24_ = self->priv->Marker;
-	_tmp25_ = gtk_widget_get_style_context ((GtkWidget*) _tmp24_);
-	gtk_style_context_add_class (_tmp25_, "cell-marker");
+	self->priv->Marker = _tmp22_;
+	_tmp23_ = self->priv->Marker;
+	_tmp24_ = gtk_widget_get_style_context ((GtkWidget*) _tmp23_);
+	_tmp25_ = css;
+	gtk_style_context_add_provider (_tmp24_, (GtkStyleProvider*) _tmp25_, (guint) GTK_STYLE_PROVIDER_PRIORITY_USER);
 	_tmp26_ = self->priv->Marker;
-	gtk_grid_attach ((GtkGrid*) self, (GtkWidget*) _tmp26_, 0, 0, 1, 1);
-	_tmp27_ = self->priv->Cell;
-	gtk_grid_attach ((GtkGrid*) self, (GtkWidget*) _tmp27_, 1, 0, 1, 1);
+	_tmp27_ = gtk_widget_get_style_context ((GtkWidget*) _tmp26_);
+	gtk_style_context_add_class (_tmp27_, "cell-marker");
 	_tmp28_ = self->priv->Marker;
-	g_signal_connect_object ((GtkWidget*) _tmp28_, "button-press-event", (GCallback) _seaborg_text_cell_press_handler_gtk_widget_button_press_event, self, 0);
+	gtk_grid_attach ((GtkGrid*) self, (GtkWidget*) _tmp28_, 0, 0, 1, 1);
+	_tmp29_ = self->priv->Cell;
+	gtk_grid_attach ((GtkGrid*) self, (GtkWidget*) _tmp29_, 1, 0, 1, 1);
+	_tmp30_ = self->priv->Marker;
+	g_signal_connect_object ((GtkWidget*) _tmp30_, "button-press-event", (GCallback) _seaborg_text_cell_press_handler_gtk_widget_button_press_event, self, 0);
 	gtk_widget_show_all ((GtkWidget*) self);
 	_g_object_unref0 (css);
 	return self;
@@ -5019,6 +5181,42 @@ static gboolean seaborg_text_cell_press_handler (SeaborgTextCell* self, GdkEvent
 		_tmp7_ = self->priv->Marker;
 		gtk_menu_popup_at_widget ((GtkMenu*) _tmp6_, (GtkWidget*) _tmp7_, GDK_GRAVITY_CENTER, GDK_GRAVITY_WEST, NULL);
 		_g_object_unref0 (context);
+	}
+	result = FALSE;
+	return result;
+}
+
+
+static gboolean seaborg_text_cell_insert_ellipsis (SeaborgTextCell* self, GdkEventKey* key) {
+	gboolean result = FALSE;
+	gboolean _tmp0_ = FALSE;
+	GdkEventKey* _tmp1_;
+	GdkEventType _tmp2_;
+	g_return_val_if_fail (self != NULL, FALSE);
+	g_return_val_if_fail (key != NULL, FALSE);
+	_tmp1_ = key;
+	_tmp2_ = _tmp1_->type;
+	if (_tmp2_ == GDK_KEY_PRESS) {
+		GdkEventKey* _tmp3_;
+		guint _tmp4_;
+		_tmp3_ = key;
+		_tmp4_ = _tmp3_->keyval;
+		_tmp0_ = _tmp4_ == ((guint) GDK_KEY_Escape);
+	} else {
+		_tmp0_ = FALSE;
+	}
+	if (_tmp0_) {
+		GtkTextView* _tmp5_;
+		GtkTextBuffer* _tmp6_;
+		GtkTextBuffer* _tmp7_;
+		gint _tmp8_;
+		gint _tmp9_;
+		_tmp5_ = self->priv->Cell;
+		_tmp6_ = gtk_text_view_get_buffer (_tmp5_);
+		_tmp7_ = _tmp6_;
+		_tmp8_ = strlen ("⋮");
+		_tmp9_ = _tmp8_;
+		gtk_text_buffer_insert_at_cursor (_tmp7_, "⋮", _tmp9_);
 	}
 	result = FALSE;
 	return result;

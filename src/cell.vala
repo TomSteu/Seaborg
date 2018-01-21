@@ -33,6 +33,15 @@ namespace Seaborg {
 
 		}
 
+		public bool special_character_handler(EventKey key) {
+			
+			if(key.type == Gdk.EventType.KEY_PRESS && key.keyval == Gdk.Key.Escape) {
+				set_text(replace_characters(get_text()));
+			}
+
+			return false;
+		}
+
 		public void recursive_untoggle_all() {
 			if(Parent == null) {
 				untoggle_all();
@@ -321,6 +330,8 @@ namespace Seaborg {
 			Title.top_margin = 0;
 			Title.bottom_margin = 0;
 			Title.button_press_event.connect(untoggle_handler);
+			Title.key_press_event.connect(insert_ellipsis);
+			Title.key_press_event.connect(special_character_handler);
 
 
 			set_level(level);
@@ -595,6 +606,14 @@ namespace Seaborg {
 			return false;
 		}
 
+		private bool insert_ellipsis(EventKey key) {
+
+			if(key.type == Gdk.EventType.KEY_PRESS && key.keyval == Gdk.Key.Escape)
+				Title.buffer.insert_at_cursor("⋮", "⋮".length);
+
+			return false;
+		}
+
 
 		public GLib.Array<ICell> Children {get; set;}
 		public GLib.Array<AddButton> AddButtons {get; set;}
@@ -653,7 +672,9 @@ namespace Seaborg {
 			InputCell.right_margin = 0;
 			InputCell.top_margin = 0;
 			InputCell.bottom_margin = 0;
-			InputCell.button_press_event.connect(untoggle_handler);	
+			InputCell.button_press_event.connect(untoggle_handler);
+			InputCell.key_press_event.connect(insert_ellipsis);
+			InputCell.key_press_event.connect(special_character_handler);
 
 			OutputBuffer = new Gtk.SourceBuffer(null);
 			OutputBuffer.highlight_matching_brackets = true;
@@ -770,6 +791,14 @@ namespace Seaborg {
 			return false;
 		}
 
+		private bool insert_ellipsis(EventKey key) {
+
+			if(key.type == Gdk.EventType.KEY_PRESS && key.keyval == Gdk.Key.Escape)
+				InputCell.buffer.insert_at_cursor("⋮", "⋮".length);
+
+			return false;
+		}
+
 		public void set_text(string _text) {
 			InputBuffer.text = _text;
 		}
@@ -827,6 +856,8 @@ namespace Seaborg {
 			Cell.top_margin = 0;
 			Cell.bottom_margin = 0;
 			Cell.button_press_event.connect(untoggle_handler);
+			Cell.key_press_event.connect(insert_ellipsis);
+			Cell.key_press_event.connect(special_character_handler);
 
 			Marker = new Gtk.ToggleButton();
 			Marker.get_style_context().add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
@@ -886,6 +917,14 @@ namespace Seaborg {
 				ContextMenu context = new ContextMenu(this);
 				context.popup_at_widget(Marker, Gdk.Gravity.CENTER, Gdk.Gravity.WEST, null);
 			}
+
+			return false;
+		}
+
+		private bool insert_ellipsis(EventKey key) {
+			
+			if(key.type == Gdk.EventType.KEY_PRESS && key.keyval == Gdk.Key.Escape)
+				Cell.buffer.insert_at_cursor("⋮", "⋮".length);
 
 			return false;
 		}
