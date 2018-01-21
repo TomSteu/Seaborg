@@ -28,20 +28,21 @@
   <!-- Palette -->
   <color name="white"      value="#FFFFFF"/>
   <color name="blue"       value="#0000FF"/>
-  <color name="magenta"    value="#FF00FF"/>
-  <color name="cyan"       value="#008A8C"/>
   <color name="gray"       value="#BEBEBE"/>
   <color name="green"      value="#2E8B57"/>
   <color name="red"        value="#FF0000"/>
   <color name="yellow"     value="#FFFF00"/>
   <color name="sky_blue"   value="#0088ff"/>
+  <color name="magenta"    value="#FF00FF"/>
+
+  <color name="cyan"       value="#008A8C"/>
   <color name="some_blue"   value="#729FDF"/>
   <color name="some_purple"   value="#C792EA"/>
   <color name="some_red"   value="#F07178"/>
   <color name="some_green" value="#99c794"/>
 
-
-  <style name="bracket-match"               foreground="some_green" bold="true"/>
+  <!-- Dark Palette                       -->
+  <style name="bracket-match"               foreground="green" bold="true"/>
   <style name="bracket-mismatch"            foreground="red" bold="true"/>
   <style name="search-match"                background="yellow"/>
   <style name="def:comment"                 foreground="gray"/>
@@ -50,5 +51,15 @@
   <style name="def:operator"                foreground="cyan"/>
   <style name="def:error"                   foreground="some_red" bold="true"/>
 
+  <!-- Light Palette
+  <style name="bracket-match"               foreground="green" bold="true"/>
+  <style name="bracket-mismatch"            foreground="red" bold="true"/>
+  <style name="search-match"                background="yellow"/>
+  <style name="def:comment"                 foreground="gray"/>
+  <style name="def:string"                  foreground="magenta"/>
+  <style name="def:keyword"                 foreground="blue"/>
+  <style name="def:operator"                foreground="sky_blue"/>
+  <style name="def:error"                   foreground="red" bold="true"/>
+                                                                            -->
 
 </style-scheme>

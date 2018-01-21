@@ -8,6 +8,7 @@
 #include <string.h>
 #include <gtk/gtk.h>
 #include <gio/gio.h>
+#include <stdio.h>
 
 
 #define SEABORG_TYPE_EVALUATION_DATA (seaborg_evaluation_data_get_type ())
@@ -169,6 +170,7 @@ static void block1_data_unref (void * _userdata_);
 static gboolean __lambda5_ (Block1Data* _data1_);
 GType seaborg_evaluation_cell_get_type (void) G_GNUC_CONST;
 void seaborg_evaluation_cell_add_text (SeaborgEvaluationCell* self, const gchar* _text);
+gchar* seaborg_replace_output (const gchar* _str);
 GType seaborg_add_button_get_type (void) G_GNUC_CONST;
 GType seaborg_icell_container_get_type (void) G_GNUC_CONST;
 GType seaborg_icell_get_type (void) G_GNUC_CONST;
@@ -290,6 +292,22 @@ static void block1_data_unref (void * _userdata_) {
 }
 
 
+static gchar* bool_to_string (gboolean self) {
+	gchar* result = NULL;
+	if (self) {
+		gchar* _tmp0_;
+		_tmp0_ = g_strdup ("true");
+		result = _tmp0_;
+		return result;
+	} else {
+		gchar* _tmp1_;
+		_tmp1_ = g_strdup ("false");
+		result = _tmp1_;
+		return result;
+	}
+}
+
+
 static gboolean __lambda5_ (Block1Data* _data1_) {
 	gboolean result = FALSE;
 	GError * _inner_error_ = NULL;
@@ -303,7 +321,7 @@ static gboolean __lambda5_ (Block1Data* _data1_) {
 			SeaborgEvaluationCell* cell_to_write = NULL;
 			void* _tmp6_;
 			SeaborgEvaluationCell* _tmp7_;
-			gulong _tmp17_;
+			gulong _tmp24_;
 			_tmp1_ = seaborg_seaborg_application_global_stamp;
 			_tmp2_ = _data1_->_stamp;
 			if (_tmp1_ != _tmp2_) {
@@ -331,59 +349,78 @@ static gboolean __lambda5_ (Block1Data* _data1_) {
 			_tmp7_ = cell_to_write;
 			if (_tmp7_ != NULL) {
 				const gchar* _tmp8_;
-				gint _tmp14_;
+				gint _tmp21_;
 				_tmp8_ = _data1_->string_to_write;
 				if (g_strcmp0 (_tmp8_, "") != 0) {
-					SeaborgEvaluationCell* _tmp9_;
+					gsize bytes_read = 0UL;
+					gsize bytes_written = 0UL;
+					FILE* _tmp9_;
 					const gchar* _tmp10_;
-					gchar* _tmp11_;
+					gboolean _tmp11_;
 					gchar* _tmp12_;
-					SeaborgEvaluationCell* _tmp13_;
-					_tmp9_ = cell_to_write;
+					gchar* _tmp13_;
+					SeaborgEvaluationCell* _tmp14_;
+					const gchar* _tmp15_;
+					gchar* _tmp16_;
+					gchar* _tmp17_;
+					gchar* _tmp18_;
+					gchar* _tmp19_;
+					SeaborgEvaluationCell* _tmp20_;
+					_tmp9_ = stderr;
 					_tmp10_ = _data1_->string_to_write;
-					_tmp11_ = g_strconcat ("\n", _tmp10_, NULL);
-					_tmp12_ = _tmp11_;
-					seaborg_evaluation_cell_add_text (_tmp9_, _tmp12_);
-					_g_free0 (_tmp12_);
-					_tmp13_ = cell_to_write;
-					seaborg_icell_expand_all ((SeaborgICell*) _tmp13_);
+					_tmp11_ = g_utf8_validate (_tmp10_, (gssize) -1, NULL);
+					_tmp12_ = bool_to_string (_tmp11_);
+					_tmp13_ = _tmp12_;
+					fprintf (_tmp9_, "Is valid utf8: %s", _tmp13_);
+					_g_free0 (_tmp13_);
+					_tmp14_ = cell_to_write;
+					_tmp15_ = _data1_->string_to_write;
+					_tmp16_ = seaborg_replace_output (_tmp15_);
+					_tmp17_ = _tmp16_;
+					_tmp18_ = g_strconcat ("\n", _tmp17_, NULL);
+					_tmp19_ = _tmp18_;
+					seaborg_evaluation_cell_add_text (_tmp14_, _tmp19_);
+					_g_free0 (_tmp19_);
+					_g_free0 (_tmp17_);
+					_tmp20_ = cell_to_write;
+					seaborg_icell_expand_all ((SeaborgICell*) _tmp20_);
 				}
-				_tmp14_ = _data1_->_break;
-				if (_tmp14_ != 0) {
-					SeaborgEvaluationCell* _tmp15_;
-					_tmp15_ = cell_to_write;
-					seaborg_icell_set_lock ((SeaborgICell*) _tmp15_, FALSE);
+				_tmp21_ = _data1_->_break;
+				if (_tmp21_ != 0) {
+					SeaborgEvaluationCell* _tmp22_;
+					_tmp22_ = cell_to_write;
+					seaborg_icell_set_lock ((SeaborgICell*) _tmp22_, FALSE);
 					seaborg_seaborg_application_global_stamp = (gulong) 0;
 					result = FALSE;
 					{
-						gulong _tmp16_;
-						_tmp16_ = seaborg_seaborg_application_global_stamp;
+						gulong _tmp23_;
+						_tmp23_ = seaborg_seaborg_application_global_stamp;
 						g_rec_mutex_unlock (&__lock_seaborg_seaborg_application_global_stamp);
 					}
 					return result;
 				}
 			}
-			_tmp17_ = seaborg_seaborg_application_global_stamp;
-			seaborg_seaborg_application_global_stamp = _tmp17_ + 1;
+			_tmp24_ = seaborg_seaborg_application_global_stamp;
+			seaborg_seaborg_application_global_stamp = _tmp24_ + 1;
 			result = FALSE;
 			{
-				gulong _tmp18_;
-				_tmp18_ = seaborg_seaborg_application_global_stamp;
+				gulong _tmp25_;
+				_tmp25_ = seaborg_seaborg_application_global_stamp;
 				g_rec_mutex_unlock (&__lock_seaborg_seaborg_application_global_stamp);
 			}
 			return result;
 		}
 		__finally0:
 		{
-			gulong _tmp19_;
-			_tmp19_ = seaborg_seaborg_application_global_stamp;
+			gulong _tmp26_;
+			_tmp26_ = seaborg_seaborg_application_global_stamp;
 			g_rec_mutex_unlock (&__lock_seaborg_seaborg_application_global_stamp);
 		}
 		if (G_UNLIKELY (_inner_error_ != NULL)) {
-			gboolean _tmp20_ = FALSE;
+			gboolean _tmp27_ = FALSE;
 			g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
 			g_clear_error (&_inner_error_);
-			return _tmp20_;
+			return _tmp27_;
 		}
 	}
 }

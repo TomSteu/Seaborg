@@ -14,6 +14,7 @@
 
 
 gboolean seaborg_check_input_packet (const gchar* _str);
+gchar* seaborg_replace_output (const gchar* _str);
 
 
 static gchar* string_replace (const gchar* self, const gchar* old, const gchar* replacement) {
@@ -224,6 +225,20 @@ gboolean seaborg_check_input_packet (const gchar* _str) {
 	}
 	result = TRUE;
 	_g_free0 (str);
+	return result;
+}
+
+
+gchar* seaborg_replace_output (const gchar* _str) {
+	gchar* result = NULL;
+	gchar* str = NULL;
+	const gchar* _tmp0_;
+	gchar* _tmp1_;
+	g_return_val_if_fail (_str != NULL, NULL);
+	_tmp0_ = _str;
+	_tmp1_ = string_replace (_tmp0_, "\\:03B1", "α");
+	str = _tmp1_;
+	result = str;
 	return result;
 }
 

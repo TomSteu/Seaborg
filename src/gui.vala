@@ -396,7 +396,9 @@ namespace Seaborg {
 					if( cell_to_write != null) {
 
 						if(string_to_write != "") {
-							cell_to_write->add_text("\n"+string_to_write);
+							size_t bytes_read, bytes_written;
+							stderr.printf("Is valid utf8: %s", string_to_write.validate().to_string());
+							cell_to_write->add_text("\n"+ string_to_write);
 							cell_to_write->expand_all();
 						}
 

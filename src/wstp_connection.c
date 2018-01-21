@@ -21,7 +21,7 @@
 #define WSTPACTIVATE(X) MLActivate(X)
 #define WSTPPUTMESSAGE(X,Y) MLPutMessage(X,Y)
 #define WSTPPUTFUNCTION(X,Y,Z) MLPutFunction(X,Y,Z)
-#define WSTPPUTSTRING(X,Y) MLPutString(X,Y)
+#define WSTPPUTSTRING(X,Y,Z) MLPutUTF8String(X,Y,Z)
 #define WSTPCLOSE(X) MLClose(X)
 #define WSTPDEINITIALIZE(X) MLDeinitialize(X)
 #define WSTPTERMINATEMESSAGE MLTerminateMessage
@@ -36,11 +36,11 @@
 #define WSTPREADY(X) MLReady(X)
 #define WSTPNEXTPACKET(X) MLNextPacket(X)
 #define WSTPNEWPACKET(X) MLNewPacket(X)
-#define WSTPGETSTRING(X,Y) MLGetString(X,Y)
+#define WSTPGETSTRING(X,Y,Z1,Z2) MLGetUTF8String(X,Y,Z1,Z2)
 #define WSTPGETINTEGER(X,Y) MLGetInteger(X,Y)
-#define WSTPGETSYMBOL(X,Y) MLGetSymbol(X,Y)
-#define WSTPRELEASESTRING(X,Y) MLReleaseString(X,Y)
-#define WSTPRELEASESYMBOL(X,Y) MLReleaseSymbol(X,Y)
+#define WSTPGETSYMBOL(X,Y,Z1,Z2) MLGetUTF8Symbol(X,Y,Z1,Z2)
+#define WSTPRELEASESTRING(X,Y,Z) MLReleaseUTF8String(X,Y,Z)
+#define WSTPRELEASESYMBOL(X,Y,Z) MLReleaseUTF8Symbol(X,Y,Z)
 
 #define WSTPERRORTYPE int
 
@@ -55,7 +55,7 @@
 #define WSTPACTIVATE(X) WSActivate(X)
 #define WSTPPUTMESSAGE(X,Y) WSPutMessage(X,Y)
 #define WSTPPUTFUNCTION(X,Y,Z) WSPutFunction(X,Y,Z)
-#define WSTPPUTSTRING(X,Y) WSPutString(X,Y)
+#define WSTPPUTSTRING(X,Y,Z) WSPutUTF8String(X,Y,Z)
 #define WSTPCLOSE(X) WSClose(X)
 #define WSTPDEINITIALIZE(X) WSDeinitialize(X)
 #define WSTPTERMINATEMESSAGE WSTerminateMessage
@@ -70,11 +70,11 @@
 #define WSTPREADY(X) WSReady(X)
 #define WSTPNEXTPACKET(X) WSNextPacket(X)
 #define WSTPNEWPACKET(X) WSNewPacket(X)
-#define WSTPGETSTRING(X,Y) WSGetString(X,Y)
+#define WSTPGETSTRING(X,Y,Z1,Z2) WSGetUTF8String(X,Y,Z1,Z2)
 #define WSTPGETINTEGER(X,Y) WSGetInteger(X,Y)
-#define WSTPGETSYMBOL(X,Y) WSGetSymbol(X,Y)
-#define WSTPRELEASESTRING(X,Y) WSReleaseString(X,Y)
-#define WSTPRELEASESYMBOL(X,Y) WSReleaseSymbol(X,Y)
+#define WSTPGETSYMBOL(X,Y,Z1,Z2) WSGetUTF8Symbol(X,Y,Z1,Z2)
+#define WSTPRELEASESTRING(X,Y,Z) WSReleaseUTF8String(X,Y,Z)
+#define WSTPRELEASESYMBOL(X,Y,Z) WSReleaseUTF8Symbol(X,Y,Z)
 #if WSINTERFACE > 4
 #define WSTPERRORTYPE long
 #else
@@ -208,7 +208,7 @@ void evaluate(void* con, const char* input, void (*callback)(char*, void*, unsig
 		 if(err) WSTPRELEASEERRORMESSAGE(connection->link, err);
 		return;
 	}
-	if(! WSTPPUTSTRING(connection->link, input))	{
+	if(! WSTPPUTSTRING(connection->link, input, strlen(input)))	{
 		char* err = (char*) handle_link_error(connection);
 		(*callback)(err, callback_data, stamp++, 1);
 		 if(err) WSTPRELEASEERRORMESSAGE(connection->link, err);
@@ -229,6 +229,7 @@ void evaluate(void* con, const char* input, void (*callback)(char*, void*, unsig
 	DEBUGMSG( "WSTP: packet sent: %s\n", input);
 
 	int inti;
+	int bytes, chars;
 	char* err;
 	char* str;
 	
@@ -267,7 +268,7 @@ void evaluate(void* con, const char* input, void (*callback)(char*, void*, unsig
 		switch(WSTPNEXTPACKET(connection->link)) {
 				case INPUTNAMEPKT: 
 					DEBUGMSG( "WSTP: package received: INPUTNAMEPKT\n" );
-					if(! WSTPGETSTRING(connection->link, (const char**) &str)) {
+					if(! WSTPGETSTRING(connection->link, (const unsigned char**) &str, &bytes, &chars)) {
 						DEBUGMSG( "WSTP: Error receiving string\n" );
 						err = (char*) handle_link_error(connection);
 						(*callback)(err, callback_data, stamp++, (connection->active == 0)?1:0);
@@ -277,11 +278,11 @@ void evaluate(void* con, const char* input, void (*callback)(char*, void*, unsig
 					}
 					DEBUGMSG( "WSTP: INPUTNAMEPKT value: %s\n", str);
 					//(*callback)(str, callback_data, stamp++, 0);
-					WSTPRELEASESTRING(connection->link, (const char*) str);
+					WSTPRELEASESTRING(connection->link, (const char*) str, bytes);
 					break;
 				case OUTPUTNAMEPKT: 
 					DEBUGMSG( "WSTP: package received: OUTPUTNAMEPKT\n" );
-					if(! WSTPGETSTRING(connection->link, (const char**) &str)) {
+					if(! WSTPGETSTRING(connection->link, (const unsigned char**) &str, &bytes, &chars)) {
 						DEBUGMSG( "WSTP: Error receiving string\n" );
 						err = (char*) handle_link_error(connection);
 						(*callback)(err, callback_data, stamp++, (connection->active == 0)?1:0);
@@ -290,12 +291,12 @@ void evaluate(void* con, const char* input, void (*callback)(char*, void*, unsig
 						break;
 					}
 					DEBUGMSG("WSTP: OUTPUTNAMEPKT value: %s\n", str);
-					//(*callback)(str, callback_data, stamp++, 0);
-					WSTPRELEASESTRING(connection->link, (const char*) str);
+					(*callback)(str, callback_data, stamp++, 0);
+					WSTPRELEASESTRING(connection->link, (const char*) str, bytes);
 					break;
 				case RETURNEXPRPKT: 
 					DEBUGMSG( "WSTP: package received: RETURNEXPRPKT\n" );
-					if(! WSTPGETSTRING(connection->link, (const char**) &str)) {
+					if(! WSTPGETSTRING(connection->link, (const unsigned char**) &str, &bytes, &chars)) {
 						DEBUGMSG( "WSTP: error receiving string\n" );
 						err = (char*) handle_link_error(connection);
 						(*callback)(err, callback_data, stamp++, 1);
@@ -305,12 +306,12 @@ void evaluate(void* con, const char* input, void (*callback)(char*, void*, unsig
 					}
 					DEBUGMSG( "WSTP: RETURNEXPRPKT value: %s\n", str);
 					(*callback)(str, callback_data, stamp++, 1);
-					WSTPRELEASESTRING(connection->link, (const char*) str);
+					WSTPRELEASESTRING(connection->link, (const char*) str, bytes);
 					return;
 					break;
 				case RETURNPKT: 
 					DEBUGMSG( "WSTP: package received: RETURNPKT\n" );
-					if(! WSTPGETSTRING(connection->link, (const char**) &str)) {
+					if(! WSTPGETSTRING(connection->link, (const unsigned char**) &str, &bytes, &chars)) {
 						err = (char*) handle_link_error(connection);
 						DEBUGMSG( "WSTP: RETURNPKT error: %s\n", err);
 						(*callback)(err, callback_data, stamp++, 1);
@@ -319,7 +320,7 @@ void evaluate(void* con, const char* input, void (*callback)(char*, void*, unsig
 						break;
 					} 
 					(*callback)(str, callback_data, stamp++, 1);
-					WSTPRELEASESTRING(connection->link, (const char*) str);
+					WSTPRELEASESTRING(connection->link, (const char*) str, bytes);
 					DEBUGMSG( "WSTP: RETURNPKT value: %s \n", str);
 					return;
 					break;
@@ -349,7 +350,7 @@ void evaluate(void* con, const char* input, void (*callback)(char*, void*, unsig
 					break;
 				case ENTEREXPRPKT: 
 					DEBUGMSG( "WSTP: package received: ENTEREXPRPKT\n" );
-					if(! WSTPGETSTRING(connection->link, (const char**) &str)) {
+					if(! WSTPGETSTRING(connection->link, (const unsigned char**) &str, &bytes, &chars)) {
 						DEBUGMSG( "WSTP: Error receiving string\n" );
 						err = (char*) handle_link_error(connection);
 						(*callback)(err, callback_data, stamp++, (connection->active == 0)?1:0);
@@ -358,11 +359,11 @@ void evaluate(void* con, const char* input, void (*callback)(char*, void*, unsig
 						break;
 					}
 					(*callback)(str, callback_data, stamp++, 0);
-					WSTPRELEASESTRING(connection->link, (const char*) str);
+					WSTPRELEASESTRING(connection->link, (const char*) str, bytes);
 					break;
 				case ENTERTEXTPKT: 
 					DEBUGMSG( "WSTP: package received: ENTERTEXTPKT\n" );
-					if(! WSTPGETSTRING(connection->link, (const char**) &str)) {
+					if(! WSTPGETSTRING(connection->link, (const unsigned char**) &str, &bytes, &chars)) {
 						DEBUGMSG( "WSTP: Error receiving string\n" );
 						err = (char*) handle_link_error(connection);
 						(*callback)(err, callback_data, stamp++, (connection->active == 0)?1:0);
@@ -371,11 +372,11 @@ void evaluate(void* con, const char* input, void (*callback)(char*, void*, unsig
 						break;
 					}
 					(*callback)(str, callback_data, stamp++, 0);
-					WSTPRELEASESTRING(connection->link, (const char*) str);
+					WSTPRELEASESTRING(connection->link, (const char*) str, bytes);
 					break;
 				case EVALUATEPKT: 
 					DEBUGMSG( "WSTP: package received: EVALUATEPKT\n" );
-					if(! WSTPGETSTRING(connection->link, (const char**) &str)) {
+					if(! WSTPGETSTRING(connection->link, (const unsigned char**) &str, &bytes, &chars)) {
 						DEBUGMSG( "WSTP: Error receiving string\n" );
 						err = (char*) handle_link_error(connection);
 						(*callback)(err, callback_data, stamp++, (connection->active == 0)?1:0);
@@ -384,7 +385,7 @@ void evaluate(void* con, const char* input, void (*callback)(char*, void*, unsig
 						break;
 					}
 					(*callback)(str, callback_data, stamp++, 0);
-					WSTPRELEASESTRING(connection->link, (const char*) str);
+					WSTPRELEASESTRING(connection->link, (const char*) str, bytes);
 					break;
 				case INPUTPKT: 
 					DEBUGMSG( "WSTP: package received: INPUTPKT\n" );
@@ -403,7 +404,7 @@ void evaluate(void* con, const char* input, void (*callback)(char*, void*, unsig
 						break;
 					}
 					DEBUGMSG( "WSTP: MENUPKT : %i\n", inti );
-					if(! WSTPGETSTRING(connection->link, (const char**) &str)) {
+					if(! WSTPGETSTRING(connection->link, (const unsigned char**) &str, &bytes, &chars)) {
 						DEBUGMSG( "WSTP: Error receiving string\n" );
 						err = (char*) handle_link_error(connection);
 						(*callback)(err, callback_data, stamp++,(connection->active == 0)?1:0);
@@ -412,11 +413,11 @@ void evaluate(void* con, const char* input, void (*callback)(char*, void*, unsig
 						break;
 					}
 					DEBUGMSG("WSTP: MENUPKT title: %s", str);
-					WSTPRELEASESTRING(connection->link, (const char*) str);
+					WSTPRELEASESTRING(connection->link, (const char*) str, bytes);
 					break;
 				case MESSAGEPKT:
 					DEBUGMSG( "WSTP: package received: MESSAGEPKT\n" );
-					if(! WSTPGETSYMBOL(connection->link, (const char**) &str)) {
+					if(! WSTPGETSYMBOL(connection->link, (const unsigned char**) &str, &bytes, &chars)) {
 						DEBUGMSG( "WSTP: Error receiving symbol\n" );
 						err = (char*) handle_link_error(connection);
 						(*callback)(err, callback_data, stamp++, (connection->active == 0)?1:0);
@@ -426,8 +427,8 @@ void evaluate(void* con, const char* input, void (*callback)(char*, void*, unsig
 					}
 					//(*callback)(str, callback_data, stamp++, 0);
 					DEBUGMSG("WSTP: MESSAGEPKT symbol: %s\n", str);
-					WSTPRELEASESYMBOL(connection->link, (const char*) str);
-					if(! WSTPGETSTRING(connection->link, (const char**) &str)) {
+					WSTPRELEASESYMBOL(connection->link, (const char*) str, bytes);
+					if(! WSTPGETSTRING(connection->link, (const unsigned char**) &str, &bytes, &chars)) {
 						DEBUGMSG( "WSTP: Error receiving string\n" );
 						err = (char*) handle_link_error(connection);
 						(*callback)(err, callback_data, stamp++, (connection->active == 0)?1:0);
@@ -437,14 +438,14 @@ void evaluate(void* con, const char* input, void (*callback)(char*, void*, unsig
 					}
 					//(*callback)(str, callback_data, stamp++, 0);
 					DEBUGMSG("WSTP: MESSAGEPKT string: %s\n", str);
-					WSTPRELEASESTRING(connection->link, (const char*) str);
+					WSTPRELEASESTRING(connection->link, (const char*) str, bytes);
 					break;
 				case RESUMEPKT: 
 					DEBUGMSG( "WSTP: package received: RESUMEPKT\n" );
 					break;
 				case RETURNTEXTPKT: 
 					DEBUGMSG( "WSTP: package received: RETURNTEXTPKT\n" );
-					if(! WSTPGETSTRING(connection->link, (const char**) &str)) {
+					if(! WSTPGETSTRING(connection->link, (const unsigned char**) &str, &bytes, &chars)) {
 						DEBUGMSG( "WSTP: Error receiving string\n" );
 						err = (char*) handle_link_error(connection);
 						(*callback)(err, callback_data, stamp++, (connection->active == 0)?1:0);
@@ -453,7 +454,7 @@ void evaluate(void* con, const char* input, void (*callback)(char*, void*, unsig
 						break;
 					}
 					(*callback)(str, callback_data, stamp++, 1);
-					WSTPRELEASESTRING(connection->link, (const char*) str);
+					WSTPRELEASESTRING(connection->link, (const char*) str, bytes);
 					return;
 					break;
 				case SUSPENDPKT: 
@@ -473,7 +474,7 @@ void evaluate(void* con, const char* input, void (*callback)(char*, void*, unsig
 					break;
 				case TEXTPKT: 
 					DEBUGMSG( "WSTP: package received: TEXTPKT\n" );
-					if(! WSTPGETSTRING(connection->link, (const char**) &str)) {
+					if(! WSTPGETSTRING(connection->link, (const unsigned char**) &str, &bytes, &chars)) {
 						DEBUGMSG( "WSTP: Error receiving string\n" );
 						err = (char*) handle_link_error(connection);
 						(*callback)(err, callback_data, stamp++, (connection->active == 0)?1:0);
@@ -482,7 +483,7 @@ void evaluate(void* con, const char* input, void (*callback)(char*, void*, unsig
 						break;
 					}
 					(*callback)(str, callback_data, stamp++, 0);
-					WSTPRELEASESTRING(connection->link, (const char*) str);
+					WSTPRELEASESTRING(connection->link, (const char*) str, bytes);
 					break;
 				case ILLEGALPKT: 
 					DEBUGMSG( "WSTP: package received: ILLEGALPKT\n" );
