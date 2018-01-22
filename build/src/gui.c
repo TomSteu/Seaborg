@@ -8,6 +8,8 @@
 #include <string.h>
 #include <gtk/gtk.h>
 #include <gio/gio.h>
+#include <stdio.h>
+#include <glib/gstdio.h>
 
 
 #define SEABORG_TYPE_EVALUATION_DATA (seaborg_evaluation_data_get_type ())
@@ -75,6 +77,30 @@ typedef struct _SeaborgAddButtonClass SeaborgAddButtonClass;
 #define __g_queue_free__seaborg_evaluation_data_free0_0(var) ((var == NULL) ? NULL : (var = (_g_queue_free__seaborg_evaluation_data_free0_ (var), NULL)))
 #define _g_thread_unref0(var) ((var == NULL) ? NULL : (var = (g_thread_unref (var), NULL)))
 #define _seaborg_evaluation_data_free0(var) ((var == NULL) ? NULL : (var = (seaborg_evaluation_data_free (var), NULL)))
+#define __g_slist_free__g_free0_0(var) ((var == NULL) ? NULL : (var = (_g_slist_free__g_free0_ (var), NULL)))
+#define _fclose0(var) ((var == NULL) ? NULL : (var = (fclose (var), NULL)))
+
+#define SEABORG_TYPE_CELL_CONTAINER (seaborg_cell_container_get_type ())
+#define SEABORG_CELL_CONTAINER(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), SEABORG_TYPE_CELL_CONTAINER, SeaborgCellContainer))
+#define SEABORG_CELL_CONTAINER_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), SEABORG_TYPE_CELL_CONTAINER, SeaborgCellContainerClass))
+#define SEABORG_IS_CELL_CONTAINER(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), SEABORG_TYPE_CELL_CONTAINER))
+#define SEABORG_IS_CELL_CONTAINER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), SEABORG_TYPE_CELL_CONTAINER))
+#define SEABORG_CELL_CONTAINER_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), SEABORG_TYPE_CELL_CONTAINER, SeaborgCellContainerClass))
+
+typedef struct _SeaborgCellContainer SeaborgCellContainer;
+typedef struct _SeaborgCellContainerClass SeaborgCellContainerClass;
+#define _g_regex_unref0(var) ((var == NULL) ? NULL : (var = (g_regex_unref (var), NULL)))
+#define _g_error_free0(var) ((var == NULL) ? NULL : (var = (g_error_free (var), NULL)))
+
+#define SEABORG_TYPE_TEXT_CELL (seaborg_text_cell_get_type ())
+#define SEABORG_TEXT_CELL(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), SEABORG_TYPE_TEXT_CELL, SeaborgTextCell))
+#define SEABORG_TEXT_CELL_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), SEABORG_TYPE_TEXT_CELL, SeaborgTextCellClass))
+#define SEABORG_IS_TEXT_CELL(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), SEABORG_TYPE_TEXT_CELL))
+#define SEABORG_IS_TEXT_CELL_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), SEABORG_TYPE_TEXT_CELL))
+#define SEABORG_TEXT_CELL_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), SEABORG_TYPE_TEXT_CELL, SeaborgTextCellClass))
+
+typedef struct _SeaborgTextCell SeaborgTextCell;
+typedef struct _SeaborgTextCellClass SeaborgTextCellClass;
 
 struct _SeaborgEvaluationData {
 	void* cell;
@@ -92,6 +118,7 @@ struct _SeaborgSeaborgApplicationClass {
 };
 
 struct _SeaborgSeaborgApplicationPrivate {
+	gchar* file_name;
 	SeaborgEvaluationData current_cell;
 	GtkApplicationWindow* main_window;
 	GtkHeaderBar* main_headerbar;
@@ -179,6 +206,7 @@ static void __seaborg_seaborg_application_write_to_evaluation_cell_lambda4__seab
 static void _seaborg_evaluation_data_free0_ (gpointer var);
 static void _g_queue_free__seaborg_evaluation_data_free0_ (GQueue* self);
 static void seaborg_seaborg_application_real_activate (GApplication* base);
+void seaborg_id_generator_reset (void);
 SeaborgNotebook* seaborg_notebook_new (void);
 SeaborgNotebook* seaborg_notebook_construct (GType object_type);
 SeaborgEvaluationCell* seaborg_evaluation_cell_new (SeaborgICellContainer* par);
@@ -188,8 +216,10 @@ static void seaborg_seaborg_application_real_startup (GApplication* base);
 static void __lambda15_ (SeaborgSeaborgApplication* self);
 static void ___lambda15__g_simple_action_activate (GSimpleAction* _sender, GVariant* parameter, gpointer self);
 static void __lambda16_ (SeaborgSeaborgApplication* self);
+static void seaborg_seaborg_application_load_dialog (SeaborgSeaborgApplication* self);
 static void ___lambda16__g_simple_action_activate (GSimpleAction* _sender, GVariant* parameter, gpointer self);
 static void __lambda17_ (SeaborgSeaborgApplication* self);
+static void seaborg_seaborg_application_save_dialog (SeaborgSeaborgApplication* self);
 static void ___lambda17__g_simple_action_activate (GSimpleAction* _sender, GVariant* parameter, gpointer self);
 static void __lambda18_ (SeaborgSeaborgApplication* self);
 static void ___lambda18__g_simple_action_activate (GSimpleAction* _sender, GVariant* parameter, gpointer self);
@@ -224,6 +254,16 @@ gint try_reset_after_abort (void* con);
 void seaborg_seaborg_application_kernel_msg (SeaborgSeaborgApplication* self, const gchar* _error_);
 void close_connection (void* connection);
 void* init_connection (gchar* path);
+#define SEABORG_PARAMETER_kernel_init "-linkname \"math -wstp -mathlink\""
+static void seaborg_seaborg_application_save_notebook (SeaborgSeaborgApplication* self, const gchar* fn);
+static void _g_free0_ (gpointer var);
+static void _g_slist_free__g_free0_ (GSList* self);
+static void seaborg_seaborg_application_load_notebook (SeaborgSeaborgApplication* self, const gchar* uri);
+static void seaborg_seaborg_application_write_recursively (SeaborgSeaborgApplication* self, SeaborgICell* cell, FILE* file, const gchar* identation);
+GType seaborg_cell_container_get_type (void) G_GNUC_CONST;
+guint seaborg_icell_get_level (SeaborgICell* self);
+GType seaborg_text_cell_get_type (void) G_GNUC_CONST;
+gchar* seaborg_evaluation_cell_get_output_text (SeaborgEvaluationCell* self);
 SeaborgSeaborgApplication* seaborg_seaborg_application_new (void);
 SeaborgSeaborgApplication* seaborg_seaborg_application_construct (GType object_type);
 static void seaborg_seaborg_application_finalize (GObject * obj);
@@ -498,6 +538,7 @@ static void seaborg_seaborg_application_real_activate (GApplication* base) {
 	GtkApplicationWindow* _tmp36_;
 	self = (SeaborgSeaborgApplication*) base;
 	g_application_set_resource_base_path ((GApplication*) self, "/tst/seaborg/./res/");
+	seaborg_id_generator_reset ();
 	_tmp0_ = (GtkApplicationWindow*) gtk_application_window_new ((GtkApplication*) self);
 	g_object_ref_sink (_tmp0_);
 	_g_object_unref0 (self->priv->main_window);
@@ -599,6 +640,7 @@ static void ___lambda15__g_simple_action_activate (GSimpleAction* _sender, GVari
 
 
 static void __lambda16_ (SeaborgSeaborgApplication* self) {
+	seaborg_seaborg_application_load_dialog (self);
 }
 
 
@@ -608,6 +650,7 @@ static void ___lambda16__g_simple_action_activate (GSimpleAction* _sender, GVari
 
 
 static void __lambda17_ (SeaborgSeaborgApplication* self) {
+	seaborg_seaborg_application_save_dialog (self);
 }
 
 
@@ -1349,12 +1392,9 @@ static void seaborg_seaborg_application_abort_eval (SeaborgSeaborgApplication* s
 
 static void seaborg_seaborg_application_reset_kernel (SeaborgSeaborgApplication* self) {
 	void* _tmp0_;
-	gchar* init_string = NULL;
-	gchar* _tmp4_;
-	const gchar* _tmp5_;
-	void* _tmp6_;
-	void* _tmp7_;
-	gint _tmp8_;
+	void* _tmp4_;
+	void* _tmp5_;
+	gint _tmp6_;
 	g_return_if_fail (self != NULL);
 	_tmp0_ = self->priv->kernel_connection;
 	if (_tmp0_ != NULL) {
@@ -1368,23 +1408,590 @@ static void seaborg_seaborg_application_reset_kernel (SeaborgSeaborgApplication*
 			close_connection (_tmp3_);
 		}
 	}
-	_tmp4_ = g_str_to_ascii ("-linkname \"math -wstp -mathlink\"", NULL);
-	init_string = _tmp4_;
-	_tmp5_ = init_string;
-	_tmp6_ = init_connection (_tmp5_);
-	self->priv->kernel_connection = _tmp6_;
-	_tmp7_ = self->priv->kernel_connection;
-	_tmp8_ = check_connection (_tmp7_);
-	if (_tmp8_ != 1) {
+	_tmp4_ = init_connection (SEABORG_PARAMETER_kernel_init);
+	self->priv->kernel_connection = _tmp4_;
+	_tmp5_ = self->priv->kernel_connection;
+	_tmp6_ = check_connection (_tmp5_);
+	if (_tmp6_ != 1) {
 		seaborg_seaborg_application_kernel_msg (self, "Error resetting connection");
 	}
-	_g_free0 (init_string);
 }
 
 
 void seaborg_seaborg_application_kernel_msg (SeaborgSeaborgApplication* self, const gchar* _error_) {
+	FILE* _tmp0_;
+	const gchar* _tmp1_;
+	gchar* _tmp2_;
+	gchar* _tmp3_;
+	gchar* _tmp4_;
+	gchar* _tmp5_;
 	g_return_if_fail (self != NULL);
 	g_return_if_fail (_error_ != NULL);
+	_tmp0_ = stderr;
+	_tmp1_ = _error_;
+	_tmp2_ = g_strconcat ("\n", _tmp1_, NULL);
+	_tmp3_ = _tmp2_;
+	_tmp4_ = g_strconcat (_tmp3_, "\n", NULL);
+	_tmp5_ = _tmp4_;
+	fprintf (_tmp0_, "%s", _tmp5_);
+	_g_free0 (_tmp5_);
+	_g_free0 (_tmp3_);
+}
+
+
+static void _g_free0_ (gpointer var) {
+	var = (g_free (var), NULL);
+}
+
+
+static void _g_slist_free__g_free0_ (GSList* self) {
+	g_slist_foreach (self, (GFunc) _g_free0_, NULL);
+	g_slist_free (self);
+}
+
+
+static void seaborg_seaborg_application_save_dialog (SeaborgSeaborgApplication* self) {
+	GtkFileChooserDialog* saver = NULL;
+	GtkApplicationWindow* _tmp0_;
+	GtkFileChooserDialog* _tmp1_;
+	GtkFileChooserDialog* _tmp2_;
+	GtkFileChooserDialog* _tmp3_;
+	const gchar* _tmp4_;
+	GtkFileChooserDialog* _tmp5_;
+	gint _tmp6_;
+	GtkFileChooserDialog* _tmp14_;
+	g_return_if_fail (self != NULL);
+	_tmp0_ = self->priv->main_window;
+	_tmp1_ = (GtkFileChooserDialog*) gtk_file_chooser_dialog_new ("Save Notebook", (GtkWindow*) _tmp0_, GTK_FILE_CHOOSER_ACTION_SAVE, "_Cancel", GTK_RESPONSE_CANCEL, "_Save", GTK_RESPONSE_ACCEPT, NULL);
+	g_object_ref_sink (_tmp1_);
+	saver = _tmp1_;
+	_tmp2_ = saver;
+	gtk_file_chooser_set_select_multiple ((GtkFileChooser*) _tmp2_, FALSE);
+	_tmp3_ = saver;
+	_tmp4_ = self->priv->file_name;
+	gtk_file_chooser_set_filename ((GtkFileChooser*) _tmp3_, _tmp4_);
+	_tmp5_ = saver;
+	_tmp6_ = gtk_dialog_run ((GtkDialog*) _tmp5_);
+	if (_tmp6_ == ((gint) GTK_RESPONSE_ACCEPT)) {
+		GSList* filenames = NULL;
+		GtkFileChooserDialog* _tmp7_;
+		GSList* _tmp8_;
+		GSList* _tmp9_;
+		_tmp7_ = saver;
+		_tmp8_ = gtk_file_chooser_get_filenames ((GtkFileChooser*) _tmp7_);
+		filenames = _tmp8_;
+		_tmp9_ = filenames;
+		{
+			GSList* fn_collection = NULL;
+			GSList* fn_it = NULL;
+			fn_collection = _tmp9_;
+			for (fn_it = fn_collection; fn_it != NULL; fn_it = fn_it->next) {
+				gchar* _tmp10_;
+				gchar* fn = NULL;
+				_tmp10_ = g_strdup ((const gchar*) fn_it->data);
+				fn = _tmp10_;
+				{
+					const gchar* _tmp11_;
+					gchar* _tmp12_;
+					const gchar* _tmp13_;
+					_tmp11_ = fn;
+					_tmp12_ = g_strdup (_tmp11_);
+					_g_free0 (self->priv->file_name);
+					self->priv->file_name = _tmp12_;
+					_tmp13_ = fn;
+					seaborg_seaborg_application_save_notebook (self, _tmp13_);
+					_g_free0 (fn);
+				}
+			}
+		}
+		__g_slist_free__g_free0_0 (filenames);
+	}
+	_tmp14_ = saver;
+	g_signal_emit_by_name ((GtkDialog*) _tmp14_, "close");
+	_g_object_unref0 (saver);
+}
+
+
+static void seaborg_seaborg_application_load_dialog (SeaborgSeaborgApplication* self) {
+	GtkFileChooserDialog* loader = NULL;
+	GtkApplicationWindow* _tmp0_;
+	GtkFileChooserDialog* _tmp1_;
+	GtkFileChooserDialog* _tmp2_;
+	GtkFileChooserDialog* _tmp3_;
+	GtkFileChooserDialog* _tmp4_;
+	gint _tmp5_;
+	GtkFileChooserDialog* _tmp11_;
+	g_return_if_fail (self != NULL);
+	_tmp0_ = self->priv->main_window;
+	_tmp1_ = (GtkFileChooserDialog*) gtk_file_chooser_dialog_new ("Load Notebooks", (GtkWindow*) _tmp0_, GTK_FILE_CHOOSER_ACTION_SAVE, "_Cancel", GTK_RESPONSE_CANCEL, "_Load", GTK_RESPONSE_ACCEPT, NULL);
+	g_object_ref_sink (_tmp1_);
+	loader = _tmp1_;
+	_tmp2_ = loader;
+	gtk_file_chooser_set_select_multiple ((GtkFileChooser*) _tmp2_, TRUE);
+	_tmp3_ = loader;
+	gtk_file_chooser_set_filename ((GtkFileChooser*) _tmp3_, "file_name");
+	_tmp4_ = loader;
+	_tmp5_ = gtk_dialog_run ((GtkDialog*) _tmp4_);
+	if (_tmp5_ == ((gint) GTK_RESPONSE_ACCEPT)) {
+		GSList* filenames = NULL;
+		GtkFileChooserDialog* _tmp6_;
+		GSList* _tmp7_;
+		GSList* _tmp8_;
+		_tmp6_ = loader;
+		_tmp7_ = gtk_file_chooser_get_filenames ((GtkFileChooser*) _tmp6_);
+		filenames = _tmp7_;
+		_tmp8_ = filenames;
+		{
+			GSList* fn_collection = NULL;
+			GSList* fn_it = NULL;
+			fn_collection = _tmp8_;
+			for (fn_it = fn_collection; fn_it != NULL; fn_it = fn_it->next) {
+				gchar* _tmp9_;
+				gchar* fn = NULL;
+				_tmp9_ = g_strdup ((const gchar*) fn_it->data);
+				fn = _tmp9_;
+				{
+					const gchar* _tmp10_;
+					_tmp10_ = fn;
+					seaborg_seaborg_application_load_notebook (self, _tmp10_);
+					_g_free0 (fn);
+				}
+			}
+		}
+		__g_slist_free__g_free0_0 (filenames);
+	}
+	_tmp11_ = loader;
+	g_signal_emit_by_name ((GtkDialog*) _tmp11_, "close");
+	_g_object_unref0 (loader);
+}
+
+
+static void seaborg_seaborg_application_save_notebook (SeaborgSeaborgApplication* self, const gchar* fn) {
+	FILE* save_file = NULL;
+	const gchar* _tmp0_;
+	FILE* _tmp1_;
+	FILE* _tmp2_;
+	gchar* identation = NULL;
+	gchar* _tmp6_;
+	FILE* _tmp7_;
+	FILE* _tmp23_;
+	FILE* _tmp24_;
+	g_return_if_fail (self != NULL);
+	g_return_if_fail (fn != NULL);
+	_tmp0_ = fn;
+	_tmp1_ = g_fopen (_tmp0_, "w");
+	save_file = _tmp1_;
+	_tmp2_ = save_file;
+	if (_tmp2_ == NULL) {
+		const gchar* _tmp3_;
+		gchar* _tmp4_;
+		gchar* _tmp5_;
+		_tmp3_ = fn;
+		_tmp4_ = g_strconcat ("Error saving file: ", _tmp3_, NULL);
+		_tmp5_ = _tmp4_;
+		seaborg_seaborg_application_kernel_msg (self, _tmp5_);
+		_g_free0 (_tmp5_);
+		_fclose0 (save_file);
+		return;
+	}
+	_tmp6_ = g_strdup ("	");
+	identation = _tmp6_;
+	_tmp7_ = save_file;
+	fprintf (_tmp7_, "Notebook[ \"1.0\", {\n");
+	{
+		gint i = 0;
+		i = 0;
+		{
+			gboolean _tmp8_ = FALSE;
+			_tmp8_ = TRUE;
+			while (TRUE) {
+				gint _tmp10_;
+				SeaborgNotebook* _tmp11_;
+				GArray* _tmp12_;
+				GArray* _tmp13_;
+				gpointer* _tmp14_;
+				gint _tmp14__length1;
+				SeaborgNotebook* _tmp15_;
+				GArray* _tmp16_;
+				GArray* _tmp17_;
+				gpointer* _tmp18_;
+				gint _tmp18__length1;
+				gint _tmp19_;
+				SeaborgICell* _tmp20_;
+				FILE* _tmp21_;
+				const gchar* _tmp22_;
+				if (!_tmp8_) {
+					gint _tmp9_;
+					_tmp9_ = i;
+					i = _tmp9_ + 1;
+				}
+				_tmp8_ = FALSE;
+				_tmp10_ = i;
+				_tmp11_ = self->notebook;
+				_tmp12_ = seaborg_icell_container_get_Children ((SeaborgICellContainer*) _tmp11_);
+				_tmp13_ = _tmp12_;
+				_tmp14_ = _tmp13_->data;
+				_tmp14__length1 = (gint) _tmp13_->len;
+				if (!(_tmp10_ < _tmp14__length1)) {
+					break;
+				}
+				_tmp15_ = self->notebook;
+				_tmp16_ = seaborg_icell_container_get_Children ((SeaborgICellContainer*) _tmp15_);
+				_tmp17_ = _tmp16_;
+				_tmp18_ = _tmp17_->data;
+				_tmp18__length1 = (gint) _tmp17_->len;
+				_tmp19_ = i;
+				_tmp20_ = _tmp18_[_tmp19_];
+				_tmp21_ = save_file;
+				_tmp22_ = identation;
+				seaborg_seaborg_application_write_recursively (self, _tmp20_, _tmp21_, _tmp22_);
+			}
+		}
+	}
+	_tmp23_ = save_file;
+	fprintf (_tmp23_, "}]");
+	_tmp24_ = save_file;
+	fflush (_tmp24_);
+	_g_free0 (identation);
+	_fclose0 (save_file);
+	return;
+}
+
+
+static gchar* string_replace (const gchar* self, const gchar* old, const gchar* replacement) {
+	gchar* result = NULL;
+	gboolean _tmp0_ = FALSE;
+	gboolean _tmp1_ = FALSE;
+	GError * _inner_error_ = NULL;
+	g_return_val_if_fail (self != NULL, NULL);
+	g_return_val_if_fail (old != NULL, NULL);
+	g_return_val_if_fail (replacement != NULL, NULL);
+	if ((*((gchar*) self)) == '\0') {
+		_tmp1_ = TRUE;
+	} else {
+		const gchar* _tmp2_;
+		_tmp2_ = old;
+		_tmp1_ = (*((gchar*) _tmp2_)) == '\0';
+	}
+	if (_tmp1_) {
+		_tmp0_ = TRUE;
+	} else {
+		const gchar* _tmp3_;
+		const gchar* _tmp4_;
+		_tmp3_ = old;
+		_tmp4_ = replacement;
+		_tmp0_ = g_strcmp0 (_tmp3_, _tmp4_) == 0;
+	}
+	if (_tmp0_) {
+		gchar* _tmp5_;
+		_tmp5_ = g_strdup (self);
+		result = _tmp5_;
+		return result;
+	}
+	{
+		GRegex* regex = NULL;
+		const gchar* _tmp6_;
+		gchar* _tmp7_;
+		gchar* _tmp8_;
+		GRegex* _tmp9_;
+		GRegex* _tmp10_;
+		gchar* _tmp11_ = NULL;
+		GRegex* _tmp12_;
+		const gchar* _tmp13_;
+		gchar* _tmp14_;
+		gchar* _tmp15_;
+		_tmp6_ = old;
+		_tmp7_ = g_regex_escape_string (_tmp6_, -1);
+		_tmp8_ = _tmp7_;
+		_tmp9_ = g_regex_new (_tmp8_, 0, 0, &_inner_error_);
+		_tmp10_ = _tmp9_;
+		_g_free0 (_tmp8_);
+		regex = _tmp10_;
+		if (G_UNLIKELY (_inner_error_ != NULL)) {
+			if (_inner_error_->domain == G_REGEX_ERROR) {
+				goto __catch7_g_regex_error;
+			}
+			g_critical ("file %s: line %d: unexpected error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return NULL;
+		}
+		_tmp12_ = regex;
+		_tmp13_ = replacement;
+		_tmp14_ = g_regex_replace_literal (_tmp12_, self, (gssize) -1, 0, _tmp13_, 0, &_inner_error_);
+		_tmp11_ = _tmp14_;
+		if (G_UNLIKELY (_inner_error_ != NULL)) {
+			_g_regex_unref0 (regex);
+			if (_inner_error_->domain == G_REGEX_ERROR) {
+				goto __catch7_g_regex_error;
+			}
+			_g_regex_unref0 (regex);
+			g_critical ("file %s: line %d: unexpected error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+			g_clear_error (&_inner_error_);
+			return NULL;
+		}
+		_tmp15_ = _tmp11_;
+		_tmp11_ = NULL;
+		result = _tmp15_;
+		_g_free0 (_tmp11_);
+		_g_regex_unref0 (regex);
+		return result;
+	}
+	goto __finally7;
+	__catch7_g_regex_error:
+	{
+		GError* e = NULL;
+		e = _inner_error_;
+		_inner_error_ = NULL;
+		g_assert_not_reached ();
+		_g_error_free0 (e);
+	}
+	__finally7:
+	if (G_UNLIKELY (_inner_error_ != NULL)) {
+		g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+		g_clear_error (&_inner_error_);
+		return NULL;
+	}
+}
+
+
+static void seaborg_seaborg_application_write_recursively (SeaborgSeaborgApplication* self, SeaborgICell* cell, FILE* file, const gchar* identation) {
+	SeaborgICell* _tmp0_;
+	SeaborgICell* _tmp36_;
+	SeaborgICell* _tmp49_;
+	g_return_if_fail (self != NULL);
+	g_return_if_fail (file != NULL);
+	g_return_if_fail (identation != NULL);
+	_tmp0_ = cell;
+	if (((SeaborgCellContainer*) _tmp0_) != NULL) {
+		SeaborgCellContainer* cellcontainer = NULL;
+		SeaborgICell* _tmp1_;
+		FILE* _tmp2_;
+		const gchar* _tmp3_;
+		gchar* _tmp4_;
+		gchar* _tmp5_;
+		SeaborgCellContainer* _tmp6_;
+		guint _tmp7_;
+		SeaborgCellContainer* _tmp8_;
+		gchar* _tmp9_;
+		gchar* _tmp10_;
+		gchar* _tmp11_;
+		gchar* _tmp12_;
+		gchar* _tmp13_;
+		gchar* _tmp14_;
+		FILE* _tmp32_;
+		const gchar* _tmp33_;
+		gchar* _tmp34_;
+		gchar* _tmp35_;
+		_tmp1_ = cell;
+		cellcontainer = (SeaborgCellContainer*) _tmp1_;
+		_tmp2_ = file;
+		_tmp3_ = identation;
+		_tmp4_ = g_strconcat (_tmp3_, "CellContainer[%i, \"%s\", {\n", NULL);
+		_tmp5_ = _tmp4_;
+		_tmp6_ = cellcontainer;
+		_tmp7_ = seaborg_icell_get_level ((SeaborgICell*) _tmp6_);
+		_tmp8_ = cellcontainer;
+		_tmp9_ = seaborg_icell_get_text ((SeaborgICell*) _tmp8_);
+		_tmp10_ = _tmp9_;
+		_tmp11_ = string_replace (_tmp10_, "\n", "$NEWLINE");
+		_tmp12_ = _tmp11_;
+		_tmp13_ = string_replace (_tmp12_, "\"", "\'");
+		_tmp14_ = _tmp13_;
+		fprintf (_tmp2_, _tmp5_, _tmp7_, _tmp14_);
+		_g_free0 (_tmp14_);
+		_g_free0 (_tmp12_);
+		_g_free0 (_tmp10_);
+		_g_free0 (_tmp5_);
+		{
+			gint i = 0;
+			i = 0;
+			{
+				gboolean _tmp15_ = FALSE;
+				_tmp15_ = TRUE;
+				while (TRUE) {
+					gint _tmp17_;
+					SeaborgCellContainer* _tmp18_;
+					GArray* _tmp19_;
+					GArray* _tmp20_;
+					gpointer* _tmp21_;
+					gint _tmp21__length1;
+					SeaborgCellContainer* _tmp22_;
+					GArray* _tmp23_;
+					GArray* _tmp24_;
+					gpointer* _tmp25_;
+					gint _tmp25__length1;
+					gint _tmp26_;
+					SeaborgICell* _tmp27_;
+					FILE* _tmp28_;
+					const gchar* _tmp29_;
+					gchar* _tmp30_;
+					gchar* _tmp31_;
+					if (!_tmp15_) {
+						gint _tmp16_;
+						_tmp16_ = i;
+						i = _tmp16_ + 1;
+					}
+					_tmp15_ = FALSE;
+					_tmp17_ = i;
+					_tmp18_ = cellcontainer;
+					_tmp19_ = seaborg_icell_container_get_Children ((SeaborgICellContainer*) _tmp18_);
+					_tmp20_ = _tmp19_;
+					_tmp21_ = _tmp20_->data;
+					_tmp21__length1 = (gint) _tmp20_->len;
+					if (!(_tmp17_ < _tmp21__length1)) {
+						break;
+					}
+					_tmp22_ = cellcontainer;
+					_tmp23_ = seaborg_icell_container_get_Children ((SeaborgICellContainer*) _tmp22_);
+					_tmp24_ = _tmp23_;
+					_tmp25_ = _tmp24_->data;
+					_tmp25__length1 = (gint) _tmp24_->len;
+					_tmp26_ = i;
+					_tmp27_ = _tmp25_[_tmp26_];
+					_tmp28_ = file;
+					_tmp29_ = identation;
+					_tmp30_ = g_strconcat (_tmp29_, "	", NULL);
+					_tmp31_ = _tmp30_;
+					seaborg_seaborg_application_write_recursively (self, _tmp27_, _tmp28_, _tmp31_);
+					_g_free0 (_tmp31_);
+				}
+			}
+		}
+		_tmp32_ = file;
+		_tmp33_ = identation;
+		_tmp34_ = g_strconcat (_tmp33_, "],", NULL);
+		_tmp35_ = _tmp34_;
+		fprintf (_tmp32_, "%s", _tmp35_);
+		_g_free0 (_tmp35_);
+	}
+	_tmp36_ = cell;
+	if (((SeaborgTextCell*) _tmp36_) != NULL) {
+		SeaborgTextCell* textcell = NULL;
+		SeaborgICell* _tmp37_;
+		FILE* _tmp38_;
+		const gchar* _tmp39_;
+		gchar* _tmp40_;
+		gchar* _tmp41_;
+		SeaborgTextCell* _tmp42_;
+		gchar* _tmp43_;
+		gchar* _tmp44_;
+		gchar* _tmp45_;
+		gchar* _tmp46_;
+		gchar* _tmp47_;
+		gchar* _tmp48_;
+		_tmp37_ = cell;
+		textcell = (SeaborgTextCell*) _tmp37_;
+		_tmp38_ = file;
+		_tmp39_ = identation;
+		_tmp40_ = g_strconcat (_tmp39_, "TextCell[\"%s\"],\n", NULL);
+		_tmp41_ = _tmp40_;
+		_tmp42_ = textcell;
+		_tmp43_ = seaborg_icell_get_text ((SeaborgICell*) _tmp42_);
+		_tmp44_ = _tmp43_;
+		_tmp45_ = string_replace (_tmp44_, "\n", "$NEWLINE");
+		_tmp46_ = _tmp45_;
+		_tmp47_ = string_replace (_tmp46_, "\"", "\'");
+		_tmp48_ = _tmp47_;
+		fprintf (_tmp38_, _tmp41_, _tmp48_);
+		_g_free0 (_tmp48_);
+		_g_free0 (_tmp46_);
+		_g_free0 (_tmp44_);
+		_g_free0 (_tmp41_);
+	}
+	_tmp49_ = cell;
+	if (((SeaborgEvaluationCell*) _tmp49_) != NULL) {
+		SeaborgEvaluationCell* evalcell = NULL;
+		SeaborgICell* _tmp50_;
+		FILE* _tmp51_;
+		const gchar* _tmp52_;
+		gchar* _tmp53_;
+		gchar* _tmp54_;
+		const gchar* _tmp55_;
+		gchar* _tmp56_;
+		gchar* _tmp57_;
+		gchar* _tmp58_;
+		gchar* _tmp59_;
+		const gchar* _tmp60_;
+		gchar* _tmp61_;
+		gchar* _tmp62_;
+		gchar* _tmp63_;
+		gchar* _tmp64_;
+		const gchar* _tmp65_;
+		gchar* _tmp66_;
+		gchar* _tmp67_;
+		gchar* _tmp68_;
+		gchar* _tmp69_;
+		SeaborgEvaluationCell* _tmp70_;
+		gchar* _tmp71_;
+		gchar* _tmp72_;
+		gchar* _tmp73_;
+		gchar* _tmp74_;
+		gchar* _tmp75_;
+		gchar* _tmp76_;
+		SeaborgEvaluationCell* _tmp77_;
+		gchar* _tmp78_;
+		gchar* _tmp79_;
+		gchar* _tmp80_;
+		gchar* _tmp81_;
+		gchar* _tmp82_;
+		gchar* _tmp83_;
+		_tmp50_ = cell;
+		evalcell = (SeaborgEvaluationCell*) _tmp50_;
+		_tmp51_ = file;
+		_tmp52_ = identation;
+		_tmp53_ = g_strconcat (_tmp52_, "EvaluationCell[\n", NULL);
+		_tmp54_ = _tmp53_;
+		_tmp55_ = identation;
+		_tmp56_ = g_strconcat (_tmp54_, _tmp55_, NULL);
+		_tmp57_ = _tmp56_;
+		_tmp58_ = g_strconcat (_tmp57_, "	\"%s\",{\n", NULL);
+		_tmp59_ = _tmp58_;
+		_tmp60_ = identation;
+		_tmp61_ = g_strconcat (_tmp59_, _tmp60_, NULL);
+		_tmp62_ = _tmp61_;
+		_tmp63_ = g_strconcat (_tmp62_, "\"%s\"}\n", NULL);
+		_tmp64_ = _tmp63_;
+		_tmp65_ = identation;
+		_tmp66_ = g_strconcat (_tmp64_, _tmp65_, NULL);
+		_tmp67_ = _tmp66_;
+		_tmp68_ = g_strconcat (_tmp67_, "],\n", NULL);
+		_tmp69_ = _tmp68_;
+		_tmp70_ = evalcell;
+		_tmp71_ = seaborg_icell_get_text ((SeaborgICell*) _tmp70_);
+		_tmp72_ = _tmp71_;
+		_tmp73_ = string_replace (_tmp72_, "\n", "$NEWLINE");
+		_tmp74_ = _tmp73_;
+		_tmp75_ = string_replace (_tmp74_, "\"", "\'");
+		_tmp76_ = _tmp75_;
+		_tmp77_ = evalcell;
+		_tmp78_ = seaborg_evaluation_cell_get_output_text (_tmp77_);
+		_tmp79_ = _tmp78_;
+		_tmp80_ = string_replace (_tmp79_, "\n", "$NEWLINE");
+		_tmp81_ = _tmp80_;
+		_tmp82_ = string_replace (_tmp81_, "\"", "\'");
+		_tmp83_ = _tmp82_;
+		fprintf (_tmp51_, _tmp69_, _tmp76_, _tmp83_);
+		_g_free0 (_tmp83_);
+		_g_free0 (_tmp81_);
+		_g_free0 (_tmp79_);
+		_g_free0 (_tmp76_);
+		_g_free0 (_tmp74_);
+		_g_free0 (_tmp72_);
+		_g_free0 (_tmp69_);
+		_g_free0 (_tmp67_);
+		_g_free0 (_tmp64_);
+		_g_free0 (_tmp62_);
+		_g_free0 (_tmp59_);
+		_g_free0 (_tmp57_);
+		_g_free0 (_tmp54_);
+	}
+}
+
+
+static void seaborg_seaborg_application_load_notebook (SeaborgSeaborgApplication* self, const gchar* uri) {
+	g_return_if_fail (self != NULL);
+	g_return_if_fail (uri != NULL);
+	return;
 }
 
 
@@ -1412,7 +2019,10 @@ static void seaborg_seaborg_application_class_init (SeaborgSeaborgApplicationCla
 
 
 static void seaborg_seaborg_application_instance_init (SeaborgSeaborgApplication * self) {
+	gchar* _tmp0_;
 	self->priv = SEABORG_SEABORG_APPLICATION_GET_PRIVATE (self);
+	_tmp0_ = g_strdup ("./Untitled.snb");
+	self->priv->file_name = _tmp0_;
 	g_rec_mutex_init (&self->priv->__lock_eval_queue);
 	self->priv->listener_thread_is_running = FALSE;
 }
@@ -1421,6 +2031,7 @@ static void seaborg_seaborg_application_instance_init (SeaborgSeaborgApplication
 static void seaborg_seaborg_application_finalize (GObject * obj) {
 	SeaborgSeaborgApplication * self;
 	self = G_TYPE_CHECK_INSTANCE_CAST (obj, SEABORG_TYPE_SEABORG_APPLICATION, SeaborgSeaborgApplication);
+	_g_free0 (self->priv->file_name);
 	seaborg_evaluation_data_destroy (&self->priv->current_cell);
 	_g_object_unref0 (self->priv->main_window);
 	_g_object_unref0 (self->priv->main_headerbar);

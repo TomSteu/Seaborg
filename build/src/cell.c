@@ -405,6 +405,7 @@ static void seaborg_evaluation_cell_real_set_text (SeaborgICell* base, const gch
 void seaborg_evaluation_cell_add_text (SeaborgEvaluationCell* self, const gchar* _text);
 static gchar* seaborg_evaluation_cell_real_get_text (SeaborgICell* base);
 void seaborg_evaluation_cell_remove_text (SeaborgEvaluationCell* self);
+gchar* seaborg_evaluation_cell_get_output_text (SeaborgEvaluationCell* self);
 static void seaborg_evaluation_cell_finalize (GObject * obj);
 static void _vala_seaborg_evaluation_cell_get_property (GObject * object, guint property_id, GValue * value, GParamSpec * pspec);
 static void _vala_seaborg_evaluation_cell_set_property (GObject * object, guint property_id, const GValue * value, GParamSpec * pspec);
@@ -947,7 +948,6 @@ SeaborgNotebook* seaborg_notebook_construct (GType object_type) {
 	GtkButton* _tmp37_;
 	GError * _inner_error_ = NULL;
 	self = (SeaborgNotebook*) g_object_new (object_type, NULL);
-	seaborg_id_generator_reset ();
 	_tmp0_ = seaborg_id_generator_get_id ();
 	_tmp1_ = _tmp0_;
 	gtk_widget_set_name ((GtkWidget*) self, _tmp1_);
@@ -975,11 +975,11 @@ SeaborgNotebook* seaborg_notebook_construct (GType object_type) {
 		_tmp9_ = self->priv->css;
 		gtk_css_provider_load_from_path (_tmp9_, "res/seaborg.css", &_inner_error_);
 		if (G_UNLIKELY (_inner_error_ != NULL)) {
-			goto __catch7_g_error;
+			goto __catch8_g_error;
 		}
 	}
-	goto __finally7;
-	__catch7_g_error:
+	goto __finally8;
+	__catch8_g_error:
 	{
 		GError* _error_ = NULL;
 		GtkCssProvider* _tmp10_;
@@ -992,7 +992,7 @@ SeaborgNotebook* seaborg_notebook_construct (GType object_type) {
 		self->priv->css = _tmp11_;
 		_g_error_free0 (_error_);
 	}
-	__finally7:
+	__finally8:
 	if (G_UNLIKELY (_inner_error_ != NULL)) {
 		g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
 		g_clear_error (&_inner_error_);
@@ -2223,11 +2223,11 @@ SeaborgCellContainer* seaborg_cell_container_construct (GType object_type, Seabo
 		_tmp10_ = self->priv->css;
 		gtk_css_provider_load_from_path (_tmp10_, "res/seaborg.css", &_inner_error_);
 		if (G_UNLIKELY (_inner_error_ != NULL)) {
-			goto __catch8_g_error;
+			goto __catch9_g_error;
 		}
 	}
-	goto __finally8;
-	__catch8_g_error:
+	goto __finally9;
+	__catch9_g_error:
 	{
 		GError* _error_ = NULL;
 		GtkCssProvider* _tmp11_;
@@ -2240,7 +2240,7 @@ SeaborgCellContainer* seaborg_cell_container_construct (GType object_type, Seabo
 		self->priv->css = _tmp12_;
 		_g_error_free0 (_error_);
 	}
-	__finally8:
+	__finally9:
 	if (G_UNLIKELY (_inner_error_ != NULL)) {
 		g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
 		g_clear_error (&_inner_error_);
@@ -4277,11 +4277,11 @@ SeaborgEvaluationCell* seaborg_evaluation_cell_construct (GType object_type, Sea
 		_tmp6_ = self->priv->css;
 		gtk_css_provider_load_from_path (_tmp6_, "res/seaborg.css", &_inner_error_);
 		if (G_UNLIKELY (_inner_error_ != NULL)) {
-			goto __catch9_g_error;
+			goto __catch10_g_error;
 		}
 	}
-	goto __finally9;
-	__catch9_g_error:
+	goto __finally10;
+	__catch10_g_error:
 	{
 		GError* _error_ = NULL;
 		GtkCssProvider* _tmp7_;
@@ -4294,7 +4294,7 @@ SeaborgEvaluationCell* seaborg_evaluation_cell_construct (GType object_type, Sea
 		self->priv->css = _tmp8_;
 		_g_error_free0 (_error_);
 	}
-	__finally9:
+	__finally10:
 	if (G_UNLIKELY (_inner_error_ != NULL)) {
 		g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
 		g_clear_error (&_inner_error_);
@@ -4836,6 +4836,20 @@ void seaborg_evaluation_cell_remove_text (SeaborgEvaluationCell* self) {
 }
 
 
+gchar* seaborg_evaluation_cell_get_output_text (SeaborgEvaluationCell* self) {
+	gchar* result = NULL;
+	GtkSourceBuffer* _tmp0_;
+	gchar* _tmp1_;
+	gchar* _tmp2_;
+	g_return_val_if_fail (self != NULL, NULL);
+	_tmp0_ = self->priv->OutputBuffer;
+	g_object_get ((GtkTextBuffer*) _tmp0_, "text", &_tmp1_, NULL);
+	_tmp2_ = _tmp1_;
+	result = _tmp2_;
+	return result;
+}
+
+
 static gboolean seaborg_evaluation_cell_real_get_lock (SeaborgICell* base) {
 	gboolean result;
 	SeaborgEvaluationCell* self;
@@ -5058,11 +5072,11 @@ SeaborgTextCell* seaborg_text_cell_construct (GType object_type, SeaborgICellCon
 		_tmp6_ = css;
 		gtk_css_provider_load_from_path (_tmp6_, "res/seaborg.css", &_inner_error_);
 		if (G_UNLIKELY (_inner_error_ != NULL)) {
-			goto __catch10_g_error;
+			goto __catch11_g_error;
 		}
 	}
-	goto __finally10;
-	__catch10_g_error:
+	goto __finally11;
+	__catch11_g_error:
 	{
 		GError* _error_ = NULL;
 		GtkCssProvider* _tmp7_;
@@ -5075,7 +5089,7 @@ SeaborgTextCell* seaborg_text_cell_construct (GType object_type, SeaborgICellCon
 		css = _tmp8_;
 		_g_error_free0 (_error_);
 	}
-	__finally10:
+	__finally11:
 	if (G_UNLIKELY (_inner_error_ != NULL)) {
 		_g_object_unref0 (css);
 		g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
@@ -5564,11 +5578,11 @@ SeaborgAddButton* seaborg_add_button_construct (GType object_type, SeaborgICellC
 		_tmp6_ = css;
 		gtk_css_provider_load_from_path (_tmp6_, "res/seaborg.css", &_inner_error_);
 		if (G_UNLIKELY (_inner_error_ != NULL)) {
-			goto __catch11_g_error;
+			goto __catch12_g_error;
 		}
 	}
-	goto __finally11;
-	__catch11_g_error:
+	goto __finally12;
+	__catch12_g_error:
 	{
 		GError* _error_ = NULL;
 		GtkCssProvider* _tmp7_;
@@ -5581,7 +5595,7 @@ SeaborgAddButton* seaborg_add_button_construct (GType object_type, SeaborgICellC
 		css = _tmp8_;
 		_g_error_free0 (_error_);
 	}
-	__finally11:
+	__finally12:
 	if (G_UNLIKELY (_inner_error_ != NULL)) {
 		_g_object_unref0 (css);
 		g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);

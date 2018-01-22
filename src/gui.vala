@@ -18,6 +18,8 @@ namespace Seaborg {
 		protected override void activate() {
 
 			this.set_resource_base_path("/tst/seaborg/./res/");
+
+			IdGenerator.reset();
 			
 			// widgets
 			main_window = new Gtk.ApplicationWindow(this);
@@ -153,9 +155,11 @@ namespace Seaborg {
 			});
 
 			open_action.activate.connect(() => {
+				load_dialog();
 			});
 
 			save_action.activate.connect(() => {
+				save_dialog();
 			});
 
 			quit_action.activate.connect(() => {
@@ -356,15 +360,16 @@ namespace Seaborg {
 				}
 			}
 
-			string init_string = "-linkname \"math -wstp -mathlink\"".to_ascii();
-			//string init_string = "-linkname \"math.old  -mathlink\"".to_ascii();
-			kernel_connection = init_connection(init_string);
+			
+			kernel_connection = init_connection(Parameter.kernel_init);
 			if(check_connection(kernel_connection) != 1) {
 				kernel_msg("Error resetting connection");
 			}
 		}
 
-		public void kernel_msg(string error) {}
+		public void kernel_msg(string error) {
+			stderr.printf("\n" + error + "\n");
+		}
 
 		private static delegate void callback_str(char* string_to_write, void* callback_data, ulong stamp, int break_after);
 
@@ -415,6 +420,101 @@ namespace Seaborg {
 
 			return;
 		};
+
+		private void save_dialog() {
+			Gtk.FileChooserDialog saver = new Gtk.FileChooserDialog(
+				"Save Notebook",
+				main_window,
+				Gtk.FileChooserAction.SAVE,
+				"_Cancel",
+				Gtk.ResponseType.CANCEL,
+				"_Save",
+				Gtk.ResponseType.ACCEPT
+			);
+			saver.select_multiple = false;
+			saver.set_filename(file_name);
+
+			
+			if(saver.run() == Gtk.ResponseType.ACCEPT ) {
+				GLib.SList<string> filenames = saver.get_filenames();
+				foreach (string fn in filenames) {
+					file_name = fn;
+					save_notebook(fn);	
+				}
+			}
+
+			saver.close();
+		}
+
+		private void load_dialog() {
+			Gtk.FileChooserDialog loader = new Gtk.FileChooserDialog(
+				"Load Notebooks",
+				main_window,
+				Gtk.FileChooserAction.SAVE,
+				"_Cancel",
+				Gtk.ResponseType.CANCEL,
+				"_Load",
+				Gtk.ResponseType.ACCEPT
+			);
+			loader.select_multiple = true;
+			loader.set_filename("file_name");
+
+			
+			if(loader.run() == Gtk.ResponseType.ACCEPT ) {
+				GLib.SList<string> filenames = loader.get_filenames();
+				foreach (string fn in filenames) {
+					load_notebook(fn);	
+				}
+			}
+
+			loader.close();
+		}
+
+		private void save_notebook(string fn) {
+			GLib.FileStream save_file = GLib.FileStream.open(fn, "w");
+			if(save_file == null) {
+				kernel_msg("Error saving file: " + fn);
+				return;
+			}
+
+			string identation="	"; // this is a tab
+			save_file.printf("Notebook[ \"1.0\", {\n");
+			for(int i = 0; i<notebook.Children.data.length; i++) {
+				write_recursively(notebook.Children.data[i], save_file, identation);
+			}
+			save_file.printf("}]");
+			save_file.flush();
+
+			return;
+		}
+
+		private void write_recursively(ICell* cell, FileStream file, string identation) {
+			if((CellContainer*)cell != null) {
+				CellContainer* cellcontainer = (CellContainer*)cell;
+				file.printf(identation + "CellContainer[%i, \"%s\", {\n", cellcontainer->get_level(), cellcontainer->get_text().replace("\n", "$NEWLINE").replace("\"", "\'"));
+				for(int i=0; i<cellcontainer->Children.data.length; i++)
+					write_recursively(cellcontainer->Children.data[i], file, identation+"	");
+				file.printf(identation + "],");
+			}
+			if((TextCell*)cell != null) {
+				TextCell* textcell = (TextCell*) cell;
+				file.printf(identation + "TextCell[\"%s\"],\n", textcell->get_text().replace("\n", "$NEWLINE").replace("\"", "\'"));
+			}
+			if((EvaluationCell*)cell != null) {
+				EvaluationCell* evalcell = (EvaluationCell*) cell;
+				file.printf(
+					identation + "EvaluationCell[\n" + identation + "	\"%s\",{\n" + identation + "\"%s\"}\n"+ identation + "],\n",
+					evalcell->get_text().replace("\n", "$NEWLINE").replace("\"", "\'"), 
+					evalcell->get_output_text().replace("\n", "$NEWLINE").replace("\"", "\'")
+				);
+			}
+		}
+
+		private void load_notebook(string uri) {
+			return;
+		}
+
+		private string file_name = "./Untitled.snb";
 
 		private EvaluationData current_cell; 
 

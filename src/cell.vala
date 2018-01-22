@@ -84,7 +84,7 @@ namespace Seaborg {
 			return (id++).to_string();
 		}
 
-  		private static int id;
+  		private static int id = 0;
 	}
 
 	/* Cell Levels:
@@ -102,7 +102,6 @@ namespace Seaborg {
 
 	public class Notebook : Gtk.Grid, ICell, ICellContainer {
 		public Notebook() {
-			IdGenerator.reset();
 			this.name = IdGenerator.get_id();
 			Parent = null;
 			Level = 7;
@@ -831,6 +830,10 @@ namespace Seaborg {
 
 		public void remove_text() {
 			OutputBuffer.text = "";
+		}
+
+		public string get_output_text() {
+			return OutputBuffer.text;
 		}
 
 		public ICellContainer* Parent {get; set;}
