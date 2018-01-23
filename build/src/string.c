@@ -15,6 +15,7 @@
 
 gboolean seaborg_check_input_packet (const gchar* _str);
 gchar* seaborg_replace_characters (const gchar* _str);
+gchar* seaborg_make_file_name (const gchar* str);
 
 
 static gchar* string_replace (const gchar* self, const gchar* old, const gchar* replacement) {
@@ -606,6 +607,18 @@ gchar* seaborg_replace_characters (const gchar* _str) {
 	_g_free0 (_tmp2_);
 	str = _tmp148_;
 	result = str;
+	return result;
+}
+
+
+gchar* seaborg_make_file_name (const gchar* str) {
+	gchar* result = NULL;
+	const gchar* _tmp0_;
+	gchar* _tmp1_;
+	g_return_val_if_fail (str != NULL, NULL);
+	_tmp0_ = str;
+	_tmp1_ = g_strdup (_tmp0_);
+	result = _tmp1_;
 	return result;
 }
 

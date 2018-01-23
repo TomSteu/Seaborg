@@ -100,4 +100,8 @@ namespace Seaborg {
 		return str;
 	}
 
+	static string make_file_name(string str) {
+		return str;
+	}
+
 }

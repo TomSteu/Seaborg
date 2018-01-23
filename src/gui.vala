@@ -27,7 +27,6 @@ namespace Seaborg {
 			tab_switcher = new Gtk.StackSwitcher();
 			notebook_stack = new Gtk.Stack();
 			notebook_scroll = new Gtk.ScrolledWindow(null,null);
-			notebook = new Seaborg.Notebook();
 			string shortcut_builder_string = 
 				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>"+
 				"<interface>"+
@@ -107,14 +106,8 @@ namespace Seaborg {
 			shortcuts = shortcut_builder.get_object("shortcuts") as Gtk.ShortcutsWindow;
 
 
-			// assemble gui
-			EvaluationCell* cellA = new EvaluationCell(notebook);
-			/*EvaluationCell* cellB = new EvaluationCell(notebook);
-			EvaluationCell* cellC = new EvaluationCell(notebook);*/
-			notebook.add_before(0, {cellA/*, cellB, cellC*/});
 
 			tab_switcher.stack = notebook_stack;
-			notebook_stack.add_titled(notebook, "Cell1", "Cell1");
 			
 			main_headerbar.show_close_button = true;
 			main_headerbar.custom_title = tab_switcher;
@@ -128,6 +121,8 @@ namespace Seaborg {
 
 			main_window.set_default_size(800, 600);
 			main_window.show_all();
+
+			new_notebook();
 
 		}
 
@@ -167,12 +162,12 @@ namespace Seaborg {
 			});
 
 			remove_action.activate.connect(() => {
-				notebook.remove_recursively();
+				((Seaborg.Notebook)notebook_stack.get_visible_child()).remove_recursively();
 			});
 
 			eval_action.activate.connect(() => {
 
-				schedule_evaluation(notebook);
+				schedule_evaluation((Seaborg.Notebook)notebook_stack.get_visible_child());
 
 			});
 
@@ -432,13 +427,12 @@ namespace Seaborg {
 				Gtk.ResponseType.ACCEPT
 			);
 			saver.select_multiple = false;
-			saver.set_filename(file_name);
+			saver.set_filename(notebook_stack.get_visible_child_name());
 
 			
 			if(saver.run() == Gtk.ResponseType.ACCEPT ) {
 				GLib.SList<string> filenames = saver.get_filenames();
 				foreach (string fn in filenames) {
-					file_name = fn;
 					save_notebook(fn);	
 				}
 			}
@@ -457,13 +451,13 @@ namespace Seaborg {
 				Gtk.ResponseType.ACCEPT
 			);
 			loader.select_multiple = true;
-			loader.set_filename(file_name);
+			loader.set_filename(notebook_stack.get_visible_child_name());
 
 			
 			if(loader.run() == Gtk.ResponseType.ACCEPT ) {
 				GLib.SList<string> filenames = loader.get_filenames();
 				foreach (string fn in filenames) {
-					load_notebook(fn);	
+					load_notebook(notebook_stack.get_visible_child_name());	
 				}
 			}
 
@@ -479,11 +473,18 @@ namespace Seaborg {
 
 			string identation="	"; // this is a tab
 			save_file.printf("Notebook[ \"1.0\", {\n");
-			for(int i = 0; i<notebook.Children.data.length; i++) {
-				write_recursively(notebook.Children.data[i], save_file, identation);
+			for(int i = 0; i<((Seaborg.Notebook)notebook_stack.get_visible_child()).Children.data.length; i++) {
+				write_recursively(((Seaborg.Notebook)notebook_stack.get_visible_child()).Children.data[i], save_file, identation);
 			}
 			save_file.printf("}]");
 			save_file.flush();
+
+			if(notebook_stack.get_visible_child_name() != fn) {
+				
+				notebook_stack.child_set_property(notebook_stack.get_visible_child(), "name", fn);
+				notebook_stack.child_set_property(notebook_stack.get_visible_child(), "title", make_file_name(fn));
+
+			}
 
 			return;
 		}
@@ -514,7 +515,16 @@ namespace Seaborg {
 			return;
 		}
 
-		private string file_name = "./Untitled.snb";
+		private void new_notebook() {
+
+			Seaborg.Notebook notebook = new Seaborg.Notebook();
+			EvaluationCell* cell = new EvaluationCell(notebook);
+			notebook.add_before(0, {cell});
+
+			notebook_stack.add_titled(notebook, "~/Documents/New Notebook.snb", "New Notebook");
+
+		}
+
 
 		private EvaluationData current_cell; 
 
@@ -542,7 +552,6 @@ namespace Seaborg {
 		private Gtk.Stack notebook_stack;
 		private GLib.Menu main_menu;
 		private Gtk.ScrolledWindow notebook_scroll;
-		public Seaborg.Notebook notebook;
 		private Gtk.ShortcutsWindow shortcuts;
 		private void* kernel_connection;
 		private GLib.Queue<EvaluationData?> eval_queue;
