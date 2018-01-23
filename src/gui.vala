@@ -457,7 +457,7 @@ namespace Seaborg {
 				Gtk.ResponseType.ACCEPT
 			);
 			loader.select_multiple = true;
-			loader.set_filename("file_name");
+			loader.set_filename(file_name);
 
 			
 			if(loader.run() == Gtk.ResponseType.ACCEPT ) {
@@ -488,25 +488,25 @@ namespace Seaborg {
 			return;
 		}
 
-		private void write_recursively(ICell* cell, FileStream file, string identation) {
-			if((CellContainer*)cell != null) {
-				CellContainer* cellcontainer = (CellContainer*)cell;
-				file.printf(identation + "CellContainer[%i, \"%s\", {\n", cellcontainer->get_level(), cellcontainer->get_text().replace("\n", "$NEWLINE").replace("\"", "\'"));
-				for(int i=0; i<cellcontainer->Children.data.length; i++)
-					write_recursively(cellcontainer->Children.data[i], file, identation+"	");
-				file.printf(identation + "],");
+		private void write_recursively(ICell cell, FileStream file, string identation) {
+			if(cell is TextCell) {
+				TextCell textcell = (TextCell) cell;
+				file.printf(identation + "TextCell[\"%s\"],\n", textcell.get_text().replace("\n", "$NEWLINE").replace("\"", "\'"));
 			}
-			if((TextCell*)cell != null) {
-				TextCell* textcell = (TextCell*) cell;
-				file.printf(identation + "TextCell[\"%s\"],\n", textcell->get_text().replace("\n", "$NEWLINE").replace("\"", "\'"));
-			}
-			if((EvaluationCell*)cell != null) {
-				EvaluationCell* evalcell = (EvaluationCell*) cell;
+			if(cell is EvaluationCell) {
+				EvaluationCell evalcell = (EvaluationCell) cell;
 				file.printf(
-					identation + "EvaluationCell[\n" + identation + "	\"%s\",{\n" + identation + "\"%s\"}\n"+ identation + "],\n",
-					evalcell->get_text().replace("\n", "$NEWLINE").replace("\"", "\'"), 
-					evalcell->get_output_text().replace("\n", "$NEWLINE").replace("\"", "\'")
+					identation + "EvaluationCell[\n" + identation + "	\"%s\", {\n" + identation + "	\"%s\"}\n"+ identation + "],\n",
+					evalcell.get_text().replace("\n", "$NEWLINE").replace("\"", "\'"), 
+					evalcell.get_output_text().replace("\n", "$NEWLINE").replace("\"", "\'")
 				);
+			}
+			if(cell is CellContainer) {
+				CellContainer cellcontainer = (CellContainer)cell;
+				file.printf(identation + "CellContainer[%i, \"%s\", {\n", cellcontainer.get_level(), cellcontainer.get_text().replace("\n", "$NEWLINE").replace("\"", "\'"));
+				for(int i=0; i<cellcontainer.Children.data.length; i++)
+					write_recursively(cellcontainer.Children.data[i], file, identation+"	");
+				file.printf(identation + "],");
 			}
 		}
 
