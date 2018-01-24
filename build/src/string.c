@@ -15,7 +15,9 @@
 
 gboolean seaborg_check_input_packet (const gchar* _str);
 gchar* seaborg_replace_characters (const gchar* _str);
-gchar* seaborg_make_file_name (const gchar* str);
+gchar* seaborg_make_file_name (const gchar* _str);
+gchar* seaborg_save_replacement (const gchar* str);
+gchar* seaborg_load_replacement (const gchar* str);
 
 
 static gchar* string_replace (const gchar* self, const gchar* old, const gchar* replacement) {
@@ -69,7 +71,7 @@ static gchar* string_replace (const gchar* self, const gchar* old, const gchar* 
 		regex = _tmp10_;
 		if (G_UNLIKELY (_inner_error_ != NULL)) {
 			if (_inner_error_->domain == G_REGEX_ERROR) {
-				goto __catch13_g_regex_error;
+				goto __catch12_g_regex_error;
 			}
 			g_critical ("file %s: line %d: unexpected error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
 			g_clear_error (&_inner_error_);
@@ -82,7 +84,7 @@ static gchar* string_replace (const gchar* self, const gchar* old, const gchar* 
 		if (G_UNLIKELY (_inner_error_ != NULL)) {
 			_g_regex_unref0 (regex);
 			if (_inner_error_->domain == G_REGEX_ERROR) {
-				goto __catch13_g_regex_error;
+				goto __catch12_g_regex_error;
 			}
 			_g_regex_unref0 (regex);
 			g_critical ("file %s: line %d: unexpected error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
@@ -96,8 +98,8 @@ static gchar* string_replace (const gchar* self, const gchar* old, const gchar* 
 		_g_regex_unref0 (regex);
 		return result;
 	}
-	goto __finally13;
-	__catch13_g_regex_error:
+	goto __finally12;
+	__catch12_g_regex_error:
 	{
 		GError* e = NULL;
 		e = _inner_error_;
@@ -105,7 +107,7 @@ static gchar* string_replace (const gchar* self, const gchar* old, const gchar* 
 		g_assert_not_reached ();
 		_g_error_free0 (e);
 	}
-	__finally13:
+	__finally12:
 	if (G_UNLIKELY (_inner_error_ != NULL)) {
 		g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
 		g_clear_error (&_inner_error_);
@@ -611,14 +613,237 @@ gchar* seaborg_replace_characters (const gchar* _str) {
 }
 
 
-gchar* seaborg_make_file_name (const gchar* str) {
+static gint string_last_index_of (const gchar* self, const gchar* needle, gint start_index) {
+	gint result = 0;
+	gchar* _result_ = NULL;
+	gint _tmp0_;
+	const gchar* _tmp1_;
+	gchar* _tmp2_;
+	gchar* _tmp3_;
+	g_return_val_if_fail (self != NULL, 0);
+	g_return_val_if_fail (needle != NULL, 0);
+	_tmp0_ = start_index;
+	_tmp1_ = needle;
+	_tmp2_ = g_strrstr (((gchar*) self) + _tmp0_, (gchar*) _tmp1_);
+	_result_ = _tmp2_;
+	_tmp3_ = _result_;
+	if (_tmp3_ != NULL) {
+		gchar* _tmp4_;
+		_tmp4_ = _result_;
+		result = (gint) (_tmp4_ - ((gchar*) self));
+		return result;
+	} else {
+		result = -1;
+		return result;
+	}
+}
+
+
+static glong string_strnlen (gchar* str, glong maxlen) {
+	glong result = 0L;
+	gchar* end = NULL;
+	gchar* _tmp0_;
+	glong _tmp1_;
+	gchar* _tmp2_;
+	gchar* _tmp3_;
+	_tmp0_ = str;
+	_tmp1_ = maxlen;
+	_tmp2_ = memchr (_tmp0_, 0, (gsize) _tmp1_);
+	end = _tmp2_;
+	_tmp3_ = end;
+	if (_tmp3_ == NULL) {
+		glong _tmp4_;
+		_tmp4_ = maxlen;
+		result = _tmp4_;
+		return result;
+	} else {
+		gchar* _tmp5_;
+		gchar* _tmp6_;
+		_tmp5_ = end;
+		_tmp6_ = str;
+		result = (glong) (_tmp5_ - _tmp6_);
+		return result;
+	}
+}
+
+
+static gchar* string_substring (const gchar* self, glong offset, glong len) {
+	gchar* result = NULL;
+	glong string_length = 0L;
+	gboolean _tmp0_ = FALSE;
+	glong _tmp1_;
+	glong _tmp8_;
+	glong _tmp14_;
+	glong _tmp17_;
+	glong _tmp18_;
+	glong _tmp19_;
+	glong _tmp20_;
+	glong _tmp21_;
+	gchar* _tmp22_;
+	g_return_val_if_fail (self != NULL, NULL);
+	_tmp1_ = offset;
+	if (_tmp1_ >= ((glong) 0)) {
+		glong _tmp2_;
+		_tmp2_ = len;
+		_tmp0_ = _tmp2_ >= ((glong) 0);
+	} else {
+		_tmp0_ = FALSE;
+	}
+	if (_tmp0_) {
+		glong _tmp3_;
+		glong _tmp4_;
+		glong _tmp5_;
+		_tmp3_ = offset;
+		_tmp4_ = len;
+		_tmp5_ = string_strnlen ((gchar*) self, _tmp3_ + _tmp4_);
+		string_length = _tmp5_;
+	} else {
+		gint _tmp6_;
+		gint _tmp7_;
+		_tmp6_ = strlen (self);
+		_tmp7_ = _tmp6_;
+		string_length = (glong) _tmp7_;
+	}
+	_tmp8_ = offset;
+	if (_tmp8_ < ((glong) 0)) {
+		glong _tmp9_;
+		glong _tmp10_;
+		glong _tmp11_;
+		_tmp9_ = string_length;
+		_tmp10_ = offset;
+		offset = _tmp9_ + _tmp10_;
+		_tmp11_ = offset;
+		g_return_val_if_fail (_tmp11_ >= ((glong) 0), NULL);
+	} else {
+		glong _tmp12_;
+		glong _tmp13_;
+		_tmp12_ = offset;
+		_tmp13_ = string_length;
+		g_return_val_if_fail (_tmp12_ <= _tmp13_, NULL);
+	}
+	_tmp14_ = len;
+	if (_tmp14_ < ((glong) 0)) {
+		glong _tmp15_;
+		glong _tmp16_;
+		_tmp15_ = string_length;
+		_tmp16_ = offset;
+		len = _tmp15_ - _tmp16_;
+	}
+	_tmp17_ = offset;
+	_tmp18_ = len;
+	_tmp19_ = string_length;
+	g_return_val_if_fail ((_tmp17_ + _tmp18_) <= _tmp19_, NULL);
+	_tmp20_ = offset;
+	_tmp21_ = len;
+	_tmp22_ = g_strndup (((gchar*) self) + _tmp20_, (gsize) _tmp21_);
+	result = _tmp22_;
+	return result;
+}
+
+
+gchar* seaborg_make_file_name (const gchar* _str) {
+	gchar* result = NULL;
+	gchar* str = NULL;
+	const gchar* _tmp0_;
+	gchar* _tmp1_;
+	gint i = 0;
+	const gchar* _tmp2_;
+	gint _tmp3_;
+	gint _tmp4_;
+	const gchar* _tmp8_;
+	gint _tmp9_;
+	gint _tmp10_;
+	g_return_val_if_fail (_str != NULL, NULL);
+	_tmp0_ = _str;
+	_tmp1_ = g_strdup (_tmp0_);
+	str = _tmp1_;
+	_tmp2_ = str;
+	_tmp3_ = string_last_index_of (_tmp2_, "/", 0);
+	i = _tmp3_;
+	_tmp4_ = i;
+	if (_tmp4_ >= 0) {
+		const gchar* _tmp5_;
+		gint _tmp6_;
+		gchar* _tmp7_;
+		_tmp5_ = str;
+		_tmp6_ = i;
+		_tmp7_ = string_substring (_tmp5_, (glong) (_tmp6_ + 1), (glong) -1);
+		_g_free0 (str);
+		str = _tmp7_;
+	}
+	_tmp8_ = str;
+	_tmp9_ = string_last_index_of (_tmp8_, ".", 0);
+	i = _tmp9_;
+	_tmp10_ = i;
+	if (_tmp10_ > 0) {
+		const gchar* _tmp11_;
+		gint _tmp12_;
+		gchar* _tmp13_;
+		_tmp11_ = str;
+		_tmp12_ = i;
+		_tmp13_ = string_substring (_tmp11_, (glong) 0, (glong) _tmp12_);
+		_g_free0 (str);
+		str = _tmp13_;
+	}
+	result = str;
+	return result;
+}
+
+
+gchar* seaborg_save_replacement (const gchar* str) {
 	gchar* result = NULL;
 	const gchar* _tmp0_;
 	gchar* _tmp1_;
+	gchar* _tmp2_;
+	gchar* _tmp3_;
+	gchar* _tmp4_;
+	gchar* _tmp5_;
+	gchar* _tmp6_;
+	gchar* _tmp7_;
+	gchar* _tmp8_;
 	g_return_val_if_fail (str != NULL, NULL);
 	_tmp0_ = str;
-	_tmp1_ = g_strdup (_tmp0_);
-	result = _tmp1_;
+	_tmp1_ = string_replace (_tmp0_, "\n", "$NEWLINE");
+	_tmp2_ = _tmp1_;
+	_tmp3_ = string_replace (_tmp2_, "<", "$BRA");
+	_tmp4_ = _tmp3_;
+	_tmp5_ = string_replace (_tmp4_, ">", "$KET");
+	_tmp6_ = _tmp5_;
+	_tmp7_ = string_replace (_tmp6_, "&", "$AMPERSAND");
+	_tmp8_ = _tmp7_;
+	_g_free0 (_tmp6_);
+	_g_free0 (_tmp4_);
+	_g_free0 (_tmp2_);
+	result = _tmp8_;
+	return result;
+}
+
+
+gchar* seaborg_load_replacement (const gchar* str) {
+	gchar* result = NULL;
+	const gchar* _tmp0_;
+	gchar* _tmp1_;
+	gchar* _tmp2_;
+	gchar* _tmp3_;
+	gchar* _tmp4_;
+	gchar* _tmp5_;
+	gchar* _tmp6_;
+	gchar* _tmp7_;
+	gchar* _tmp8_;
+	g_return_val_if_fail (str != NULL, NULL);
+	_tmp0_ = str;
+	_tmp1_ = string_replace (_tmp0_, "$NEWLINE", "\n");
+	_tmp2_ = _tmp1_;
+	_tmp3_ = string_replace (_tmp2_, "$BRA", "<");
+	_tmp4_ = _tmp3_;
+	_tmp5_ = string_replace (_tmp4_, "$KET", ">");
+	_tmp6_ = _tmp5_;
+	_tmp7_ = string_replace (_tmp6_, "$AMPERSAND", "&");
+	_tmp8_ = _tmp7_;
+	_g_free0 (_tmp6_);
+	_g_free0 (_tmp4_);
+	_g_free0 (_tmp2_);
+	result = _tmp8_;
 	return result;
 }
 

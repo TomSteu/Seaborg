@@ -1,5 +1,6 @@
 using Gtk;
 using GLib;
+using Xml;
 
 namespace Seaborg {
 
@@ -444,7 +445,7 @@ namespace Seaborg {
 			Gtk.FileChooserDialog loader = new Gtk.FileChooserDialog(
 				"Load Notebooks",
 				main_window,
-				Gtk.FileChooserAction.SAVE,
+				Gtk.FileChooserAction.OPEN,
 				"_Cancel",
 				Gtk.ResponseType.CANCEL,
 				"_Load",
@@ -452,12 +453,13 @@ namespace Seaborg {
 			);
 			loader.select_multiple = true;
 			loader.set_filename(notebook_stack.get_visible_child_name());
+			
 
 			
 			if(loader.run() == Gtk.ResponseType.ACCEPT ) {
 				GLib.SList<string> filenames = loader.get_filenames();
 				foreach (string fn in filenames) {
-					load_notebook(notebook_stack.get_visible_child_name());	
+					load_notebook(fn);	
 				}
 			}
 
@@ -472,11 +474,11 @@ namespace Seaborg {
 			}
 
 			string identation="	"; // this is a tab
-			save_file.printf("Notebook[ \"1.0\", {\n");
+			save_file.printf("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n\n<notebook version=\"1.0\">\n");
 			for(int i = 0; i<((Seaborg.Notebook)notebook_stack.get_visible_child()).Children.data.length; i++) {
 				write_recursively(((Seaborg.Notebook)notebook_stack.get_visible_child()).Children.data[i], save_file, identation);
 			}
-			save_file.printf("}]");
+			save_file.printf("</notebook>");
 			save_file.flush();
 
 			if(notebook_stack.get_visible_child_name() != fn) {
@@ -492,27 +494,160 @@ namespace Seaborg {
 		private void write_recursively(ICell cell, FileStream file, string identation) {
 			if(cell is TextCell) {
 				TextCell textcell = (TextCell) cell;
-				file.printf(identation + "TextCell[\"%s\"],\n", textcell.get_text().replace("\n", "$NEWLINE").replace("\"", "\'"));
+				
+				file.printf(identation + "<cell type=\"text\">\n");
+				file.printf(identation + "	<level>0</level>\n");
+				file.printf(identation + "	<content>%s</content>\n", save_replacement(textcell.get_text()));
+				file.printf(identation + "	<results></results>\n");
+				file.printf(identation + "	<children></children>\n");
+				file.printf(identation + "</cell>\n");
 			}
 			if(cell is EvaluationCell) {
 				EvaluationCell evalcell = (EvaluationCell) cell;
-				file.printf(
-					identation + "EvaluationCell[\n" + identation + "	\"%s\", {\n" + identation + "	\"%s\"}\n"+ identation + "],\n",
-					evalcell.get_text().replace("\n", "$NEWLINE").replace("\"", "\'"), 
-					evalcell.get_output_text().replace("\n", "$NEWLINE").replace("\"", "\'")
-				);
+
+				file.printf(identation + "<cell type=\"evaluation\">\n");
+				file.printf(identation + "	<level>0</level>\n");
+				file.printf(identation + "	<content>%s</content>\n", save_replacement(evalcell.get_text()));
+				file.printf(identation + "	<results>\n" + identation + "		<result type=\"text\">%s</result>\n" + identation + "	</results>\n", save_replacement(evalcell.get_output_text()));
+				file.printf(identation + "	<children></children>\n");
+				file.printf(identation + "</cell>\n");
 			}
 			if(cell is CellContainer) {
 				CellContainer cellcontainer = (CellContainer)cell;
-				file.printf(identation + "CellContainer[%i, \"%s\", {\n", cellcontainer.get_level(), cellcontainer.get_text().replace("\n", "$NEWLINE").replace("\"", "\'"));
+				
+				file.printf(identation + "<cell type=\"container\">\n");
+				file.printf(identation + "	<level>%i</level>\n", cellcontainer.get_level());
+				file.printf(identation + "	<content>%s</content>\n", save_replacement(cellcontainer.get_text()));
+				file.printf(identation + "	<results></results>\n");
+				file.printf(identation + "	<children>\n");
+
 				for(int i=0; i<cellcontainer.Children.data.length; i++)
-					write_recursively(cellcontainer.Children.data[i], file, identation+"	");
-				file.printf(identation + "],");
+					write_recursively(cellcontainer.Children.data[i], file, identation + "		");
+
+
+				file.printf(identation + "	</children>\n");
+				file.printf(identation + "</cell>\n");
 			}
 		}
 
-		private void load_notebook(string uri) {
+		private void load_notebook(string fn) {
+
+			string? version;
+
+			// parse file 
+			Xml.Doc* doc = Xml.Parser.parse_file(fn);
+			if(doc == null) {
+				kernel_msg("Error opening file: " + fn);
+				return;
+			}
+
+			// get root node
+			Xml.Node* root = doc->get_root_element ();
+			if(root == null) {
+				kernel_msg("Error parsing file: " + fn);
+				delete doc;
+				return;
+			}
+			if(root->name != "notebook") {
+				kernel_msg("Error parsing file: " + fn);
+				delete doc;
+				return;
+			}
+
+			// get property
+			version = root->get_prop("version");
+			if(version == null) {
+				kernel_msg("Error parsing file: " + fn);
+				delete doc;
+				return;
+			}
+			if(double.parse(version) > 1.0) {
+				kernel_msg("Warning: file was saved in newer version");
+			}
+
+			Seaborg.Notebook* notebook = new Seaborg.Notebook();
+			assemble_recursively(root, (ICellContainer*)notebook);
+			notebook_stack.add_titled(notebook, fn, make_file_name(fn));
+			notebook_stack.set_visible_child(notebook);
+			main_window.show_all();
+
+			delete doc;
 			return;
+		}
+
+		private void assemble_recursively(Xml.Node* root, ICellContainer* container) {
+			
+			string? type;
+			Seaborg.TextCell* tcell;
+			Seaborg.EvaluationCell* ecell;
+			Seaborg.CellContainer* ccell;
+
+
+			for(Xml.Node* iter = root->children; iter != null; iter = iter->next) {
+				if(iter->type == Xml.ElementType.ELEMENT_NODE) {
+					if(iter->name == "cell") {
+						
+						type = iter->get_prop("type");
+						if(type == null) continue;
+
+						switch (type) {
+							case "evaluation":
+								ecell = new EvaluationCell(container);
+								for(Xml.Node* iter2 = iter->children; iter2 != null; iter2 = iter2->next) {
+
+									if(iter2->name == "content") {
+										ecell->set_text(load_replacement(iter2->get_content()));
+									} else {
+										if(iter2->name == "results") {
+											for(Xml.Node* iter3 = iter2->children; iter3 != null; iter3 = iter3->next) {
+												if(iter3->name == "result") {
+													switch (iter3->get_prop("type")) {
+														case null: 
+															break;
+														case "text":
+															ecell->add_text("\n" + load_replacement(iter3->get_content()));
+															ecell->expand_all();
+															break;							
+													}
+												}
+											}
+										}
+									}
+								}
+								container->add_before(-1, {ecell});
+								break;
+							case "text":
+								for(Xml.Node* iter2 = iter->children; iter2 != null; iter2 = iter2->next) {
+									if(iter2->name == "content") {
+										tcell = new Seaborg.TextCell(container);
+										tcell->set_text(load_replacement(iter2->get_content()));
+										container->add_before(-1, {tcell});
+									}	
+								}
+								break;
+							case "container":
+								ccell = new CellContainer(container, 1);
+								for(Xml.Node* iter2 = iter->children; iter2 != null; iter2 = iter2->next) {
+									if(iter2->name == "content") {
+										ccell->set_text(load_replacement(iter2->get_content()));
+									} else {
+										if(iter2->name == "level") {
+											ccell->set_level((uint) int.parse(iter2->get_content()));
+										} else {
+											if(iter2->name == "children") { 
+												assemble_recursively(iter2, (ICellContainer*)ccell);
+												ccell->expand_all();
+											}
+										}
+									}
+								}
+								container->add_before(-1, {ccell});
+								break;
+
+						}
+					}
+				}
+			}
 		}
 
 		private void new_notebook() {
@@ -521,7 +656,7 @@ namespace Seaborg {
 			EvaluationCell* cell = new EvaluationCell(notebook);
 			notebook.add_before(0, {cell});
 
-			notebook_stack.add_titled(notebook, "~/Documents/New Notebook.snb", "New Notebook");
+			notebook_stack.add_titled(notebook, "~/Documents/New Notebook.xml", "New Notebook");
 
 		}
 

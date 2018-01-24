@@ -100,8 +100,27 @@ namespace Seaborg {
 		return str;
 	}
 
-	static string make_file_name(string str) {
+	static string make_file_name(string _str) {
+		string str = _str;
+		int i;
+		
+		i = str.last_index_of("/");
+		if(i >= 0)
+			str = str.substring(i+1);
+
+		i = str.last_index_of(".");
+		if(i > 0)
+			str = str.substring(0, i);
+
 		return str;
+	}
+
+	static string save_replacement(string str) {
+		return str.replace("\n", "$NEWLINE").replace("<", "$BRA").replace(">", "$KET").replace("&","$AMPERSAND");
+	}
+
+	static string load_replacement(string str) {
+		return str.replace("$NEWLINE","\n").replace("$BRA", "<").replace("$KET", ">").replace("$AMPERSAND","&");
 	}
 
 }
