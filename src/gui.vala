@@ -77,6 +77,20 @@ namespace Seaborg {
 				                "<property name=\"title\" translatable=\"yes\">Show shortcuts</property>"+
 				              "</object>"+
 				            "</child>"+
+				            "<child>"+
+				              "<object class=\"GtkShortcutsShortcut\">"+
+				                "<property name=\"visible\">1</property>"+
+				                "<property name=\"accelerator\">&lt;ctrl&gt;W</property>"+
+				                "<property name=\"title\" translatable=\"yes\">Close Notebook</property>"+
+				              "</object>"+
+				            "</child>"+
+				            "<child>"+
+				              "<object class=\"GtkShortcutsShortcut\">"+
+				                "<property name=\"visible\">1</property>"+
+				                "<property name=\"accelerator\">&lt;ctrl&gt;Q</property>"+
+				                "<property name=\"title\" translatable=\"yes\">Quit App</property>"+
+				              "</object>"+
+				            "</child>"+
 				    	  "</object>"+
 				    	"</child>"+
 				    	"<child>"+
@@ -143,6 +157,7 @@ namespace Seaborg {
 			main_menu.append("Save", "app.save");
 			main_menu.append("Save as", "app.saveas");
 			main_menu.append("Keyboard Shortcuts", "win.show-help-overlay");
+			main_menu.append("Close Notebook", "app.close");
 			main_menu.append("Quit", "app.quit");
 
 			this.app_menu = main_menu;
@@ -155,8 +170,10 @@ namespace Seaborg {
 			var quit_action = new GLib.SimpleAction("quit", null);
 			var eval_action = new GLib.SimpleAction("eval", null);
 			var stop_eval_action = new GLib.SimpleAction("stop", null);
+			var close_action = new GLib.SimpleAction("close", null);
 
 			new_action.activate.connect(() => {
+				new_notebook();
 			});
 
 			open_action.activate.connect(() => {
@@ -177,6 +194,15 @@ namespace Seaborg {
 
 			quit_action.activate.connect(() => {
 				this.quit();
+			});
+
+			close_action.activate.connect(() => {
+				Seaborg.Notebook* nb = (Seaborg.Notebook*)notebook_stack.get_visible_child();
+				nb->toggle_all();
+				nb->remove_recursively();
+				notebook_stack.remove(notebook_stack.get_visible_child());
+
+				delete nb;
 			});
 
 			remove_action.activate.connect(() => {
@@ -204,6 +230,7 @@ namespace Seaborg {
 			this.add_action(eval_action);
 			this.add_action(stop_eval_action);
 			this.add_action(quit_action);
+			this.add_action(close_action);
 
 
 			const string[] new_accels = {"<Control>N", null};
@@ -214,6 +241,7 @@ namespace Seaborg {
 			const string[] shortcut_accels = {"<Control>F1", "<Control>question", null};
 			const string[] eval_accels = {"<Control>Return", "<Control>E", null};
 			const string[] stop_eval_accels = {"<Control>period", "<Control>S", null};
+			const string[] close_accels = {"<Control>W", null};
 			const string[] quit_accels = {"<Control>Q", null};
 
 			this.set_accels_for_action("app.new", new_accels);
@@ -221,6 +249,7 @@ namespace Seaborg {
 			this.set_accels_for_action("app.save", save_accels);
 			this.set_accels_for_action("app.saveas", save_as_accels);
 			this.set_accels_for_action("app.rm", rm_accels);
+			this.set_accels_for_action("app.close", close_accels);
 			this.set_accels_for_action("app.quit", quit_accels);
 			this.set_accels_for_action("win.show-help-overlay", shortcut_accels);
 			this.set_accels_for_action("app.eval", eval_accels);
@@ -682,6 +711,7 @@ namespace Seaborg {
 			notebook.add_before(0, {cell});
 
 			notebook_stack.add_titled(notebook, "", "New Notebook");
+			notebook_stack.set_visible_child(notebook);
 
 		}
 
