@@ -829,7 +829,7 @@ namespace Seaborg {
 					import_string += import_script.read_line();
 				}
 
-				EvaluationData data = EvaluationData() {
+				current_cell = EvaluationData() {
 					cell = (void*) this,
 					input = fn
 				};
@@ -838,7 +838,7 @@ namespace Seaborg {
 					kernel_connection, 
 					import_string + "\nSeaborgNotebookImport[\"" + fn + "\"]",
 					receive_notebook_xml, 
-					(void*) &data
+					(void*) &current_cell
 				);
 
 				// something is wrong
@@ -848,7 +848,7 @@ namespace Seaborg {
 					return null;
 				}
 
-				abort_import();
+				listener_thread_is_running = false;
 				return null;
 
 			});
@@ -882,6 +882,7 @@ namespace Seaborg {
 		}
 
 		private static  callback_str receive_notebook_xml = (_string_to_write, data_ptr, _stamp, _break) => {
+
 
 			//append to GLib main loop
 			GLib.Idle.add( () => {

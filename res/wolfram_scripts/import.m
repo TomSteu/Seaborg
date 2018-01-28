@@ -13,6 +13,7 @@ SeaborgNotebookImport[in_String] := (
 			{TextCell[A_String, "Subsubsection"], B___} :> SeaborgCellContainer[A, 1, {B}],
 			TextCell[A_String, "Text"] :> SeaborgTextCell[A],
 			{A___, HoldComplete[ExpressionCell[Null, "Input"]], B___} :> {A, B},
+			{A___, HoldComplete[ExpressionCell[{a___, Null, b___}, "Input"]], B___} :> {A, HoldComplete[ExpressionCell[{a, b}, "Input"]], B},
 			HoldComplete[ExpressionCell[A_, "Input"]] :> SeaborgEvaluationCell[ToString[HoldForm[InputForm[A]]], {}], 
 			HoldComplete[ExpressionCell[A_, "Code"]] :> SeaborgEvaluationCell[ToString[HoldForm[InputForm[A]]], {}],
 			{SeaborgEvaluationCell[A_, {B___}], {HoldComplete[ExpressionCell[C_, "Print"]], D___}} :> {SeaborgEvaluationCell[A, {B, ToString[HoldForm[InputForm[C]]]}], D},
