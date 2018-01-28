@@ -902,6 +902,17 @@ namespace Seaborg {
 					return null;
 				}
 
+				while(true) {
+					
+					Gdk.Thread.usleep(200);
+					
+					lock(global_stamp) {
+					
+						if(global_stamp == 0)
+							break;
+					}
+				}
+				
 				listener_thread_is_running = false;
 				return null;
 
