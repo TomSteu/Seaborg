@@ -70,6 +70,13 @@ namespace Seaborg {
 				                "<property name=\"title\" translatable=\"yes\">Save the notebook</property>"+
 				              "</object>"+
 				            "</child>"+
+				  			"<child>"+
+				              "<object class=\"GtkShortcutsShortcut\">"+
+				                "<property name=\"visible\">1</property>"+
+				                "<property name=\"accelerator\">&lt;ctrl&gt;I</property>"+
+				                "<property name=\"title\" translatable=\"yes\">Import Mathematica notebook</property>"+
+				              "</object>"+
+				            "</child>"+
 				            "<child>"+
 				              "<object class=\"GtkShortcutsShortcut\">"+
 				                "<property name=\"visible\">1</property>"+
@@ -156,6 +163,7 @@ namespace Seaborg {
 			main_menu.append("Open", "app.open");
 			main_menu.append("Save", "app.save");
 			main_menu.append("Save as", "app.saveas");
+			main_menu.append("Import", "app.import");
 			main_menu.append("Keyboard Shortcuts", "win.show-help-overlay");
 			main_menu.append("Close Notebook", "app.close");
 			main_menu.append("Quit", "app.quit");
@@ -166,6 +174,7 @@ namespace Seaborg {
 			var open_action = new GLib.SimpleAction("open", null);
 			var save_action = new GLib.SimpleAction("save", null);
 			var save_as_action = new GLib.SimpleAction("saveas", null);
+			var import_action = new GLib.SimpleAction("import", null);
 			var remove_action = new GLib.SimpleAction("rm", null);
 			var quit_action = new GLib.SimpleAction("quit", null);
 			var eval_action = new GLib.SimpleAction("eval", null);
@@ -190,6 +199,10 @@ namespace Seaborg {
 
 			save_as_action.activate.connect(() => {
 				save_dialog();
+			});
+
+			import_action.activate.connect(() => {
+				import_dialog();
 			});
 
 			quit_action.activate.connect(() => {
@@ -226,6 +239,7 @@ namespace Seaborg {
 			this.add_action(open_action);
 			this.add_action(save_action);
 			this.add_action(save_as_action);
+			this.add_action(import_action);
 			this.add_action(remove_action);
 			this.add_action(eval_action);
 			this.add_action(stop_eval_action);
@@ -237,6 +251,7 @@ namespace Seaborg {
 			const string[] open_accels = {"<Control>O", null};
 			const string[] save_accels = {"<Control>S", null};
 			const string[] save_as_accels = {"<Control><Alt>S", null};
+			const string[] import_accels = {"<Control>I", null};
 			const string[] rm_accels = {"<Control>Delete","<Control>D", null};
 			const string[] shortcut_accels = {"<Control>F1", "<Control>question", null};
 			const string[] eval_accels = {"<Control>Return", "<Control>E", null};
@@ -248,6 +263,7 @@ namespace Seaborg {
 			this.set_accels_for_action("app.open", open_accels);
 			this.set_accels_for_action("app.save", save_accels);
 			this.set_accels_for_action("app.saveas", save_as_accels);
+			this.set_accels_for_action("app.import", import_accels);
 			this.set_accels_for_action("app.rm", rm_accels);
 			this.set_accels_for_action("app.close", close_accels);
 			this.set_accels_for_action("app.quit", quit_accels);
@@ -277,7 +293,7 @@ namespace Seaborg {
 							((EvaluationCell) container.Children.data[i]).remove_text();
 							eval_queue.push_tail( EvaluationData() { 
 								cell = (void*) container.Children.data[i],
-								input = "ToString[InputForm[" + replace_characters(((EvaluationCell) container.Children.data[i]).get_text()) + "]]"
+								input = "ToString[" + Parameter.form + "[" + replace_characters(((EvaluationCell) container.Children.data[i]).get_text()) + "]]"
 							});
 
 						}
@@ -412,8 +428,8 @@ namespace Seaborg {
 			}
 		}
 
-		public void kernel_msg(string error) {
-			stderr.printf("\n" + error + "\n");
+		public void kernel_msg(string msg) {
+			stderr.printf("\n" + msg + "\n");
 		}
 
 		private static delegate void callback_str(char* string_to_write, void* callback_data, ulong stamp, int break_after);
@@ -520,6 +536,31 @@ namespace Seaborg {
 			loader.close();
 		}
 
+		private void import_dialog() {
+			Gtk.FileChooserDialog loader = new Gtk.FileChooserDialog(
+				"Import Notebooks",
+				main_window,
+				Gtk.FileChooserAction.OPEN,
+				"_Cancel",
+				Gtk.ResponseType.CANCEL,
+				"_Load",
+				Gtk.ResponseType.ACCEPT
+			);
+			loader.select_multiple = false;
+			loader.set_filename(notebook_stack.get_visible_child_name());
+			
+
+			
+			if(loader.run() == Gtk.ResponseType.ACCEPT ) {
+				GLib.SList<string> filenames = loader.get_filenames();
+				foreach (string fn in filenames) {
+					process_for_import(fn);	
+				}
+			}
+
+			loader.close();
+		}
+
 		private void save_notebook(string fn) {
 			GLib.FileStream save_file = GLib.FileStream.open(fn, "w");
 			if(save_file == null) {
@@ -541,6 +582,8 @@ namespace Seaborg {
 				notebook_stack.child_set_property(notebook_stack.get_visible_child(), "title", make_file_name(fn));
 
 			}
+
+			kernel_msg("File saved successfully");
 
 			return;
 		}
@@ -629,6 +672,41 @@ namespace Seaborg {
 			return;
 		}
 
+		public void import_notebook(string xml, string fn) {
+
+			// parse xml string 
+			Xml.Doc* doc = Xml.Parser.parse_memory(xml, xml.length);
+			if(doc == null) {
+				kernel_msg("Error opening file: " + fn);
+				return;
+			}
+
+			// get root node
+			Xml.Node* root = doc->get_root_element ();
+			if(root == null) {
+				kernel_msg("Error parsing file: " + fn);
+				delete doc;
+				return;
+			}
+			if(root->name != "notebook") {
+				kernel_msg("Error parsing file: " + fn);
+				delete doc;
+				return;
+			}
+
+
+			Seaborg.Notebook* notebook = new Seaborg.Notebook();
+			assemble_recursively(root, (ICellContainer*)notebook);
+			notebook_stack.add_titled(notebook, fn + ".xml", make_file_name(fn));
+			notebook_stack.set_visible_child(notebook);
+			main_window.show_all();
+
+			delete doc;
+			return;
+
+
+		}
+
 		private void assemble_recursively(Xml.Node* root, ICellContainer* container) {
 			
 			string? type;
@@ -714,6 +792,148 @@ namespace Seaborg {
 			notebook_stack.set_visible_child(notebook);
 
 		}
+
+		private void process_for_import(string fn) {
+			
+			if(listener_thread_is_running) {
+				kernel_msg("Cannot import notebook: kernel is busy");
+				return;
+			}
+
+			listener_thread_is_running = true;
+			listener_thread = new GLib.Thread<void*>("seaborg-import", () => {
+
+				// wait for fist packet
+				lock(global_stamp) {
+					global_stamp = 1;
+				}
+
+				// something is wrong
+				if(check_connection(kernel_connection) != 1) {
+					kernel_msg("Kernel error importing notebook");
+					abort_import();
+					return null;
+				}
+
+
+				FileStream? import_script = FileStream.open("res/wolfram_scripts/import.m", "r");
+				
+				if(import_script == null) {
+					kernel_msg("Importing notebook failed");
+					return null;
+				}
+
+				string import_string = "";
+
+				while(!import_script.eof()) {
+					import_string += import_script.read_line();
+				}
+
+				EvaluationData data = EvaluationData() {
+					cell = (void*) this,
+					input = fn
+				};
+
+				evaluate(
+					kernel_connection, 
+					import_string + "\nSeaborgNotebookImport[\"" + fn + "\"]",
+					receive_notebook_xml, 
+					(void*) &data
+				);
+
+				// something is wrong
+				if(check_connection(kernel_connection) != 1) {
+					kernel_msg("Kernel error importing notebook");
+					abort_import();
+					return null;
+				}
+
+				abort_import();
+				return null;
+
+			});
+
+		}
+
+
+		private void abort_import() {
+
+			// no new packets to be written
+			lock(global_stamp) {
+				global_stamp = 0;
+			}
+
+			// reset connection and check sanity
+			int res = check_connection(kernel_connection);
+			if(res != 1) {
+				if(res == 2) {
+
+					try_reset_after_abort(kernel_connection);
+					if(check_connection(kernel_connection) != 1)
+						kernel_msg("Kernel connection lost");
+
+				} else {
+					kernel_msg("Kernel connection lost");
+				}
+			}
+
+			listener_thread_is_running = false;
+
+		}
+
+		private static  callback_str receive_notebook_xml = (_string_to_write, data_ptr, _stamp, _break) => {
+
+			//append to GLib main loop
+			GLib.Idle.add( () => {
+
+				lock(global_stamp) {
+					
+					// get packet with right stamp
+					if(global_stamp != _stamp) {
+
+						// abort has been sent already, throw away packet
+						if(global_stamp == 0)
+							return false;
+						return true;
+					}
+
+					// only interested in last package
+					if(_break != 0) {
+
+						string string_to_write = (string) _string_to_write;
+						EvaluationData* data = (EvaluationData*) data_ptr;
+						
+						if(string_to_write == null || data == null)
+							return false;
+
+						if(data->cell == null || data->input == null)
+							return false;
+
+						SeaborgApplication* app = (SeaborgApplication*) data->cell;
+
+						if(app == null)
+							return false;
+
+						if(string_to_write.substring(0, 5) != "<?xml") {
+							app->kernel_msg("Error importing notebook");
+						}
+
+						app->import_notebook(string_to_write, data->input);
+
+
+						global_stamp = 0;
+						return false;
+
+					}
+
+					global_stamp++;
+
+					return false;
+				}
+			});
+
+			return;
+		};
 
 
 		private EvaluationData current_cell; 
