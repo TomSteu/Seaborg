@@ -80,6 +80,13 @@ namespace Seaborg {
 				            "<child>"+
 				              "<object class=\"GtkShortcutsShortcut\">"+
 				                "<property name=\"visible\">1</property>"+
+				                "<property name=\"accelerator\">&lt;ctrl&gt;E</property>"+
+				                "<property name=\"title\" translatable=\"yes\">Export Mathematica notebook</property>"+
+				              "</object>"+
+				            "</child>"+
+				            "<child>"+
+				              "<object class=\"GtkShortcutsShortcut\">"+
+				                "<property name=\"visible\">1</property>"+
 				                "<property name=\"accelerator\">&lt;Primary&gt;question &lt;Primary&gt;F1</property>"+
 				                "<property name=\"title\" translatable=\"yes\">Show shortcuts</property>"+
 				              "</object>"+
@@ -175,6 +182,7 @@ namespace Seaborg {
 			var save_action = new GLib.SimpleAction("save", null);
 			var save_as_action = new GLib.SimpleAction("saveas", null);
 			var import_action = new GLib.SimpleAction("import", null);
+			var export_action = new GLib.SimpleAction("export", null);
 			var remove_action = new GLib.SimpleAction("rm", null);
 			var quit_action = new GLib.SimpleAction("quit", null);
 			var eval_action = new GLib.SimpleAction("eval", null);
@@ -203,6 +211,10 @@ namespace Seaborg {
 
 			import_action.activate.connect(() => {
 				import_dialog();
+			});
+
+			import_action.activate.connect(() => {
+				export_dialog();
 			});
 
 			quit_action.activate.connect(() => {
@@ -240,6 +252,7 @@ namespace Seaborg {
 			this.add_action(save_action);
 			this.add_action(save_as_action);
 			this.add_action(import_action);
+			this.add_action(export_action);
 			this.add_action(remove_action);
 			this.add_action(eval_action);
 			this.add_action(stop_eval_action);
@@ -252,6 +265,7 @@ namespace Seaborg {
 			const string[] save_accels = {"<Control>S", null};
 			const string[] save_as_accels = {"<Control><Alt>S", null};
 			const string[] import_accels = {"<Control>I", null};
+			const string[] export_accels = {"<Control>I", null};
 			const string[] rm_accels = {"<Control>Delete","<Control>D", null};
 			const string[] shortcut_accels = {"<Control>F1", "<Control>question", null};
 			const string[] eval_accels = {"<Control>Return", "<Control>E", null};
@@ -264,6 +278,7 @@ namespace Seaborg {
 			this.set_accels_for_action("app.save", save_accels);
 			this.set_accels_for_action("app.saveas", save_as_accels);
 			this.set_accels_for_action("app.import", import_accels);
+			this.set_accels_for_action("app.export", export_accels);
 			this.set_accels_for_action("app.rm", rm_accels);
 			this.set_accels_for_action("app.close", close_accels);
 			this.set_accels_for_action("app.quit", quit_accels);
@@ -561,7 +576,36 @@ namespace Seaborg {
 			loader.close();
 		}
 
-		private void save_notebook(string fn) {
+		private void export_dialog() {
+			Gtk.FileChooserDialog saver = new Gtk.FileChooserDialog(
+				"Save Notebook",
+				main_window,
+				Gtk.FileChooserAction.SAVE,
+				"_Cancel",
+				Gtk.ResponseType.CANCEL,
+				"_Export",
+				Gtk.ResponseType.ACCEPT
+			);
+			saver.select_multiple = false;
+			if(notebook_stack.get_visible_child_name() == "") {
+				saver.set_filename("~/New notebook.nb");
+			} else {
+				saver.set_filename(notebook_stack.get_visible_child_name() + ".nb");
+			}
+			
+
+			
+			if(saver.run() == Gtk.ResponseType.ACCEPT ) {
+				GLib.SList<string> filenames = saver.get_filenames();
+				foreach (string fn in filenames) {
+					export_notebook(fn);	
+				}
+			}
+
+			saver.close();
+		}
+
+		public void save_notebook(string fn) {
 			GLib.FileStream save_file = GLib.FileStream.open(fn, "w");
 			if(save_file == null) {
 				kernel_msg("Error saving file: " + fn);
@@ -627,7 +671,7 @@ namespace Seaborg {
 			}
 		}
 
-		private void load_notebook(string fn) {
+		public void load_notebook(string fn) {
 
 			string? version;
 
@@ -782,7 +826,17 @@ namespace Seaborg {
 			}
 		}
 
-		private void new_notebook() {
+		public export_notebook(string fn) {
+
+			if(listener_thread_is_running) {
+				kernel_msg("Cannot export notebook: kernel is busy");
+				return;
+			}
+
+			listener_thread_is_running = true;
+		}
+
+		public void new_notebook() {
 
 			Seaborg.Notebook notebook = new Seaborg.Notebook();
 			EvaluationCell* cell = new EvaluationCell(notebook);
