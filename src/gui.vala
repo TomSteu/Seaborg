@@ -132,6 +132,13 @@ namespace Seaborg {
 				                "<property name=\"title\" translatable=\"yes\">Abort evaluation</property>"+
 				              "</object>"+
 				            "</child>"+
+				            "<child>"+
+				              "<object class=\"GtkShortcutsShortcut\">"+
+				                "<property name=\"visible\">1</property>"+
+				                "<property name=\"accelerator\">&lt;ctrl&gt;y</property>"+
+				                "<property name=\"title\" translatable=\"yes\">(Un)comment selected input</property>"+
+				              "</object>"+
+				            "</child>"+
 				          "</object>"+
 				        "</child>"+
 				      "</object>"+

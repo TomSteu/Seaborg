@@ -1172,7 +1172,8 @@ static void seaborg_seaborg_application_real_activate (GApplication* base) {
 "rty>" "<property name=\"title\" translatable=\"yes\">Delete selected cells</p" \
 "roperty>" "</object>" "</child>" "<child>" "<object class=\"GtkShortcutsShortcut\">" "<property name=\"visible\">1</property>" "<property name=\"accelerator\">&lt;ctrl&gt;Return</property>" "<property name=\"title\" translatable=\"yes\">Evaluate cells</property" \
 ">" "</object>" "</child>" "<child>" "<object class=\"GtkShortcutsShortcut\">" "<property name=\"visible\">1</property>" "<property name=\"accelerator\">&lt;ctrl&gt;period</property>" "<property name=\"title\" translatable=\"yes\">Abort evaluation</proper" \
-"ty>" "</object>" "</child>" "</object>" "</child>" "</object>" "</child>" "</object>" "</interface>");
+"ty>" "</object>" "</child>" "<child>" "<object class=\"GtkShortcutsShortcut\">" "<property name=\"visible\">1</property>" "<property name=\"accelerator\">&lt;ctrl&gt;y</property>" "<property name=\"title\" translatable=\"yes\">(Un)comment selected inp" \
+"ut</property>" "</object>" "</child>" "</object>" "</child>" "</object>" "</child>" "</object>" "</interface>");
 	shortcut_builder_string = _tmp5_;
 	_tmp6_ = strlen (shortcut_builder_string);
 	_tmp7_ = _tmp6_;

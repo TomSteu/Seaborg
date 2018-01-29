@@ -123,4 +123,18 @@ namespace Seaborg {
 		return str.replace("$NEWLINE","\n").replace("$BRA", "<").replace("$KET", ">").replace("$AMPERSAND","&");
 	}
 
+	static string comment_transform(string str) {
+
+		string test_str = str.replace(" ", "").replace("\n","");
+
+		if(test_str.substring(0,2) == "(*" && test_str.substring(-2, 2) == "*)") {
+			int pos1 = str.index_of("(*");
+			int pos2 = str.last_index_of("*)");
+			if( pos1 < 0 || pos1 > pos2 || pos2 >= str.length) return str;
+			return str.substring(0, pos1) + str.substring(pos1+2, pos2-pos1-2) + str.substring(pos2+2, str.length-pos2-2);
+		}
+
+		return "(*" + str + "*)";
+	}
+
 }

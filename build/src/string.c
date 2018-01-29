@@ -18,6 +18,7 @@ gchar* seaborg_replace_characters (const gchar* _str);
 gchar* seaborg_make_file_name (const gchar* _str);
 gchar* seaborg_save_replacement (const gchar* str);
 gchar* seaborg_load_replacement (const gchar* str);
+gchar* seaborg_comment_transform (const gchar* str);
 
 
 static gchar* string_replace (const gchar* self, const gchar* old, const gchar* replacement) {
@@ -844,6 +845,187 @@ gchar* seaborg_load_replacement (const gchar* str) {
 	_g_free0 (_tmp4_);
 	_g_free0 (_tmp2_);
 	result = _tmp8_;
+	return result;
+}
+
+
+static gint string_index_of (const gchar* self, const gchar* needle, gint start_index) {
+	gint result = 0;
+	gchar* _result_ = NULL;
+	gint _tmp0_;
+	const gchar* _tmp1_;
+	gchar* _tmp2_;
+	gchar* _tmp3_;
+	g_return_val_if_fail (self != NULL, 0);
+	g_return_val_if_fail (needle != NULL, 0);
+	_tmp0_ = start_index;
+	_tmp1_ = needle;
+	_tmp2_ = strstr (((gchar*) self) + _tmp0_, (gchar*) _tmp1_);
+	_result_ = _tmp2_;
+	_tmp3_ = _result_;
+	if (_tmp3_ != NULL) {
+		gchar* _tmp4_;
+		_tmp4_ = _result_;
+		result = (gint) (_tmp4_ - ((gchar*) self));
+		return result;
+	} else {
+		result = -1;
+		return result;
+	}
+}
+
+
+gchar* seaborg_comment_transform (const gchar* str) {
+	gchar* result = NULL;
+	gchar* test_str = NULL;
+	const gchar* _tmp0_;
+	gchar* _tmp1_;
+	gchar* _tmp2_;
+	gchar* _tmp3_;
+	gchar* _tmp4_;
+	gboolean _tmp5_ = FALSE;
+	const gchar* _tmp6_;
+	gchar* _tmp7_;
+	gchar* _tmp8_;
+	gboolean _tmp9_;
+	const gchar* _tmp50_;
+	gchar* _tmp51_;
+	gchar* _tmp52_;
+	gchar* _tmp53_;
+	gchar* _tmp54_;
+	g_return_val_if_fail (str != NULL, NULL);
+	_tmp0_ = str;
+	_tmp1_ = string_replace (_tmp0_, " ", "");
+	_tmp2_ = _tmp1_;
+	_tmp3_ = string_replace (_tmp2_, "\n", "");
+	_tmp4_ = _tmp3_;
+	_g_free0 (_tmp2_);
+	test_str = _tmp4_;
+	_tmp6_ = test_str;
+	_tmp7_ = string_substring (_tmp6_, (glong) 0, (glong) 2);
+	_tmp8_ = _tmp7_;
+	_tmp9_ = g_strcmp0 (_tmp8_, "(*") == 0;
+	_g_free0 (_tmp8_);
+	if (_tmp9_) {
+		const gchar* _tmp10_;
+		gchar* _tmp11_;
+		gchar* _tmp12_;
+		_tmp10_ = test_str;
+		_tmp11_ = string_substring (_tmp10_, (glong) -2, (glong) 2);
+		_tmp12_ = _tmp11_;
+		_tmp5_ = g_strcmp0 (_tmp12_, "*)") == 0;
+		_g_free0 (_tmp12_);
+	} else {
+		_tmp5_ = FALSE;
+	}
+	if (_tmp5_) {
+		gint pos1 = 0;
+		const gchar* _tmp13_;
+		gint _tmp14_;
+		gint pos2 = 0;
+		const gchar* _tmp15_;
+		gint _tmp16_;
+		gboolean _tmp17_ = FALSE;
+		gboolean _tmp18_ = FALSE;
+		gint _tmp19_;
+		const gchar* _tmp28_;
+		gint _tmp29_;
+		gchar* _tmp30_;
+		gchar* _tmp31_;
+		const gchar* _tmp32_;
+		gint _tmp33_;
+		gint _tmp34_;
+		gint _tmp35_;
+		gchar* _tmp36_;
+		gchar* _tmp37_;
+		gchar* _tmp38_;
+		gchar* _tmp39_;
+		const gchar* _tmp40_;
+		gint _tmp41_;
+		const gchar* _tmp42_;
+		gint _tmp43_;
+		gint _tmp44_;
+		gint _tmp45_;
+		gchar* _tmp46_;
+		gchar* _tmp47_;
+		gchar* _tmp48_;
+		gchar* _tmp49_;
+		_tmp13_ = str;
+		_tmp14_ = string_index_of (_tmp13_, "(*", 0);
+		pos1 = _tmp14_;
+		_tmp15_ = str;
+		_tmp16_ = string_last_index_of (_tmp15_, "*)", 0);
+		pos2 = _tmp16_;
+		_tmp19_ = pos1;
+		if (_tmp19_ < 0) {
+			_tmp18_ = TRUE;
+		} else {
+			gint _tmp20_;
+			gint _tmp21_;
+			_tmp20_ = pos1;
+			_tmp21_ = pos2;
+			_tmp18_ = _tmp20_ > _tmp21_;
+		}
+		if (_tmp18_) {
+			_tmp17_ = TRUE;
+		} else {
+			gint _tmp22_;
+			const gchar* _tmp23_;
+			gint _tmp24_;
+			gint _tmp25_;
+			_tmp22_ = pos2;
+			_tmp23_ = str;
+			_tmp24_ = strlen (_tmp23_);
+			_tmp25_ = _tmp24_;
+			_tmp17_ = _tmp22_ >= _tmp25_;
+		}
+		if (_tmp17_) {
+			const gchar* _tmp26_;
+			gchar* _tmp27_;
+			_tmp26_ = str;
+			_tmp27_ = g_strdup (_tmp26_);
+			result = _tmp27_;
+			_g_free0 (test_str);
+			return result;
+		}
+		_tmp28_ = str;
+		_tmp29_ = pos1;
+		_tmp30_ = string_substring (_tmp28_, (glong) 0, (glong) _tmp29_);
+		_tmp31_ = _tmp30_;
+		_tmp32_ = str;
+		_tmp33_ = pos1;
+		_tmp34_ = pos2;
+		_tmp35_ = pos1;
+		_tmp36_ = string_substring (_tmp32_, (glong) (_tmp33_ + 2), (glong) ((_tmp34_ - _tmp35_) - 2));
+		_tmp37_ = _tmp36_;
+		_tmp38_ = g_strconcat (_tmp31_, _tmp37_, NULL);
+		_tmp39_ = _tmp38_;
+		_tmp40_ = str;
+		_tmp41_ = pos2;
+		_tmp42_ = str;
+		_tmp43_ = strlen (_tmp42_);
+		_tmp44_ = _tmp43_;
+		_tmp45_ = pos2;
+		_tmp46_ = string_substring (_tmp40_, (glong) (_tmp41_ + 2), (glong) ((_tmp44_ - _tmp45_) - 2));
+		_tmp47_ = _tmp46_;
+		_tmp48_ = g_strconcat (_tmp39_, _tmp47_, NULL);
+		_tmp49_ = _tmp48_;
+		_g_free0 (_tmp47_);
+		_g_free0 (_tmp39_);
+		_g_free0 (_tmp37_);
+		_g_free0 (_tmp31_);
+		result = _tmp49_;
+		_g_free0 (test_str);
+		return result;
+	}
+	_tmp50_ = str;
+	_tmp51_ = g_strconcat ("(*", _tmp50_, NULL);
+	_tmp52_ = _tmp51_;
+	_tmp53_ = g_strconcat (_tmp52_, "*)", NULL);
+	_tmp54_ = _tmp53_;
+	_g_free0 (_tmp52_);
+	result = _tmp54_;
+	_g_free0 (test_str);
 	return result;
 }
 

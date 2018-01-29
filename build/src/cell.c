@@ -387,8 +387,8 @@ enum  {
 };
 SeaborgEvaluationCell* seaborg_evaluation_cell_new (SeaborgICellContainer* par);
 SeaborgEvaluationCell* seaborg_evaluation_cell_construct (GType object_type, SeaborgICellContainer* par);
-static gboolean seaborg_evaluation_cell_insert_ellipsis (SeaborgEvaluationCell* self, GdkEventKey* key);
-static gboolean _seaborg_evaluation_cell_insert_ellipsis_gtk_widget_key_press_event (GtkWidget* _sender, GdkEventKey* event, gpointer self);
+static gboolean seaborg_evaluation_cell_key_handler (SeaborgEvaluationCell* self, GdkEventKey* key);
+static gboolean _seaborg_evaluation_cell_key_handler_gtk_widget_key_press_event (GtkWidget* _sender, GdkEventKey* event, gpointer self);
 static gboolean seaborg_evaluation_cell_press_handler (SeaborgEvaluationCell* self, GdkEventButton* event);
 static gboolean _seaborg_evaluation_cell_press_handler_gtk_widget_button_press_event (GtkWidget* _sender, GdkEventButton* event, gpointer self);
 static void seaborg_evaluation_cell_real_toggle_all (SeaborgICell* base);
@@ -401,6 +401,7 @@ static void seaborg_evaluation_cell_real_focus_cell (SeaborgICell* base);
 static void seaborg_evaluation_cell_real_remove_recursively (SeaborgICell* base);
 static void seaborg_evaluation_cell_real_add_before (SeaborgICell* base, gint pos, SeaborgICell** list, int list_length1);
 static void seaborg_evaluation_cell_real_remove_from (SeaborgICell* base, gint pos, gint number, gboolean trash);
+gchar* seaborg_comment_transform (const gchar* str);
 static void seaborg_evaluation_cell_real_set_text (SeaborgICell* base, const gchar* _text);
 void seaborg_evaluation_cell_add_text (SeaborgEvaluationCell* self, const gchar* _text);
 static gchar* seaborg_evaluation_cell_real_get_text (SeaborgICell* base);
@@ -4163,9 +4164,9 @@ static void _vala_seaborg_cell_container_set_property (GObject * object, guint p
 }
 
 
-static gboolean _seaborg_evaluation_cell_insert_ellipsis_gtk_widget_key_press_event (GtkWidget* _sender, GdkEventKey* event, gpointer self) {
+static gboolean _seaborg_evaluation_cell_key_handler_gtk_widget_key_press_event (GtkWidget* _sender, GdkEventKey* event, gpointer self) {
 	gboolean result;
-	result = seaborg_evaluation_cell_insert_ellipsis ((SeaborgEvaluationCell*) self, event);
+	result = seaborg_evaluation_cell_key_handler ((SeaborgEvaluationCell*) self, event);
 	return result;
 }
 
@@ -4396,7 +4397,7 @@ SeaborgEvaluationCell* seaborg_evaluation_cell_construct (GType object_type, Sea
 	_tmp51_ = self->priv->InputCell;
 	g_signal_connect_object ((GtkWidget*) _tmp51_, "button-press-event", (GCallback) _seaborg_icell_untoggle_handler_gtk_widget_button_press_event, (SeaborgICell*) self, 0);
 	_tmp52_ = self->priv->InputCell;
-	g_signal_connect_object ((GtkWidget*) _tmp52_, "key-press-event", (GCallback) _seaborg_evaluation_cell_insert_ellipsis_gtk_widget_key_press_event, self, 0);
+	g_signal_connect_object ((GtkWidget*) _tmp52_, "key-press-event", (GCallback) _seaborg_evaluation_cell_key_handler_gtk_widget_key_press_event, self, 0);
 	_tmp53_ = gtk_source_buffer_new (NULL);
 	_g_object_unref0 (self->priv->OutputBuffer);
 	self->priv->OutputBuffer = _tmp53_;
@@ -4680,11 +4681,17 @@ static gboolean seaborg_evaluation_cell_press_handler (SeaborgEvaluationCell* se
 }
 
 
-static gboolean seaborg_evaluation_cell_insert_ellipsis (SeaborgEvaluationCell* self, GdkEventKey* key) {
+static gboolean seaborg_evaluation_cell_key_handler (SeaborgEvaluationCell* self, GdkEventKey* key) {
 	gboolean result = FALSE;
 	gboolean _tmp0_ = FALSE;
 	GdkEventKey* _tmp1_;
 	GdkEventType _tmp2_;
+	gboolean _tmp36_ = FALSE;
+	gboolean _tmp37_ = FALSE;
+	gboolean _tmp38_ = FALSE;
+	GtkSourceBuffer* _tmp39_;
+	gboolean _tmp40_;
+	gboolean _tmp41_;
 	g_return_val_if_fail (self != NULL, FALSE);
 	g_return_val_if_fail (key != NULL, FALSE);
 	_tmp1_ = key;
@@ -4770,6 +4777,81 @@ static gboolean seaborg_evaluation_cell_insert_ellipsis (SeaborgEvaluationCell* 
 		_tmp34_ = _tmp33_;
 		_tmp35_ = iter;
 		gtk_text_buffer_place_cursor (_tmp34_, &_tmp35_);
+	}
+	_tmp39_ = self->priv->InputBuffer;
+	_tmp40_ = gtk_text_buffer_get_has_selection ((GtkTextBuffer*) _tmp39_);
+	_tmp41_ = _tmp40_;
+	if (_tmp41_) {
+		GdkEventKey* _tmp42_;
+		GdkEventType _tmp43_;
+		_tmp42_ = key;
+		_tmp43_ = _tmp42_->type;
+		_tmp38_ = _tmp43_ == GDK_KEY_PRESS;
+	} else {
+		_tmp38_ = FALSE;
+	}
+	if (_tmp38_) {
+		GdkEventKey* _tmp44_;
+		GdkModifierType _tmp45_;
+		_tmp44_ = key;
+		_tmp45_ = _tmp44_->state;
+		_tmp37_ = (gboolean) (_tmp45_ & GDK_CONTROL_MASK);
+	} else {
+		_tmp37_ = FALSE;
+	}
+	if (_tmp37_) {
+		GdkEventKey* _tmp46_;
+		guint _tmp47_;
+		_tmp46_ = key;
+		_tmp47_ = _tmp46_->keyval;
+		_tmp36_ = _tmp47_ == ((guint) GDK_KEY_y);
+	} else {
+		_tmp36_ = FALSE;
+	}
+	if (_tmp36_) {
+		GtkTextIter start = {0};
+		GtkTextIter end = {0};
+		GtkSourceBuffer* _tmp48_;
+		GtkTextIter _tmp49_ = {0};
+		GtkTextIter _tmp50_ = {0};
+		gboolean _tmp51_;
+		_tmp48_ = self->priv->InputBuffer;
+		_tmp51_ = gtk_text_buffer_get_selection_bounds ((GtkTextBuffer*) _tmp48_, &_tmp49_, &_tmp50_);
+		start = _tmp49_;
+		end = _tmp50_;
+		if (_tmp51_) {
+			gchar* str = NULL;
+			GtkSourceBuffer* _tmp52_;
+			GtkTextIter _tmp53_;
+			GtkTextIter _tmp54_;
+			gchar* _tmp55_;
+			const gchar* _tmp56_;
+			gchar* _tmp57_;
+			GtkSourceBuffer* _tmp58_;
+			GtkSourceBuffer* _tmp59_;
+			const gchar* _tmp60_;
+			const gchar* _tmp61_;
+			gint _tmp62_;
+			gint _tmp63_;
+			_tmp52_ = self->priv->InputBuffer;
+			_tmp53_ = start;
+			_tmp54_ = end;
+			_tmp55_ = gtk_text_buffer_get_text ((GtkTextBuffer*) _tmp52_, &_tmp53_, &_tmp54_, TRUE);
+			str = _tmp55_;
+			_tmp56_ = str;
+			_tmp57_ = seaborg_comment_transform (_tmp56_);
+			_g_free0 (str);
+			str = _tmp57_;
+			_tmp58_ = self->priv->InputBuffer;
+			gtk_text_buffer_delete ((GtkTextBuffer*) _tmp58_, &start, &end);
+			_tmp59_ = self->priv->InputBuffer;
+			_tmp60_ = str;
+			_tmp61_ = str;
+			_tmp62_ = strlen (_tmp61_);
+			_tmp63_ = _tmp62_;
+			gtk_text_buffer_insert_at_cursor ((GtkTextBuffer*) _tmp59_, _tmp60_, _tmp63_);
+			_g_free0 (str);
+		}
 	}
 	result = FALSE;
 	return result;
