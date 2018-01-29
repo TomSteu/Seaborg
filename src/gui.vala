@@ -213,7 +213,7 @@ namespace Seaborg {
 				import_dialog();
 			});
 
-			import_action.activate.connect(() => {
+			export_action.activate.connect(() => {
 				export_dialog();
 			});
 
@@ -265,10 +265,10 @@ namespace Seaborg {
 			const string[] save_accels = {"<Control>S", null};
 			const string[] save_as_accels = {"<Control><Alt>S", null};
 			const string[] import_accels = {"<Control>I", null};
-			const string[] export_accels = {"<Control>I", null};
+			const string[] export_accels = {"<Control>E", null};
 			const string[] rm_accels = {"<Control>Delete","<Control>D", null};
 			const string[] shortcut_accels = {"<Control>F1", "<Control>question", null};
-			const string[] eval_accels = {"<Control>Return", "<Control>E", null};
+			const string[] eval_accels = {"<Control>Return", null};
 			const string[] stop_eval_accels = {"<Control>period", "<Control>S", null};
 			const string[] close_accels = {"<Control>W", null};
 			const string[] quit_accels = {"<Control>Q", null};
@@ -605,6 +605,17 @@ namespace Seaborg {
 			saver.close();
 		}
 
+		public void new_notebook() {
+
+			Seaborg.Notebook notebook = new Seaborg.Notebook();
+			EvaluationCell* cell = new EvaluationCell(notebook);
+			notebook.add_before(0, {cell});
+
+			notebook_stack.add_titled(notebook, "", "New Notebook");
+			notebook_stack.set_visible_child(notebook);
+
+		}
+
 		public void save_notebook(string fn) {
 			GLib.FileStream save_file = GLib.FileStream.open(fn, "w");
 			if(save_file == null) {
@@ -630,45 +641,6 @@ namespace Seaborg {
 			kernel_msg("File saved successfully");
 
 			return;
-		}
-
-		private void write_recursively(ICell cell, FileStream file, string identation) {
-			if(cell is TextCell) {
-				TextCell textcell = (TextCell) cell;
-				
-				file.printf(identation + "<cell type=\"text\">\n");
-				file.printf(identation + "	<level>0</level>\n");
-				file.printf(identation + "	<content>%s</content>\n", save_replacement(textcell.get_text()));
-				file.printf(identation + "	<results></results>\n");
-				file.printf(identation + "	<children></children>\n");
-				file.printf(identation + "</cell>\n");
-			}
-			if(cell is EvaluationCell) {
-				EvaluationCell evalcell = (EvaluationCell) cell;
-
-				file.printf(identation + "<cell type=\"evaluation\">\n");
-				file.printf(identation + "	<level>0</level>\n");
-				file.printf(identation + "	<content>%s</content>\n", save_replacement(evalcell.get_text()));
-				file.printf(identation + "	<results>\n" + identation + "		<result type=\"text\">%s</result>\n" + identation + "	</results>\n", save_replacement(evalcell.get_output_text()));
-				file.printf(identation + "	<children></children>\n");
-				file.printf(identation + "</cell>\n");
-			}
-			if(cell is CellContainer) {
-				CellContainer cellcontainer = (CellContainer)cell;
-				
-				file.printf(identation + "<cell type=\"container\">\n");
-				file.printf(identation + "	<level>%i</level>\n", cellcontainer.get_level());
-				file.printf(identation + "	<content>%s</content>\n", save_replacement(cellcontainer.get_text()));
-				file.printf(identation + "	<results></results>\n");
-				file.printf(identation + "	<children>\n");
-
-				for(int i=0; i<cellcontainer.Children.data.length; i++)
-					write_recursively(cellcontainer.Children.data[i], file, identation + "		");
-
-
-				file.printf(identation + "	</children>\n");
-				file.printf(identation + "</cell>\n");
-			}
 		}
 
 		public void load_notebook(string fn) {
@@ -751,6 +723,131 @@ namespace Seaborg {
 
 		}
 
+
+		public void export_notebook(string fn) {
+
+			if(listener_thread_is_running) {
+				kernel_msg("Cannot export notebook: kernel is busy");
+				return;
+			}
+
+			listener_thread_is_running = true;
+			listener_thread = new GLib.Thread<void*>("seaborg-import", () => {
+
+				// wait for fist packet
+				lock(global_stamp) {
+					global_stamp = 1;
+				}
+
+				// something is wrong
+				if(check_connection(kernel_connection) != 1) {
+					kernel_msg("Kernel error importing notebook");
+					abort_listener_thread();
+					return null;
+				}
+
+				string export_string = "Export[\"" + fn + "\", Notebook[{" + list_cells_recursively((Seaborg.ICellContainer)notebook_stack.get_visible_child()) + "}]]";
+
+				current_cell = EvaluationData() {
+					cell = (void*) this,
+					input = fn
+				};
+
+				evaluate(
+					kernel_connection, 
+					export_string,
+					export_notebook_callback, 
+					(void*) &current_cell
+				);
+
+				// something is wrong
+				if(check_connection(kernel_connection) != 1) {
+					kernel_msg("Kernel error importing notebook");
+					abort_listener_thread();
+					return null;
+				}
+
+				while(true) {
+					
+					GLib.Thread.usleep(200);
+					
+					lock(global_stamp) {
+					
+						if(global_stamp == 0)
+							break;
+					}
+				}
+				
+				listener_thread_is_running = false;
+				return null;
+
+			});
+		}
+
+		private string list_cells_recursively(ICellContainer container) {
+			string str = "";
+			for(int i=0; i<container.Children.data.length; i++) {
+				if((container.Children.data[i]) is TextCell) {
+					
+					if(str != "")
+						str += ", ";
+
+					str += "Cell[\"" + ((Seaborg.TextCell) container.Children.data[i]).get_text().replace("\"", "\\\"")  + "\", \"Text\"]";
+					continue;
+				}
+
+				if((container.Children.data[i]) is EvaluationCell) {
+					
+					if(str != "")
+						str += ", ";
+
+					str += "Cell[\"" + ((Seaborg.EvaluationCell) container.Children.data[i]).get_text().replace("\n", "").replace("\"", "\\\"") + "\", \"Input\"],";
+					str += "Cell[\"" + ((Seaborg.EvaluationCell) container.Children.data[i]).get_output_text().replace("\"", "\\\"")  + "\", \"Output\"]";
+					continue;
+				}
+
+				if((container.Children.data[i]) is CellContainer) {
+					
+					if(str != "")
+						str += ", ";
+
+					switch(((Seaborg.CellContainer) container.Children.data[i]).get_level()) {
+						case 1:
+							str += "Cell[\"" + ((Seaborg.CellContainer) container.Children.data[i]).get_text().replace("\n", "").replace("\"", "\\\"") + "\", \"Subsubsection\"]";
+							break;
+						case 2:
+							str += "Cell[\"" + ((Seaborg.CellContainer) container.Children.data[i]).get_text().replace("\n", "").replace("\"", "\\\"") + "\", \"Subsection\"]";
+							break;
+						case 3:
+							str += "Cell[\"" + ((Seaborg.CellContainer) container.Children.data[i]).get_text().replace("\n", "").replace("\"", "\\\"") + "\", \"Section\"]";
+							break;
+						case 4:
+							str += "Cell[\"" + ((Seaborg.CellContainer) container.Children.data[i]).get_text().replace("\n", "").replace("\"", "\\\"") + "\", \"Subchapter\"]";
+							break;
+						case 5:
+							str += "Cell[\"" + ((Seaborg.CellContainer) container.Children.data[i]).get_text().replace("\n", "").replace("\"", "\\\"") + "\", \"Chapter\"]";
+							break;
+						case 6:
+							str += "Cell[\"" + ((Seaborg.CellContainer) container.Children.data[i]).get_text().replace("\n", "").replace("\"", "\\\"") + "\", \"Title\"]";
+							break;
+						default:
+							str += "Cell[\"" + ((Seaborg.CellContainer) container.Children.data[i]).get_text().replace("\n", "").replace("\"", "\\\"") + "\", \"Text\"]";
+							break;
+					}
+
+					if(((Seaborg.CellContainer) container.Children.data[i]).Children.data.length > 0) {
+						str += ", " + list_cells_recursively(((Seaborg.ICellContainer*) container.Children.data[i]));
+					}
+					
+					continue;
+				}
+			}
+
+			return str;
+
+		}
+
+
 		private void assemble_recursively(Xml.Node* root, ICellContainer* container) {
 			
 			string? type;
@@ -826,25 +923,44 @@ namespace Seaborg {
 			}
 		}
 
-		public export_notebook(string fn) {
 
-			if(listener_thread_is_running) {
-				kernel_msg("Cannot export notebook: kernel is busy");
-				return;
+		private void write_recursively(ICell cell, FileStream file, string identation) {
+			if(cell is TextCell) {
+				TextCell textcell = (TextCell) cell;
+				
+				file.printf(identation + "<cell type=\"text\">\n");
+				file.printf(identation + "	<level>0</level>\n");
+				file.printf(identation + "	<content>%s</content>\n", save_replacement(textcell.get_text()));
+				file.printf(identation + "	<results></results>\n");
+				file.printf(identation + "	<children></children>\n");
+				file.printf(identation + "</cell>\n");
 			}
+			if(cell is EvaluationCell) {
+				EvaluationCell evalcell = (EvaluationCell) cell;
 
-			listener_thread_is_running = true;
-		}
+				file.printf(identation + "<cell type=\"evaluation\">\n");
+				file.printf(identation + "	<level>0</level>\n");
+				file.printf(identation + "	<content>%s</content>\n", save_replacement(evalcell.get_text()));
+				file.printf(identation + "	<results>\n" + identation + "		<result type=\"text\">%s</result>\n" + identation + "	</results>\n", save_replacement(evalcell.get_output_text()));
+				file.printf(identation + "	<children></children>\n");
+				file.printf(identation + "</cell>\n");
+			}
+			if(cell is CellContainer) {
+				CellContainer cellcontainer = (CellContainer)cell;
+				
+				file.printf(identation + "<cell type=\"container\">\n");
+				file.printf(identation + "	<level>%i</level>\n", cellcontainer.get_level());
+				file.printf(identation + "	<content>%s</content>\n", save_replacement(cellcontainer.get_text()));
+				file.printf(identation + "	<results></results>\n");
+				file.printf(identation + "	<children>\n");
 
-		public void new_notebook() {
+				for(int i=0; i<cellcontainer.Children.data.length; i++)
+					write_recursively(cellcontainer.Children.data[i], file, identation + "		");
 
-			Seaborg.Notebook notebook = new Seaborg.Notebook();
-			EvaluationCell* cell = new EvaluationCell(notebook);
-			notebook.add_before(0, {cell});
 
-			notebook_stack.add_titled(notebook, "", "New Notebook");
-			notebook_stack.set_visible_child(notebook);
-
+				file.printf(identation + "	</children>\n");
+				file.printf(identation + "</cell>\n");
+			}
 		}
 
 		private void process_for_import(string fn) {
@@ -865,7 +981,7 @@ namespace Seaborg {
 				// something is wrong
 				if(check_connection(kernel_connection) != 1) {
 					kernel_msg("Kernel error importing notebook");
-					abort_import();
+					abort_listener_thread();
 					return null;
 				}
 
@@ -874,6 +990,7 @@ namespace Seaborg {
 				
 				if(import_script == null) {
 					kernel_msg("Importing notebook failed");
+					abort_listener_thread();
 					return null;
 				}
 
@@ -898,13 +1015,13 @@ namespace Seaborg {
 				// something is wrong
 				if(check_connection(kernel_connection) != 1) {
 					kernel_msg("Kernel error importing notebook");
-					abort_import();
+					abort_listener_thread();
 					return null;
 				}
 
 				while(true) {
 					
-					Gdk.Thread.usleep(200);
+					GLib.Thread.usleep(200);
 					
 					lock(global_stamp) {
 					
@@ -921,7 +1038,7 @@ namespace Seaborg {
 		}
 
 
-		private void abort_import() {
+		private void abort_listener_thread() {
 
 			// no new packets to be written
 			lock(global_stamp) {
@@ -985,6 +1102,59 @@ namespace Seaborg {
 						}
 
 						app->import_notebook(string_to_write, data->input);
+
+
+						global_stamp = 0;
+						return false;
+
+					}
+
+					global_stamp++;
+
+					return false;
+				}
+			});
+
+			return;
+		};
+
+		private static  callback_str export_notebook_callback = (_string_to_write, data_ptr, _stamp, _break) => {
+
+
+			//append to GLib main loop
+			GLib.Idle.add( () => {
+
+				lock(global_stamp) {
+					
+					// get packet with right stamp
+					if(global_stamp != _stamp) {
+
+						// abort has been sent already, throw away packet
+						if(global_stamp == 0)
+							return false;
+						return true;
+					}
+
+					// only interested in last package
+					if(_break != 0) {
+
+						string string_to_write = (string) _string_to_write;
+						EvaluationData* data = (EvaluationData*) data_ptr;
+						
+						if(string_to_write == null || data == null)
+							return false;
+
+						if(data->cell == null || data->input == null)
+							return false;
+
+						SeaborgApplication* app = (SeaborgApplication*) data->cell;
+
+						if(app == null)
+							return false;
+
+						if(string_to_write != data->input) {
+							app->kernel_msg("Error exporting notebook");
+						}
 
 
 						global_stamp = 0;

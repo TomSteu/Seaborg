@@ -975,11 +975,11 @@ SeaborgNotebook* seaborg_notebook_construct (GType object_type) {
 		_tmp9_ = self->priv->css;
 		gtk_css_provider_load_from_path (_tmp9_, "res/seaborg.css", &_inner_error_);
 		if (G_UNLIKELY (_inner_error_ != NULL)) {
-			goto __catch10_g_error;
+			goto __catch15_g_error;
 		}
 	}
-	goto __finally10;
-	__catch10_g_error:
+	goto __finally15;
+	__catch15_g_error:
 	{
 		GError* _error_ = NULL;
 		GtkCssProvider* _tmp10_;
@@ -992,7 +992,7 @@ SeaborgNotebook* seaborg_notebook_construct (GType object_type) {
 		self->priv->css = _tmp11_;
 		_g_error_free0 (_error_);
 	}
-	__finally10:
+	__finally15:
 	if (G_UNLIKELY (_inner_error_ != NULL)) {
 		g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
 		g_clear_error (&_inner_error_);
@@ -2223,11 +2223,11 @@ SeaborgCellContainer* seaborg_cell_container_construct (GType object_type, Seabo
 		_tmp10_ = self->priv->css;
 		gtk_css_provider_load_from_path (_tmp10_, "res/seaborg.css", &_inner_error_);
 		if (G_UNLIKELY (_inner_error_ != NULL)) {
-			goto __catch11_g_error;
+			goto __catch16_g_error;
 		}
 	}
-	goto __finally11;
-	__catch11_g_error:
+	goto __finally16;
+	__catch16_g_error:
 	{
 		GError* _error_ = NULL;
 		GtkCssProvider* _tmp11_;
@@ -2240,7 +2240,7 @@ SeaborgCellContainer* seaborg_cell_container_construct (GType object_type, Seabo
 		self->priv->css = _tmp12_;
 		_g_error_free0 (_error_);
 	}
-	__finally11:
+	__finally16:
 	if (G_UNLIKELY (_inner_error_ != NULL)) {
 		g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
 		g_clear_error (&_inner_error_);
@@ -4277,11 +4277,11 @@ SeaborgEvaluationCell* seaborg_evaluation_cell_construct (GType object_type, Sea
 		_tmp6_ = self->priv->css;
 		gtk_css_provider_load_from_path (_tmp6_, "res/seaborg.css", &_inner_error_);
 		if (G_UNLIKELY (_inner_error_ != NULL)) {
-			goto __catch12_g_error;
+			goto __catch17_g_error;
 		}
 	}
-	goto __finally12;
-	__catch12_g_error:
+	goto __finally17;
+	__catch17_g_error:
 	{
 		GError* _error_ = NULL;
 		GtkCssProvider* _tmp7_;
@@ -4294,7 +4294,7 @@ SeaborgEvaluationCell* seaborg_evaluation_cell_construct (GType object_type, Sea
 		self->priv->css = _tmp8_;
 		_g_error_free0 (_error_);
 	}
-	__finally12:
+	__finally17:
 	if (G_UNLIKELY (_inner_error_ != NULL)) {
 		g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
 		g_clear_error (&_inner_error_);
@@ -5072,11 +5072,11 @@ SeaborgTextCell* seaborg_text_cell_construct (GType object_type, SeaborgICellCon
 		_tmp6_ = css;
 		gtk_css_provider_load_from_path (_tmp6_, "res/seaborg.css", &_inner_error_);
 		if (G_UNLIKELY (_inner_error_ != NULL)) {
-			goto __catch13_g_error;
+			goto __catch18_g_error;
 		}
 	}
-	goto __finally13;
-	__catch13_g_error:
+	goto __finally18;
+	__catch18_g_error:
 	{
 		GError* _error_ = NULL;
 		GtkCssProvider* _tmp7_;
@@ -5089,7 +5089,7 @@ SeaborgTextCell* seaborg_text_cell_construct (GType object_type, SeaborgICellCon
 		css = _tmp8_;
 		_g_error_free0 (_error_);
 	}
-	__finally13:
+	__finally18:
 	if (G_UNLIKELY (_inner_error_ != NULL)) {
 		_g_object_unref0 (css);
 		g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
@@ -5578,11 +5578,11 @@ SeaborgAddButton* seaborg_add_button_construct (GType object_type, SeaborgICellC
 		_tmp6_ = css;
 		gtk_css_provider_load_from_path (_tmp6_, "res/seaborg.css", &_inner_error_);
 		if (G_UNLIKELY (_inner_error_ != NULL)) {
-			goto __catch14_g_error;
+			goto __catch19_g_error;
 		}
 	}
-	goto __finally14;
-	__catch14_g_error:
+	goto __finally19;
+	__catch19_g_error:
 	{
 		GError* _error_ = NULL;
 		GtkCssProvider* _tmp7_;
@@ -5595,7 +5595,7 @@ SeaborgAddButton* seaborg_add_button_construct (GType object_type, SeaborgICellC
 		css = _tmp8_;
 		_g_error_free0 (_error_);
 	}
-	__finally14:
+	__finally19:
 	if (G_UNLIKELY (_inner_error_ != NULL)) {
 		_g_object_unref0 (css);
 		g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
