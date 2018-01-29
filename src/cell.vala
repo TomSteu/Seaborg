@@ -677,6 +677,7 @@ namespace Seaborg {
 			InputCell.bottom_margin = 0;
 			InputCell.button_press_event.connect(untoggle_handler);
 			InputCell.key_press_event.connect(key_handler);
+			InputBuffer.insert_text.connect(insert_handler); 
 
 			OutputBuffer = new Gtk.SourceBuffer(null);
 			OutputBuffer.highlight_matching_brackets = true;
@@ -826,6 +827,29 @@ namespace Seaborg {
 			}
 
 			return false;
+		}
+
+		private void insert_handler(ref TextIter iter, string txt, int txt_len) {
+
+			switch (txt) {
+				case "(":
+					iter.get_buffer().insert(ref iter, ")", 1);
+					break;
+				case "[":
+					iter.get_buffer().insert(ref iter, "]", 1);
+					break;
+				case "{":
+					iter.get_buffer().insert(ref iter, "}", 1);
+					break;
+				default:
+					return;
+					break;
+			}
+
+			iter.backward_cursor_position();
+			iter.get_buffer().place_cursor(iter);
+
+			return;
 		}
 
 		public void set_text(string _text) {
