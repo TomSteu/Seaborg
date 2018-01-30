@@ -27,6 +27,8 @@
 		<style id="string" _name="String" map-to="def:string"/>
 		<style id="error" _name="Error" map-to="def:error"/>
 		<style id="argument" _name="Argument" map-to="def:operator"/>
+		<style id="keyword" _name="Keyword" map-to="def:keyword"/>
+		<style id="buildin" _name="Buildin" map-to="def:constant"/>
 	</styles>
 	<definitions>
 		<context id="block-comment" style-ref="comment" end-at-line-end="false">
@@ -37,7 +39,7 @@
 			<start>#</start>
 			<end>(?=[^0-9a-zA-Z])</end>
 		</context>
-		<context id="string" style-ref="string" end-at-line-end="true">
+		<context id="string" style-ref="string" end-at-line-end="false">
 			<start>L?"</start>
 			<end>"</end>
 		</context>
@@ -49,6 +51,29 @@
 			<keyword>[0-9a-zA-Z]*__[0-9a-zA-Z]*</keyword>
 			<keyword>[0-9a-zA-Z]*___[0-9a-zA-Z]*</keyword>
 		</context>
+		<context id="keywords" style-ref="buildin">
+			<keyword>True</keyword>
+			<keyword>False</keyword>
+			<keyword>Null</keyword>
+			<keyword>In</keyword>
+			<keyword>Out</keyword>
+		</context>
+		<context id="functions" style-ref="keyword">
+			<keyword>[0-9a-zA-Z]*(?=[\[][^\[])</keyword>
+		</context>
+		<context id="postfix" style-ref="keyword">
+			<keyword>[ ]*//[ ]*[0-9a-zA-Z]*</keyword>
+		</context>
+		<context id="prefix" style-ref="keyword">
+			<keyword>[ ]*[0-9a-zA-Z]*[ ]*[@][ ]*</keyword>
+			<keyword>[ ]*[0-9a-zA-Z]*[ ]*[@][@][ ]*</keyword>
+			<keyword>[ ]*[0-9a-zA-Z]*[ ]*[@][@][@][ ]*</keyword>
+			<keyword>[ ]*[0-9a-zA-Z]*[ ]*[/][@][ ]*</keyword>
+		</context>
+		<context id="infix" style-ref="keyword" end-at-line-end="false">
+			<start>[\~]</start>
+			<end>[\~]</end>
+		</context>
 		<context id="wolfram-nostdlib">
 			<include>
 				<context ref="block-comment"/>
@@ -56,6 +81,11 @@
 				<context ref="error"/>
 				<context ref="arg-context"/>
 				<context ref="argument"/>
+				<context ref="keywords"/>
+				<context ref="functions"/>
+				<context ref="postfix"/>
+				<context ref="prefix"/>
+				<context ref="infix"/>
 			</include>
 		</context>
 	</definitions>
