@@ -9,6 +9,10 @@
 #include <string.h>
 #include <gdk/gdk.h>
 #include <gtksourceview/gtksource.h>
+#include <stdio.h>
+#include <gdk-pixbuf/gdk-pixbuf.h>
+#include <librsvg/rsvg.h>
+#include <glib/gstdio.h>
 
 
 #define SEABORG_TYPE_ICELL (seaborg_icell_get_type ())
@@ -94,6 +98,7 @@ typedef struct _SeaborgContextMenuClass SeaborgContextMenuClass;
 typedef struct _SeaborgEvaluationCell SeaborgEvaluationCell;
 typedef struct _SeaborgEvaluationCellClass SeaborgEvaluationCellClass;
 typedef struct _SeaborgEvaluationCellPrivate SeaborgEvaluationCellPrivate;
+#define _fclose0(var) ((var == NULL) ? NULL : (var = (fclose (var), NULL)))
 
 #define SEABORG_TYPE_TEXT_CELL (seaborg_text_cell_get_type ())
 #define SEABORG_TEXT_CELL(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), SEABORG_TYPE_TEXT_CELL, SeaborgTextCell))
@@ -406,6 +411,8 @@ static void seaborg_evaluation_cell_real_remove_from (SeaborgICell* base, gint p
 gchar* seaborg_comment_transform (const gchar* str);
 static void seaborg_evaluation_cell_real_set_text (SeaborgICell* base, const gchar* _text);
 void seaborg_evaluation_cell_add_text (SeaborgEvaluationCell* self, const gchar* _text);
+gint seaborg_find_closing_bracket (const gchar* str, gint start);
+gint seaborg_character_index_at_byte_index (const gchar* str, gint byte_idx);
 static gchar* seaborg_evaluation_cell_real_get_text (SeaborgICell* base);
 void seaborg_evaluation_cell_remove_text (SeaborgEvaluationCell* self);
 gchar* seaborg_evaluation_cell_get_output_text (SeaborgEvaluationCell* self);
@@ -4942,6 +4949,276 @@ static void seaborg_evaluation_cell_real_set_text (SeaborgICell* base, const gch
 }
 
 
+static gboolean string_contains (const gchar* self, const gchar* needle) {
+	gboolean result = FALSE;
+	const gchar* _tmp0_;
+	gchar* _tmp1_;
+	g_return_val_if_fail (self != NULL, FALSE);
+	g_return_val_if_fail (needle != NULL, FALSE);
+	_tmp0_ = needle;
+	_tmp1_ = strstr ((gchar*) self, (gchar*) _tmp0_);
+	result = _tmp1_ != NULL;
+	return result;
+}
+
+
+static gint string_index_of (const gchar* self, const gchar* needle, gint start_index) {
+	gint result = 0;
+	gchar* _result_ = NULL;
+	gint _tmp0_;
+	const gchar* _tmp1_;
+	gchar* _tmp2_;
+	gchar* _tmp3_;
+	g_return_val_if_fail (self != NULL, 0);
+	g_return_val_if_fail (needle != NULL, 0);
+	_tmp0_ = start_index;
+	_tmp1_ = needle;
+	_tmp2_ = strstr (((gchar*) self) + _tmp0_, (gchar*) _tmp1_);
+	_result_ = _tmp2_;
+	_tmp3_ = _result_;
+	if (_tmp3_ != NULL) {
+		gchar* _tmp4_;
+		_tmp4_ = _result_;
+		result = (gint) (_tmp4_ - ((gchar*) self));
+		return result;
+	} else {
+		result = -1;
+		return result;
+	}
+}
+
+
+static glong string_strnlen (gchar* str, glong maxlen) {
+	glong result = 0L;
+	gchar* end = NULL;
+	gchar* _tmp0_;
+	glong _tmp1_;
+	gchar* _tmp2_;
+	gchar* _tmp3_;
+	_tmp0_ = str;
+	_tmp1_ = maxlen;
+	_tmp2_ = memchr (_tmp0_, 0, (gsize) _tmp1_);
+	end = _tmp2_;
+	_tmp3_ = end;
+	if (_tmp3_ == NULL) {
+		glong _tmp4_;
+		_tmp4_ = maxlen;
+		result = _tmp4_;
+		return result;
+	} else {
+		gchar* _tmp5_;
+		gchar* _tmp6_;
+		_tmp5_ = end;
+		_tmp6_ = str;
+		result = (glong) (_tmp5_ - _tmp6_);
+		return result;
+	}
+}
+
+
+static gchar* string_substring (const gchar* self, glong offset, glong len) {
+	gchar* result = NULL;
+	glong string_length = 0L;
+	gboolean _tmp0_ = FALSE;
+	glong _tmp1_;
+	glong _tmp8_;
+	glong _tmp14_;
+	glong _tmp17_;
+	glong _tmp18_;
+	glong _tmp19_;
+	glong _tmp20_;
+	glong _tmp21_;
+	gchar* _tmp22_;
+	g_return_val_if_fail (self != NULL, NULL);
+	_tmp1_ = offset;
+	if (_tmp1_ >= ((glong) 0)) {
+		glong _tmp2_;
+		_tmp2_ = len;
+		_tmp0_ = _tmp2_ >= ((glong) 0);
+	} else {
+		_tmp0_ = FALSE;
+	}
+	if (_tmp0_) {
+		glong _tmp3_;
+		glong _tmp4_;
+		glong _tmp5_;
+		_tmp3_ = offset;
+		_tmp4_ = len;
+		_tmp5_ = string_strnlen ((gchar*) self, _tmp3_ + _tmp4_);
+		string_length = _tmp5_;
+	} else {
+		gint _tmp6_;
+		gint _tmp7_;
+		_tmp6_ = strlen (self);
+		_tmp7_ = _tmp6_;
+		string_length = (glong) _tmp7_;
+	}
+	_tmp8_ = offset;
+	if (_tmp8_ < ((glong) 0)) {
+		glong _tmp9_;
+		glong _tmp10_;
+		glong _tmp11_;
+		_tmp9_ = string_length;
+		_tmp10_ = offset;
+		offset = _tmp9_ + _tmp10_;
+		_tmp11_ = offset;
+		g_return_val_if_fail (_tmp11_ >= ((glong) 0), NULL);
+	} else {
+		glong _tmp12_;
+		glong _tmp13_;
+		_tmp12_ = offset;
+		_tmp13_ = string_length;
+		g_return_val_if_fail (_tmp12_ <= _tmp13_, NULL);
+	}
+	_tmp14_ = len;
+	if (_tmp14_ < ((glong) 0)) {
+		glong _tmp15_;
+		glong _tmp16_;
+		_tmp15_ = string_length;
+		_tmp16_ = offset;
+		len = _tmp15_ - _tmp16_;
+	}
+	_tmp17_ = offset;
+	_tmp18_ = len;
+	_tmp19_ = string_length;
+	g_return_val_if_fail ((_tmp17_ + _tmp18_) <= _tmp19_, NULL);
+	_tmp20_ = offset;
+	_tmp21_ = len;
+	_tmp22_ = g_strndup (((gchar*) self) + _tmp20_, (gsize) _tmp21_);
+	result = _tmp22_;
+	return result;
+}
+
+
+static gchar* string_splice (const gchar* self, glong start, glong end, const gchar* str) {
+	gchar* result = NULL;
+	glong string_length = 0L;
+	gint _tmp0_;
+	gint _tmp1_;
+	glong _tmp2_;
+	glong _tmp5_;
+	gboolean _tmp8_ = FALSE;
+	glong _tmp9_;
+	gboolean _tmp12_ = FALSE;
+	glong _tmp13_;
+	glong _tmp16_;
+	glong _tmp17_;
+	gsize str_size = 0UL;
+	const gchar* _tmp18_;
+	const gchar* _result_ = NULL;
+	gint _tmp22_;
+	gint _tmp23_;
+	glong _tmp24_;
+	glong _tmp25_;
+	gsize _tmp26_;
+	void* _tmp27_;
+	gchar* dest = NULL;
+	const gchar* _tmp28_;
+	gchar* _tmp29_;
+	glong _tmp30_;
+	gchar* _tmp31_;
+	glong _tmp32_;
+	gchar* _tmp33_;
+	const gchar* _tmp34_;
+	gsize _tmp35_;
+	gchar* _tmp36_;
+	gsize _tmp37_;
+	gchar* _tmp38_;
+	glong _tmp39_;
+	glong _tmp40_;
+	glong _tmp41_;
+	const gchar* _tmp42_;
+	g_return_val_if_fail (self != NULL, NULL);
+	_tmp0_ = strlen (self);
+	_tmp1_ = _tmp0_;
+	string_length = (glong) _tmp1_;
+	_tmp2_ = start;
+	if (_tmp2_ < ((glong) 0)) {
+		glong _tmp3_;
+		glong _tmp4_;
+		_tmp3_ = string_length;
+		_tmp4_ = start;
+		start = _tmp3_ + _tmp4_;
+	}
+	_tmp5_ = end;
+	if (_tmp5_ < ((glong) 0)) {
+		glong _tmp6_;
+		glong _tmp7_;
+		_tmp6_ = string_length;
+		_tmp7_ = end;
+		end = _tmp6_ + _tmp7_;
+	}
+	_tmp9_ = start;
+	if (_tmp9_ >= ((glong) 0)) {
+		glong _tmp10_;
+		glong _tmp11_;
+		_tmp10_ = start;
+		_tmp11_ = string_length;
+		_tmp8_ = _tmp10_ <= _tmp11_;
+	} else {
+		_tmp8_ = FALSE;
+	}
+	g_return_val_if_fail (_tmp8_, NULL);
+	_tmp13_ = end;
+	if (_tmp13_ >= ((glong) 0)) {
+		glong _tmp14_;
+		glong _tmp15_;
+		_tmp14_ = end;
+		_tmp15_ = string_length;
+		_tmp12_ = _tmp14_ <= _tmp15_;
+	} else {
+		_tmp12_ = FALSE;
+	}
+	g_return_val_if_fail (_tmp12_, NULL);
+	_tmp16_ = start;
+	_tmp17_ = end;
+	g_return_val_if_fail (_tmp16_ <= _tmp17_, NULL);
+	_tmp18_ = str;
+	if (_tmp18_ == NULL) {
+		str_size = (gsize) 0;
+	} else {
+		const gchar* _tmp19_;
+		gint _tmp20_;
+		gint _tmp21_;
+		_tmp19_ = str;
+		_tmp20_ = strlen ((const gchar*) _tmp19_);
+		_tmp21_ = _tmp20_;
+		str_size = (gsize) _tmp21_;
+	}
+	_tmp22_ = strlen (self);
+	_tmp23_ = _tmp22_;
+	_tmp24_ = end;
+	_tmp25_ = start;
+	_tmp26_ = str_size;
+	_tmp27_ = g_malloc0 (((_tmp23_ - (_tmp24_ - _tmp25_)) + _tmp26_) + 1);
+	_result_ = _tmp27_;
+	_tmp28_ = _result_;
+	dest = (gchar*) _tmp28_;
+	_tmp29_ = dest;
+	_tmp30_ = start;
+	memcpy (_tmp29_, self, (gsize) _tmp30_);
+	_tmp31_ = dest;
+	_tmp32_ = start;
+	dest = _tmp31_ + _tmp32_;
+	_tmp33_ = dest;
+	_tmp34_ = str;
+	_tmp35_ = str_size;
+	memcpy (_tmp33_, _tmp34_, _tmp35_);
+	_tmp36_ = dest;
+	_tmp37_ = str_size;
+	dest = _tmp36_ + _tmp37_;
+	_tmp38_ = dest;
+	_tmp39_ = end;
+	_tmp40_ = string_length;
+	_tmp41_ = end;
+	memcpy (_tmp38_, ((gchar*) self) + _tmp39_, (gsize) (_tmp40_ - _tmp41_));
+	_tmp42_ = _result_;
+	_result_ = NULL;
+	result = (gchar*) _tmp42_;
+	return result;
+}
+
+
 void seaborg_evaluation_cell_add_text (SeaborgEvaluationCell* self, const gchar* _text) {
 	GtkSourceBuffer* _tmp0_;
 	GtkSourceBuffer* _tmp1_;
@@ -4951,6 +5228,9 @@ void seaborg_evaluation_cell_add_text (SeaborgEvaluationCell* self, const gchar*
 	const gchar* _tmp5_;
 	gchar* _tmp6_;
 	gchar* _tmp7_;
+	const gchar* _tmp8_;
+	gboolean _tmp9_;
+	GError * _inner_error_ = NULL;
 	g_return_if_fail (self != NULL);
 	g_return_if_fail (_text != NULL);
 	_tmp0_ = self->priv->OutputBuffer;
@@ -4964,6 +5244,389 @@ void seaborg_evaluation_cell_add_text (SeaborgEvaluationCell* self, const gchar*
 	g_object_set ((GtkTextBuffer*) _tmp0_, "text", _tmp7_, NULL);
 	_g_free0 (_tmp7_);
 	_g_free0 (_tmp4_);
+	_tmp8_ = _text;
+	_tmp9_ = string_contains (_tmp8_, "Graphics");
+	if (_tmp9_) {
+		FILE* _tmp10_;
+		gint pos_end = 0;
+		gint pos_start = 0;
+		gint char_end = 0;
+		gint char_start = 0;
+		gchar* hash = NULL;
+		FILE* file = NULL;
+		GdkPixbuf* pb = NULL;
+		RsvgHandle* handle = NULL;
+		GtkTextIter iter = {0};
+		_tmp10_ = stderr;
+		fprintf (_tmp10_, "\ngraphic: keyword found\n");
+		pos_start = 0;
+		while (TRUE) {
+			gint _tmp11_;
+			GtkSourceBuffer* _tmp12_;
+			gchar* _tmp13_;
+			gchar* _tmp14_;
+			gchar* _tmp15_;
+			gint _tmp16_;
+			gint _tmp17_;
+			gboolean _tmp18_;
+			GtkSourceBuffer* _tmp19_;
+			gchar* _tmp20_;
+			gchar* _tmp21_;
+			gchar* _tmp22_;
+			gint _tmp23_;
+			gint _tmp24_;
+			gint _tmp25_;
+			GtkSourceBuffer* _tmp26_;
+			gchar* _tmp27_;
+			gchar* _tmp28_;
+			gchar* _tmp29_;
+			gint _tmp30_;
+			gint _tmp31_;
+			gboolean _tmp32_ = FALSE;
+			gint _tmp33_;
+			FILE* _tmp41_;
+			gint _tmp42_;
+			gchar* _tmp43_;
+			gchar* _tmp44_;
+			gchar* _tmp45_;
+			gchar* _tmp46_;
+			gchar* _tmp47_;
+			gchar* _tmp48_;
+			gint _tmp49_;
+			gchar* _tmp50_;
+			gchar* _tmp51_;
+			gchar* _tmp52_;
+			gchar* _tmp53_;
+			gchar* _tmp54_;
+			gchar* _tmp55_;
+			GtkSourceBuffer* _tmp56_;
+			gchar* _tmp57_;
+			gchar* _tmp58_;
+			gchar* _tmp59_;
+			gint _tmp60_;
+			gint _tmp61_;
+			gint _tmp62_;
+			gchar* _tmp63_;
+			gchar* _tmp64_;
+			gint _tmp65_;
+			gint _tmp66_;
+			gchar* _tmp67_;
+			FILE* _tmp68_;
+			const gchar* _tmp69_;
+			gchar* _tmp70_;
+			gchar* _tmp71_;
+			gchar* _tmp72_;
+			gchar* _tmp73_;
+			const gchar* _tmp74_;
+			gchar* _tmp75_;
+			gchar* _tmp76_;
+			gchar* _tmp77_;
+			gchar* _tmp78_;
+			FILE* _tmp79_;
+			FILE* _tmp80_;
+			FILE* _tmp82_;
+			GdkPixbuf* _tmp108_;
+			FILE* _tmp111_;
+			GtkSourceBuffer* _tmp112_;
+			gchar* _tmp113_;
+			gchar* _tmp114_;
+			gchar* _tmp115_;
+			gint _tmp116_;
+			gint _tmp117_;
+			GtkSourceBuffer* _tmp118_;
+			gchar* _tmp119_;
+			gchar* _tmp120_;
+			gchar* _tmp121_;
+			gint _tmp122_;
+			gint _tmp123_;
+			GtkSourceBuffer* _tmp124_;
+			GtkSourceBuffer* _tmp125_;
+			gchar* _tmp126_;
+			gchar* _tmp127_;
+			gchar* _tmp128_;
+			gint _tmp129_;
+			gint _tmp130_;
+			gchar* _tmp131_;
+			gchar* _tmp132_;
+			GtkSourceBuffer* _tmp133_;
+			gint _tmp134_;
+			GtkTextIter _tmp135_ = {0};
+			GtkSourceBuffer* _tmp136_;
+			GtkTextIter _tmp137_;
+			GdkPixbuf* _tmp138_;
+			gint _tmp139_;
+			_tmp11_ = pos_start;
+			_tmp12_ = self->priv->OutputBuffer;
+			g_object_get ((GtkTextBuffer*) _tmp12_, "text", &_tmp13_, NULL);
+			_tmp14_ = _tmp13_;
+			_tmp15_ = _tmp14_;
+			_tmp16_ = strlen (_tmp15_);
+			_tmp17_ = _tmp16_;
+			_tmp18_ = !(_tmp11_ <= (_tmp17_ - 1));
+			_g_free0 (_tmp15_);
+			if (_tmp18_) {
+				break;
+			}
+			_tmp19_ = self->priv->OutputBuffer;
+			g_object_get ((GtkTextBuffer*) _tmp19_, "text", &_tmp20_, NULL);
+			_tmp21_ = _tmp20_;
+			_tmp22_ = _tmp21_;
+			_tmp23_ = pos_start;
+			_tmp24_ = string_index_of (_tmp22_, "Graphics", _tmp23_);
+			pos_start = _tmp24_;
+			_g_free0 (_tmp22_);
+			_tmp25_ = pos_start;
+			if (_tmp25_ < 0) {
+				break;
+			}
+			_tmp26_ = self->priv->OutputBuffer;
+			g_object_get ((GtkTextBuffer*) _tmp26_, "text", &_tmp27_, NULL);
+			_tmp28_ = _tmp27_;
+			_tmp29_ = _tmp28_;
+			_tmp30_ = pos_start;
+			_tmp31_ = seaborg_find_closing_bracket (_tmp29_, _tmp30_);
+			pos_end = _tmp31_;
+			_g_free0 (_tmp29_);
+			_tmp33_ = pos_end;
+			if (_tmp33_ < 0) {
+				_tmp32_ = TRUE;
+			} else {
+				gint _tmp34_;
+				GtkSourceBuffer* _tmp35_;
+				gchar* _tmp36_;
+				gchar* _tmp37_;
+				gchar* _tmp38_;
+				gint _tmp39_;
+				gint _tmp40_;
+				_tmp34_ = pos_end;
+				_tmp35_ = self->priv->OutputBuffer;
+				g_object_get ((GtkTextBuffer*) _tmp35_, "text", &_tmp36_, NULL);
+				_tmp37_ = _tmp36_;
+				_tmp38_ = _tmp37_;
+				_tmp39_ = strlen (_tmp38_);
+				_tmp40_ = _tmp39_;
+				_tmp32_ = _tmp34_ >= _tmp40_;
+				_g_free0 (_tmp38_);
+			}
+			if (_tmp32_) {
+				break;
+			}
+			_tmp41_ = stderr;
+			_tmp42_ = pos_start;
+			_tmp43_ = g_strdup_printf ("%i", _tmp42_);
+			_tmp44_ = _tmp43_;
+			_tmp45_ = g_strconcat ("graphic: byte range [ ", _tmp44_, NULL);
+			_tmp46_ = _tmp45_;
+			_tmp47_ = g_strconcat (_tmp46_, ", ", NULL);
+			_tmp48_ = _tmp47_;
+			_tmp49_ = pos_end;
+			_tmp50_ = g_strdup_printf ("%i", _tmp49_ + 1);
+			_tmp51_ = _tmp50_;
+			_tmp52_ = g_strconcat (_tmp48_, _tmp51_, NULL);
+			_tmp53_ = _tmp52_;
+			_tmp54_ = g_strconcat (_tmp53_, " ]\n", NULL);
+			_tmp55_ = _tmp54_;
+			fprintf (_tmp41_, "%s", _tmp55_);
+			_g_free0 (_tmp55_);
+			_g_free0 (_tmp53_);
+			_g_free0 (_tmp51_);
+			_g_free0 (_tmp48_);
+			_g_free0 (_tmp46_);
+			_g_free0 (_tmp44_);
+			_tmp56_ = self->priv->OutputBuffer;
+			g_object_get ((GtkTextBuffer*) _tmp56_, "text", &_tmp57_, NULL);
+			_tmp58_ = _tmp57_;
+			_tmp59_ = _tmp58_;
+			_tmp60_ = pos_start;
+			_tmp61_ = pos_end;
+			_tmp62_ = pos_start;
+			_tmp63_ = string_substring (_tmp59_, (glong) _tmp60_, (glong) ((_tmp61_ - _tmp62_) + 1));
+			_tmp64_ = _tmp63_;
+			_tmp65_ = pos_end;
+			_tmp66_ = pos_start;
+			_tmp67_ = g_compute_checksum_for_string (G_CHECKSUM_SHA256, _tmp64_, (gsize) ((_tmp65_ - _tmp66_) + 1));
+			_g_free0 (hash);
+			hash = _tmp67_;
+			_g_free0 (_tmp64_);
+			_g_free0 (_tmp59_);
+			_tmp68_ = stderr;
+			_tmp69_ = hash;
+			_tmp70_ = g_strconcat ("graphic: hash ", _tmp69_, NULL);
+			_tmp71_ = _tmp70_;
+			_tmp72_ = g_strconcat (_tmp71_, "\n", NULL);
+			_tmp73_ = _tmp72_;
+			fprintf (_tmp68_, "%s", _tmp73_);
+			_g_free0 (_tmp73_);
+			_g_free0 (_tmp71_);
+			_tmp74_ = hash;
+			_tmp75_ = g_strconcat ("tmp/", _tmp74_, NULL);
+			_tmp76_ = _tmp75_;
+			_tmp77_ = g_strconcat (_tmp76_, ".svg", NULL);
+			_tmp78_ = _tmp77_;
+			_tmp79_ = g_fopen (_tmp78_, "r");
+			_fclose0 (file);
+			file = _tmp79_;
+			_g_free0 (_tmp78_);
+			_g_free0 (_tmp76_);
+			_tmp80_ = file;
+			if (_tmp80_ == NULL) {
+				gint _tmp81_;
+				_tmp81_ = pos_end;
+				pos_start = _tmp81_ + 1;
+				continue;
+			}
+			_tmp82_ = stderr;
+			fprintf (_tmp82_, "graphic: file exists \n");
+			{
+				RsvgHandle* _tmp83_ = NULL;
+				const gchar* _tmp84_;
+				gchar* _tmp85_;
+				gchar* _tmp86_;
+				gchar* _tmp87_;
+				gchar* _tmp88_;
+				RsvgHandle* _tmp89_;
+				RsvgHandle* _tmp90_;
+				RsvgHandle* _tmp91_;
+				FILE* _tmp92_;
+				const gchar* _tmp93_;
+				gchar* _tmp94_;
+				gchar* _tmp95_;
+				gchar* _tmp96_;
+				gchar* _tmp97_;
+				RsvgHandle* _tmp98_;
+				RsvgHandle* _tmp99_;
+				GdkPixbuf* _tmp100_;
+				_tmp84_ = hash;
+				_tmp85_ = g_strconcat ("tmp/", _tmp84_, NULL);
+				_tmp86_ = _tmp85_;
+				_tmp87_ = g_strconcat (_tmp86_, ".svg", NULL);
+				_tmp88_ = _tmp87_;
+				_tmp89_ = rsvg_handle_new_from_file (_tmp88_, &_inner_error_);
+				_tmp90_ = _tmp89_;
+				_g_free0 (_tmp88_);
+				_g_free0 (_tmp86_);
+				_tmp83_ = _tmp90_;
+				if (G_UNLIKELY (_inner_error_ != NULL)) {
+					goto __catch18_g_error;
+				}
+				_tmp91_ = _tmp83_;
+				_tmp83_ = NULL;
+				_g_object_unref0 (handle);
+				handle = _tmp91_;
+				_tmp92_ = stderr;
+				_tmp93_ = hash;
+				_tmp94_ = g_strconcat ("graphics: " "tmp/", _tmp93_, NULL);
+				_tmp95_ = _tmp94_;
+				_tmp96_ = g_strconcat (_tmp95_, ".svg\n", NULL);
+				_tmp97_ = _tmp96_;
+				fprintf (_tmp92_, "%s", _tmp97_);
+				_g_free0 (_tmp97_);
+				_g_free0 (_tmp95_);
+				_tmp98_ = handle;
+				rsvg_handle_close (_tmp98_, &_inner_error_);
+				if (G_UNLIKELY (_inner_error_ != NULL)) {
+					_g_object_unref0 (_tmp83_);
+					goto __catch18_g_error;
+				}
+				_tmp99_ = handle;
+				_tmp100_ = rsvg_handle_get_pixbuf (_tmp99_);
+				_g_object_unref0 (pb);
+				pb = _tmp100_;
+				_g_object_unref0 (_tmp83_);
+			}
+			goto __finally18;
+			__catch18_g_error:
+			{
+				GError* err = NULL;
+				FILE* _tmp101_;
+				GError* _tmp102_;
+				const gchar* _tmp103_;
+				gchar* _tmp104_;
+				gchar* _tmp105_;
+				gchar* _tmp106_;
+				gchar* _tmp107_;
+				err = _inner_error_;
+				_inner_error_ = NULL;
+				_g_object_unref0 (pb);
+				pb = NULL;
+				_tmp101_ = stderr;
+				_tmp102_ = err;
+				_tmp103_ = _tmp102_->message;
+				_tmp104_ = g_strconcat ("graphic: pixbuf error: ", _tmp103_, NULL);
+				_tmp105_ = _tmp104_;
+				_tmp106_ = g_strconcat (_tmp105_, "\n", NULL);
+				_tmp107_ = _tmp106_;
+				fprintf (_tmp101_, "%s", _tmp107_);
+				_g_free0 (_tmp107_);
+				_g_free0 (_tmp105_);
+				_g_error_free0 (err);
+			}
+			__finally18:
+			if (G_UNLIKELY (_inner_error_ != NULL)) {
+				_g_object_unref0 (handle);
+				_g_object_unref0 (pb);
+				_fclose0 (file);
+				_g_free0 (hash);
+				g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
+				g_clear_error (&_inner_error_);
+				return;
+			}
+			_tmp108_ = pb;
+			if (_tmp108_ == NULL) {
+				FILE* _tmp109_;
+				gint _tmp110_;
+				_tmp109_ = stderr;
+				fprintf (_tmp109_, "graphic: pixbuf is NULL \n");
+				_tmp110_ = pos_end;
+				pos_start = _tmp110_ + 1;
+				continue;
+			}
+			_tmp111_ = stderr;
+			fprintf (_tmp111_, "graphic: pixbuf created \n");
+			_tmp112_ = self->priv->OutputBuffer;
+			g_object_get ((GtkTextBuffer*) _tmp112_, "text", &_tmp113_, NULL);
+			_tmp114_ = _tmp113_;
+			_tmp115_ = _tmp114_;
+			_tmp116_ = pos_start;
+			_tmp117_ = seaborg_character_index_at_byte_index (_tmp115_, _tmp116_);
+			char_start = _tmp117_;
+			_g_free0 (_tmp115_);
+			_tmp118_ = self->priv->OutputBuffer;
+			g_object_get ((GtkTextBuffer*) _tmp118_, "text", &_tmp119_, NULL);
+			_tmp120_ = _tmp119_;
+			_tmp121_ = _tmp120_;
+			_tmp122_ = pos_end;
+			_tmp123_ = seaborg_character_index_at_byte_index (_tmp121_, _tmp122_);
+			char_end = _tmp123_;
+			_g_free0 (_tmp121_);
+			_tmp124_ = self->priv->OutputBuffer;
+			_tmp125_ = self->priv->OutputBuffer;
+			g_object_get ((GtkTextBuffer*) _tmp125_, "text", &_tmp126_, NULL);
+			_tmp127_ = _tmp126_;
+			_tmp128_ = _tmp127_;
+			_tmp129_ = char_start;
+			_tmp130_ = char_end;
+			_tmp131_ = string_splice (_tmp128_, (glong) _tmp129_, (glong) (_tmp130_ + 1), NULL);
+			_tmp132_ = _tmp131_;
+			g_object_set ((GtkTextBuffer*) _tmp124_, "text", _tmp132_, NULL);
+			_g_free0 (_tmp132_);
+			_g_free0 (_tmp128_);
+			_tmp133_ = self->priv->OutputBuffer;
+			_tmp134_ = char_start;
+			gtk_text_buffer_get_iter_at_offset ((GtkTextBuffer*) _tmp133_, &_tmp135_, _tmp134_);
+			iter = _tmp135_;
+			_tmp136_ = self->priv->OutputBuffer;
+			_tmp137_ = iter;
+			_tmp138_ = pb;
+			gtk_text_buffer_insert_pixbuf ((GtkTextBuffer*) _tmp136_, &_tmp137_, _tmp138_);
+			_tmp139_ = pos_start;
+			pos_start = _tmp139_ + 1;
+		}
+		_g_object_unref0 (handle);
+		_g_object_unref0 (pb);
+		_fclose0 (file);
+		_g_free0 (hash);
+	}
 }
 
 
@@ -5226,11 +5889,11 @@ SeaborgTextCell* seaborg_text_cell_construct (GType object_type, SeaborgICellCon
 		_tmp6_ = css;
 		gtk_css_provider_load_from_path (_tmp6_, "res/seaborg.css", &_inner_error_);
 		if (G_UNLIKELY (_inner_error_ != NULL)) {
-			goto __catch18_g_error;
+			goto __catch19_g_error;
 		}
 	}
-	goto __finally18;
-	__catch18_g_error:
+	goto __finally19;
+	__catch19_g_error:
 	{
 		GError* _error_ = NULL;
 		GtkCssProvider* _tmp7_;
@@ -5243,7 +5906,7 @@ SeaborgTextCell* seaborg_text_cell_construct (GType object_type, SeaborgICellCon
 		css = _tmp8_;
 		_g_error_free0 (_error_);
 	}
-	__finally18:
+	__finally19:
 	if (G_UNLIKELY (_inner_error_ != NULL)) {
 		_g_object_unref0 (css);
 		g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
@@ -5732,11 +6395,11 @@ SeaborgAddButton* seaborg_add_button_construct (GType object_type, SeaborgICellC
 		_tmp6_ = css;
 		gtk_css_provider_load_from_path (_tmp6_, "res/seaborg.css", &_inner_error_);
 		if (G_UNLIKELY (_inner_error_ != NULL)) {
-			goto __catch19_g_error;
+			goto __catch20_g_error;
 		}
 	}
-	goto __finally19;
-	__catch19_g_error:
+	goto __finally20;
+	__catch20_g_error:
 	{
 		GError* _error_ = NULL;
 		GtkCssProvider* _tmp7_;
@@ -5749,7 +6412,7 @@ SeaborgAddButton* seaborg_add_button_construct (GType object_type, SeaborgICellC
 		css = _tmp8_;
 		_g_error_free0 (_error_);
 	}
-	__finally19:
+	__finally20:
 	if (G_UNLIKELY (_inner_error_ != NULL)) {
 		_g_object_unref0 (css);
 		g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);

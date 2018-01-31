@@ -1,5 +1,7 @@
 using Gtk;
 using Gdk;
+using GLib;
+using Rsvg;
 
 namespace Seaborg {
 
@@ -677,7 +679,7 @@ namespace Seaborg {
 			InputCell.bottom_margin = 0;
 			InputCell.button_press_event.connect(untoggle_handler);
 			InputCell.key_press_event.connect(key_handler);
-			InputBuffer.insert_text.connect(insert_handler); 
+			InputBuffer.insert_text.connect(insert_handler);
 
 			OutputBuffer = new Gtk.SourceBuffer(null);
 			OutputBuffer.highlight_matching_brackets = true;
@@ -857,7 +859,87 @@ namespace Seaborg {
 		}
 
 		public void add_text(string _text) {
+
 			OutputBuffer.text = OutputBuffer.text + _text;
+
+			// replace Graphics with pictures
+			if(_text.contains("Graphics")) {
+				
+				stderr.printf("\ngraphic: keyword found\n");
+
+				int pos_end, pos_start = 0;
+				int char_end, char_start;
+				string hash;
+				GLib.FileStream file;
+				Gdk.Pixbuf pb;
+				Rsvg.Handle handle;
+				TextIter iter;
+
+				while(pos_start <= OutputBuffer.text.length - 1) {
+
+					// find next graphics output
+					pos_start = OutputBuffer.text.index_of("Graphics", pos_start);
+					if(pos_start < 0)
+						break;
+
+					pos_end = find_closing_bracket(OutputBuffer.text, pos_start);
+					if(pos_end < 0 || pos_end >= OutputBuffer.text.length)
+						break;
+
+					stderr.printf("graphic: byte range [ " + pos_start.to_string() + ", " + (pos_end+1).to_string() + " ]\n");
+					
+					// try importing picture, file name is encoded by hash
+					hash = GLib.Checksum.compute_for_string(
+						GLib.ChecksumType.SHA256, 
+						OutputBuffer.text.substring(pos_start, pos_end-pos_start+1), 
+						pos_end-pos_start+1
+					);
+
+					stderr.printf("graphic: hash " + hash + "\n");
+
+					file = GLib.FileStream.open("tmp/" + hash + ".svg", "r");
+					if(file == null) {
+						pos_start = pos_end + 1;
+						continue;
+					}
+
+					stderr.printf("graphic: file exists \n");
+
+					try {
+
+						handle = new Rsvg.Handle.from_file("tmp/" + hash + ".svg");
+						stderr.printf("graphics: " + "tmp/" + hash + ".svg\n");
+						handle.close();
+						pb = handle.get_pixbuf();
+
+					} catch (GLib.Error err) {
+
+						pb = null;
+						stderr.printf("graphic: pixbuf error: " + err.message + "\n");
+
+					}
+
+					if(pb == null) {
+						stderr.printf("graphic: pixbuf is NULL \n");
+						pos_start = pos_end + 1;
+						continue;
+					}
+
+					stderr.printf("graphic: pixbuf created \n");
+
+					// remove graphics output from buffer
+					char_start = character_index_at_byte_index(OutputBuffer.text, pos_start);
+					char_end = character_index_at_byte_index(OutputBuffer.text, pos_end);
+					OutputBuffer.text = OutputBuffer.text.splice(char_start, char_end+1, null);
+
+					// insert pibuf
+					OutputBuffer.get_iter_at_offset(out iter, char_start);
+					OutputBuffer.insert_pixbuf(iter, pb);
+
+					pos_start++;
+
+				}
+			}
 		}
 
 		public string get_text() {

@@ -301,6 +301,7 @@ gboolean seaborg_check_input_packet (const gchar* _str);
 gchar* seaborg_icell_get_text (SeaborgICell* self);
 void seaborg_evaluation_cell_remove_text (SeaborgEvaluationCell* self);
 #define SEABORG_PARAMETER_form "InputForm"
+gchar* seaborg_replace_plot_input (const gchar* str);
 gchar* seaborg_replace_characters (const gchar* _str);
 void seaborg_seaborg_application_start_evalutation_thread (SeaborgSeaborgApplication* self);
 static void* ___lambda31_ (SeaborgSeaborgApplication* self);
@@ -1702,9 +1703,11 @@ void seaborg_seaborg_application_schedule_evaluation (SeaborgSeaborgApplication*
 								gchar* _tmp82_;
 								gchar* _tmp83_;
 								gchar* _tmp84_;
-								SeaborgEvaluationData _tmp85_ = {0};
-								SeaborgEvaluationData _tmp86_;
-								SeaborgEvaluationData* _tmp87_;
+								gchar* _tmp85_;
+								gchar* _tmp86_;
+								SeaborgEvaluationData _tmp87_ = {0};
+								SeaborgEvaluationData _tmp88_;
+								SeaborgEvaluationData* _tmp89_;
 								_tmp53_ = container;
 								_tmp54_ = seaborg_icell_container_get_Children (_tmp53_);
 								_tmp55_ = _tmp54_;
@@ -1740,17 +1743,20 @@ void seaborg_seaborg_application_schedule_evaluation (SeaborgSeaborgApplication*
 								_tmp79_ = _tmp78_;
 								_tmp80_ = seaborg_replace_characters (_tmp79_);
 								_tmp81_ = _tmp80_;
-								_tmp82_ = g_strconcat ("ToString[" SEABORG_PARAMETER_form "[", _tmp81_, NULL);
+								_tmp82_ = seaborg_replace_plot_input (_tmp81_);
 								_tmp83_ = _tmp82_;
-								_tmp84_ = g_strconcat (_tmp83_, "]]", NULL);
-								memset (&_tmp85_, 0, sizeof (SeaborgEvaluationData));
-								_tmp85_.cell = (void*) _tmp71_;
-								_g_free0 (_tmp85_.input);
-								_tmp85_.input = _tmp84_;
-								_tmp86_ = _tmp85_;
-								_tmp87_ = _seaborg_evaluation_data_dup0 (&_tmp86_);
-								g_queue_push_tail (_tmp65_, _tmp87_);
-								seaborg_evaluation_data_destroy (&_tmp86_);
+								_tmp84_ = g_strconcat ("ToString[" SEABORG_PARAMETER_form "[", _tmp83_, NULL);
+								_tmp85_ = _tmp84_;
+								_tmp86_ = g_strconcat (_tmp85_, "]]", NULL);
+								memset (&_tmp87_, 0, sizeof (SeaborgEvaluationData));
+								_tmp87_.cell = (void*) _tmp71_;
+								_g_free0 (_tmp87_.input);
+								_tmp87_.input = _tmp86_;
+								_tmp88_ = _tmp87_;
+								_tmp89_ = _seaborg_evaluation_data_dup0 (&_tmp88_);
+								g_queue_push_tail (_tmp65_, _tmp89_);
+								seaborg_evaluation_data_destroy (&_tmp88_);
+								_g_free0 (_tmp85_);
 								_g_free0 (_tmp83_);
 								_g_free0 (_tmp81_);
 								_g_free0 (_tmp79_);
@@ -1762,8 +1768,8 @@ void seaborg_seaborg_application_schedule_evaluation (SeaborgSeaborgApplication*
 		}
 		__finally3:
 		{
-			GQueue* _tmp88_;
-			_tmp88_ = self->priv->eval_queue;
+			GQueue* _tmp90_;
+			_tmp90_ = self->priv->eval_queue;
 			g_rec_mutex_unlock (&self->priv->__lock_eval_queue);
 		}
 		if (G_UNLIKELY (_inner_error_ != NULL)) {

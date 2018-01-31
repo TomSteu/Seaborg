@@ -19,6 +19,9 @@ gchar* seaborg_make_file_name (const gchar* _str);
 gchar* seaborg_save_replacement (const gchar* str);
 gchar* seaborg_load_replacement (const gchar* str);
 gchar* seaborg_comment_transform (const gchar* str);
+gchar* seaborg_replace_plot_input (const gchar* str);
+gint seaborg_find_closing_bracket (const gchar* str, gint start);
+gint seaborg_character_index_at_byte_index (const gchar* str, gint byte_idx);
 
 
 static gchar* string_replace (const gchar* self, const gchar* old, const gchar* replacement) {
@@ -72,7 +75,7 @@ static gchar* string_replace (const gchar* self, const gchar* old, const gchar* 
 		regex = _tmp10_;
 		if (G_UNLIKELY (_inner_error_ != NULL)) {
 			if (_inner_error_->domain == G_REGEX_ERROR) {
-				goto __catch20_g_regex_error;
+				goto __catch21_g_regex_error;
 			}
 			g_critical ("file %s: line %d: unexpected error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
 			g_clear_error (&_inner_error_);
@@ -85,7 +88,7 @@ static gchar* string_replace (const gchar* self, const gchar* old, const gchar* 
 		if (G_UNLIKELY (_inner_error_ != NULL)) {
 			_g_regex_unref0 (regex);
 			if (_inner_error_->domain == G_REGEX_ERROR) {
-				goto __catch20_g_regex_error;
+				goto __catch21_g_regex_error;
 			}
 			_g_regex_unref0 (regex);
 			g_critical ("file %s: line %d: unexpected error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
@@ -99,8 +102,8 @@ static gchar* string_replace (const gchar* self, const gchar* old, const gchar* 
 		_g_regex_unref0 (regex);
 		return result;
 	}
-	goto __finally20;
-	__catch20_g_regex_error:
+	goto __finally21;
+	__catch21_g_regex_error:
 	{
 		GError* e = NULL;
 		e = _inner_error_;
@@ -108,7 +111,7 @@ static gchar* string_replace (const gchar* self, const gchar* old, const gchar* 
 		g_assert_not_reached ();
 		_g_error_free0 (e);
 	}
-	__finally20:
+	__finally21:
 	if (G_UNLIKELY (_inner_error_ != NULL)) {
 		g_critical ("file %s: line %d: uncaught error: %s (%s, %d)", __FILE__, __LINE__, _inner_error_->message, g_quark_to_string (_inner_error_->domain), _inner_error_->code);
 		g_clear_error (&_inner_error_);
@@ -1026,6 +1029,477 @@ gchar* seaborg_comment_transform (const gchar* str) {
 	_g_free0 (_tmp52_);
 	result = _tmp54_;
 	_g_free0 (test_str);
+	return result;
+}
+
+
+static gboolean string_contains (const gchar* self, const gchar* needle) {
+	gboolean result = FALSE;
+	const gchar* _tmp0_;
+	gchar* _tmp1_;
+	g_return_val_if_fail (self != NULL, FALSE);
+	g_return_val_if_fail (needle != NULL, FALSE);
+	_tmp0_ = needle;
+	_tmp1_ = strstr ((gchar*) self, (gchar*) _tmp0_);
+	result = _tmp1_ != NULL;
+	return result;
+}
+
+
+gchar* seaborg_replace_plot_input (const gchar* str) {
+	gchar* result = NULL;
+	const gchar* _tmp0_;
+	gboolean _tmp1_;
+	const gchar* _tmp7_;
+	gchar* _tmp8_;
+	g_return_val_if_fail (str != NULL, NULL);
+	_tmp0_ = str;
+	_tmp1_ = string_contains (_tmp0_, "Plot");
+	if (_tmp1_) {
+		const gchar* _tmp2_;
+		gchar* _tmp3_;
+		gchar* _tmp4_;
+		gchar* _tmp5_;
+		gchar* _tmp6_;
+		_tmp2_ = str;
+		_tmp3_ = g_strconcat ("ReplaceAll[{ Graphics[A___] :> Block[{plot}, plot = Graphics[A]; Expor" \
+"t[\"tmp/\" <> IntegerString[Hash[ToString[InputForm[plot]], \"SHA256\"" \
+"], 16, 64] <> \".svg\", plot]; plot]," "Graphics3D[A___] :> Block[{plot}, plot = Graphics3D[A]; Export[\"tmp/\"" \
+" <> IntegerString[Hash[ToString[InputForm[plot]], \"SHA256\"], 16, 64]" \
+" <> \".svg\", plot]; plot] }][", _tmp2_, NULL);
+		_tmp4_ = _tmp3_;
+		_tmp5_ = g_strconcat (_tmp4_, "]", NULL);
+		_tmp6_ = _tmp5_;
+		_g_free0 (_tmp4_);
+		result = _tmp6_;
+		return result;
+	}
+	_tmp7_ = str;
+	_tmp8_ = g_strdup (_tmp7_);
+	result = _tmp8_;
+	return result;
+}
+
+
+gint seaborg_find_closing_bracket (const gchar* str, gint start) {
+	gint result = 0;
+	gboolean _tmp0_ = FALSE;
+	gint _tmp1_;
+	gint brack_count = 0;
+	gint pos = 0;
+	gint _tmp6_;
+	gint pos_open = 0;
+	const gchar* _tmp7_;
+	gint _tmp8_;
+	gint _tmp9_;
+	gint pos_close = 0;
+	const gchar* _tmp10_;
+	gint _tmp11_;
+	gint _tmp12_;
+	gint pos_string = 0;
+	const gchar* _tmp13_;
+	gint _tmp14_;
+	gint _tmp15_;
+	gint _tmp78_ = 0;
+	gint _tmp79_;
+	g_return_val_if_fail (str != NULL, 0);
+	_tmp1_ = start;
+	if (_tmp1_ < 0) {
+		_tmp0_ = TRUE;
+	} else {
+		gint _tmp2_;
+		const gchar* _tmp3_;
+		gint _tmp4_;
+		gint _tmp5_;
+		_tmp2_ = start;
+		_tmp3_ = str;
+		_tmp4_ = strlen (_tmp3_);
+		_tmp5_ = _tmp4_;
+		_tmp0_ = _tmp2_ >= _tmp5_;
+	}
+	if (_tmp0_) {
+		result = -1;
+		return result;
+	}
+	brack_count = 0;
+	_tmp6_ = start;
+	pos = _tmp6_;
+	_tmp7_ = str;
+	_tmp8_ = start;
+	_tmp9_ = string_index_of (_tmp7_, "[", _tmp8_);
+	pos_open = _tmp9_;
+	_tmp10_ = str;
+	_tmp11_ = start;
+	_tmp12_ = string_index_of (_tmp10_, "]", _tmp11_);
+	pos_close = _tmp12_;
+	_tmp13_ = str;
+	_tmp14_ = start;
+	_tmp15_ = string_index_of (_tmp13_, "\"", _tmp14_);
+	pos_string = _tmp15_;
+	{
+		gboolean _tmp16_ = FALSE;
+		_tmp16_ = TRUE;
+		while (TRUE) {
+			gboolean _tmp23_ = FALSE;
+			gboolean _tmp24_ = FALSE;
+			gint _tmp25_;
+			gboolean _tmp56_ = FALSE;
+			gboolean _tmp57_ = FALSE;
+			gint _tmp58_;
+			gint _tmp59_;
+			gboolean _tmp67_ = FALSE;
+			gboolean _tmp68_ = FALSE;
+			gint _tmp69_;
+			gint _tmp70_;
+			if (!_tmp16_) {
+				gboolean _tmp17_ = FALSE;
+				gint _tmp18_;
+				_tmp18_ = brack_count;
+				if (_tmp18_ != 0) {
+					gint _tmp19_;
+					const gchar* _tmp20_;
+					gint _tmp21_;
+					gint _tmp22_;
+					_tmp19_ = pos;
+					_tmp20_ = str;
+					_tmp21_ = strlen (_tmp20_);
+					_tmp22_ = _tmp21_;
+					_tmp17_ = _tmp19_ < (_tmp22_ - 1);
+				} else {
+					_tmp17_ = FALSE;
+				}
+				if (!_tmp17_) {
+					break;
+				}
+			}
+			_tmp16_ = FALSE;
+			_tmp25_ = pos_string;
+			if (_tmp25_ > 0) {
+				gboolean _tmp26_ = FALSE;
+				gint _tmp27_;
+				gint _tmp28_;
+				_tmp27_ = pos_string;
+				_tmp28_ = pos_close;
+				if (_tmp27_ < _tmp28_) {
+					_tmp26_ = TRUE;
+				} else {
+					gint _tmp29_;
+					_tmp29_ = pos_close;
+					_tmp26_ = _tmp29_ < 0;
+				}
+				_tmp24_ = _tmp26_;
+			} else {
+				_tmp24_ = FALSE;
+			}
+			if (_tmp24_) {
+				gboolean _tmp30_ = FALSE;
+				gint _tmp31_;
+				gint _tmp32_;
+				_tmp31_ = pos_string;
+				_tmp32_ = pos_open;
+				if (_tmp31_ < _tmp32_) {
+					_tmp30_ = TRUE;
+				} else {
+					gint _tmp33_;
+					_tmp33_ = pos_open;
+					_tmp30_ = _tmp33_ < 0;
+				}
+				_tmp23_ = _tmp30_;
+			} else {
+				_tmp23_ = FALSE;
+			}
+			if (_tmp23_) {
+				gint _tmp34_;
+				const gchar* _tmp35_;
+				gint _tmp36_;
+				gint _tmp37_;
+				const gchar* _tmp38_;
+				gint _tmp39_;
+				gint _tmp40_;
+				gboolean _tmp41_ = FALSE;
+				gint _tmp42_;
+				const gchar* _tmp47_;
+				gint _tmp48_;
+				gint _tmp49_;
+				const gchar* _tmp50_;
+				gint _tmp51_;
+				gint _tmp52_;
+				const gchar* _tmp53_;
+				gint _tmp54_;
+				gint _tmp55_;
+				_tmp34_ = pos;
+				_tmp35_ = str;
+				_tmp36_ = strlen (_tmp35_);
+				_tmp37_ = _tmp36_;
+				if (_tmp34_ >= (_tmp37_ - 1)) {
+					result = -1;
+					return result;
+				}
+				_tmp38_ = str;
+				_tmp39_ = pos;
+				_tmp40_ = string_index_of (_tmp38_, "\"", _tmp39_ + 1);
+				pos = _tmp40_;
+				_tmp42_ = pos;
+				if (_tmp42_ < 0) {
+					_tmp41_ = TRUE;
+				} else {
+					gint _tmp43_;
+					const gchar* _tmp44_;
+					gint _tmp45_;
+					gint _tmp46_;
+					_tmp43_ = pos;
+					_tmp44_ = str;
+					_tmp45_ = strlen (_tmp44_);
+					_tmp46_ = _tmp45_;
+					_tmp41_ = (_tmp43_ + 1) >= (_tmp46_ - 1);
+				}
+				if (_tmp41_) {
+					result = -1;
+					return result;
+				}
+				_tmp47_ = str;
+				_tmp48_ = pos;
+				_tmp49_ = string_index_of (_tmp47_, "[", _tmp48_ + 1);
+				pos_open = _tmp49_;
+				_tmp50_ = str;
+				_tmp51_ = pos;
+				_tmp52_ = string_index_of (_tmp50_, "]", _tmp51_ + 1);
+				pos_close = _tmp52_;
+				_tmp53_ = str;
+				_tmp54_ = pos;
+				_tmp55_ = string_index_of (_tmp53_, "\"", _tmp54_ + 1);
+				pos_string = _tmp55_;
+				continue;
+			}
+			_tmp58_ = pos_close;
+			_tmp59_ = pos_open;
+			if (_tmp58_ < _tmp59_) {
+				_tmp57_ = TRUE;
+			} else {
+				gint _tmp60_;
+				_tmp60_ = pos_open;
+				_tmp57_ = _tmp60_ < 0;
+			}
+			if (_tmp57_) {
+				gint _tmp61_;
+				_tmp61_ = pos_close;
+				_tmp56_ = _tmp61_ >= 0;
+			} else {
+				_tmp56_ = FALSE;
+			}
+			if (_tmp56_) {
+				gint _tmp62_;
+				gint _tmp63_;
+				const gchar* _tmp64_;
+				gint _tmp65_;
+				gint _tmp66_;
+				_tmp62_ = brack_count;
+				brack_count = _tmp62_ - 1;
+				_tmp63_ = pos_close;
+				pos = _tmp63_;
+				_tmp64_ = str;
+				_tmp65_ = pos;
+				_tmp66_ = string_index_of (_tmp64_, "]", _tmp65_ + 1);
+				pos_close = _tmp66_;
+				continue;
+			}
+			_tmp69_ = pos_open;
+			_tmp70_ = pos_close;
+			if (_tmp69_ < _tmp70_) {
+				_tmp68_ = TRUE;
+			} else {
+				gint _tmp71_;
+				_tmp71_ = pos_close;
+				_tmp68_ = _tmp71_ < 0;
+			}
+			if (_tmp68_) {
+				gint _tmp72_;
+				_tmp72_ = pos_open;
+				_tmp67_ = _tmp72_ >= 0;
+			} else {
+				_tmp67_ = FALSE;
+			}
+			if (_tmp67_) {
+				gint _tmp73_;
+				gint _tmp74_;
+				const gchar* _tmp75_;
+				gint _tmp76_;
+				gint _tmp77_;
+				_tmp73_ = brack_count;
+				brack_count = _tmp73_ + 1;
+				_tmp74_ = pos_open;
+				pos = _tmp74_;
+				_tmp75_ = str;
+				_tmp76_ = pos;
+				_tmp77_ = string_index_of (_tmp75_, "[", _tmp76_ + 1);
+				pos_open = _tmp77_;
+				continue;
+			}
+			break;
+		}
+	}
+	_tmp79_ = brack_count;
+	if (_tmp79_ == 0) {
+		gint _tmp80_;
+		_tmp80_ = pos;
+		_tmp78_ = _tmp80_;
+	} else {
+		_tmp78_ = -1;
+	}
+	result = _tmp78_;
+	return result;
+}
+
+
+static gboolean string_valid_char (const gchar* self, gint index) {
+	gboolean result = FALSE;
+	guint8 c = 0U;
+	gint _tmp0_;
+	guint8 _tmp1_;
+	gboolean _tmp2_ = FALSE;
+	gboolean _tmp3_ = FALSE;
+	guint8 _tmp4_;
+	g_return_val_if_fail (self != NULL, FALSE);
+	_tmp0_ = index;
+	_tmp1_ = ((guint8*) self)[_tmp0_];
+	c = _tmp1_;
+	_tmp4_ = c;
+	if (((gint) _tmp4_) == 0x00) {
+		_tmp3_ = TRUE;
+	} else {
+		gboolean _tmp5_ = FALSE;
+		guint8 _tmp6_;
+		_tmp6_ = c;
+		if (((gint) _tmp6_) >= 0x80) {
+			guint8 _tmp7_;
+			_tmp7_ = c;
+			_tmp5_ = ((gint) _tmp7_) < 0xc2;
+		} else {
+			_tmp5_ = FALSE;
+		}
+		_tmp3_ = _tmp5_;
+	}
+	if (_tmp3_) {
+		_tmp2_ = TRUE;
+	} else {
+		guint8 _tmp8_;
+		_tmp8_ = c;
+		_tmp2_ = ((gint) _tmp8_) >= 0xf5;
+	}
+	if (_tmp2_) {
+		result = FALSE;
+		return result;
+	} else {
+		result = TRUE;
+		return result;
+	}
+}
+
+
+static gint string_index_of_nth_char (const gchar* self, glong c) {
+	gint result = 0;
+	glong _tmp0_;
+	gchar* _tmp1_;
+	g_return_val_if_fail (self != NULL, 0);
+	_tmp0_ = c;
+	_tmp1_ = g_utf8_offset_to_pointer (self, _tmp0_);
+	result = (gint) (_tmp1_ - ((gchar*) self));
+	return result;
+}
+
+
+gint seaborg_character_index_at_byte_index (const gchar* str, gint byte_idx) {
+	gint result = 0;
+	gint _tmp0_;
+	const gchar* _tmp1_;
+	gint _tmp2_;
+	gint _tmp3_;
+	const gchar* _tmp4_;
+	gint _tmp5_;
+	gboolean _tmp6_;
+	gint _tmp7_ = 0;
+	gint _tmp8_;
+	const gchar* _tmp9_;
+	gint _tmp10_;
+	gint char_idx = 0;
+	gint current_idx = 0;
+	g_return_val_if_fail (str != NULL, 0);
+	_tmp0_ = byte_idx;
+	_tmp1_ = str;
+	_tmp2_ = strlen (_tmp1_);
+	_tmp3_ = _tmp2_;
+	if (_tmp0_ > (_tmp3_ - 1)) {
+		result = -1;
+		return result;
+	}
+	_tmp4_ = str;
+	_tmp5_ = byte_idx;
+	_tmp6_ = string_valid_char (_tmp4_, _tmp5_);
+	if (!_tmp6_) {
+		result = -1;
+		return result;
+	}
+	_tmp8_ = byte_idx;
+	_tmp9_ = str;
+	_tmp10_ = g_utf8_strlen (_tmp9_, (gssize) -1);
+	if (_tmp8_ >= _tmp10_) {
+		const gchar* _tmp11_;
+		gint _tmp12_;
+		_tmp11_ = str;
+		_tmp12_ = g_utf8_strlen (_tmp11_, (gssize) -1);
+		_tmp7_ = _tmp12_ - 1;
+	} else {
+		gint _tmp13_;
+		_tmp13_ = byte_idx;
+		_tmp7_ = _tmp13_;
+	}
+	char_idx = _tmp7_;
+	while (TRUE) {
+		gboolean _tmp14_ = FALSE;
+		gint _tmp15_;
+		const gchar* _tmp19_;
+		gint _tmp20_;
+		gint _tmp21_;
+		gint _tmp22_;
+		gint _tmp23_;
+		gint _tmp24_;
+		gint _tmp25_;
+		gint _tmp26_;
+		_tmp15_ = char_idx;
+		if (_tmp15_ >= 0) {
+			gint _tmp16_;
+			const gchar* _tmp17_;
+			gint _tmp18_;
+			_tmp16_ = char_idx;
+			_tmp17_ = str;
+			_tmp18_ = g_utf8_strlen (_tmp17_, (gssize) -1);
+			_tmp14_ = _tmp16_ < _tmp18_;
+		} else {
+			_tmp14_ = FALSE;
+		}
+		if (!_tmp14_) {
+			break;
+		}
+		_tmp19_ = str;
+		_tmp20_ = char_idx;
+		_tmp21_ = string_index_of_nth_char (_tmp19_, (glong) _tmp20_);
+		current_idx = _tmp21_;
+		_tmp22_ = current_idx;
+		_tmp23_ = byte_idx;
+		if (_tmp22_ == _tmp23_) {
+			result = char_idx;
+			return result;
+		}
+		_tmp24_ = current_idx;
+		_tmp25_ = byte_idx;
+		if (_tmp24_ < _tmp25_) {
+			result = -1;
+			return result;
+		}
+		_tmp26_ = char_idx;
+		char_idx = _tmp26_ - 1;
+	}
+	result = -1;
 	return result;
 }
 
