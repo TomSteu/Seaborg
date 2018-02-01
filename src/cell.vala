@@ -868,27 +868,34 @@ namespace Seaborg {
 
 				int pos_end, pos_start = 0;
 				int char_end, char_start;
-				string hash;
+				string output, hash;
 				GLib.FileStream file;
 				Gdk.Pixbuf pb;
 				Rsvg.Handle handle;
 				TextIter iter1, iter2;
 
-				while(pos_start <= OutputBuffer.text.length - 1) {
+				while(true) {
+
+					OutputBuffer.get_bounds(out iter1, out iter2);
+					output = OutputBuffer.get_slice(iter1, iter2, true);
+
+					if(pos_start > output.length - 1)
+						break;
+
 
 					// find next graphics output
-					pos_start = OutputBuffer.text.index_of("Graphics", pos_start);
+					pos_start = output.index_of("Graphics", pos_start);
 					if(pos_start < 0)
 						break;
 
-					pos_end = find_closing_bracket(OutputBuffer.text, pos_start);
-					if(pos_end < 0 || pos_end >= OutputBuffer.text.length)
+					pos_end = find_closing_bracket(output, pos_start);
+					if(pos_end < 0 || pos_end >= output.length)
 						break;
 					
 					// try importing picture, file name is encoded by hash
 					hash = GLib.Checksum.compute_for_string(
 						GLib.ChecksumType.SHA256, 
-						OutputBuffer.text.substring(pos_start, pos_end-pos_start+1), 
+						output.substring(pos_start, pos_end-pos_start+1), 
 						pos_end-pos_start+1
 					);
 
@@ -916,11 +923,11 @@ namespace Seaborg {
 					}
 
 					// remove graphics output from buffer
-					char_start = character_index_at_byte_index(OutputBuffer.text, pos_start);
-					char_end = character_index_at_byte_index(OutputBuffer.text, pos_end);
+					char_start = character_index_at_byte_index(output, pos_start);
+					char_end = character_index_at_byte_index(output, pos_end);
 					OutputBuffer.get_iter_at_offset(out iter1, char_start);
 					OutputBuffer.get_iter_at_offset(out iter2, char_end+1);
-					OutputBuffer.delete_range(iter1, iter2);
+					OutputBuffer.delete(ref iter1, ref iter2);
 
 					// insert pixbuf
 					OutputBuffer.get_iter_at_offset(out iter1, char_start);
