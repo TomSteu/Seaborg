@@ -460,8 +460,6 @@ namespace Seaborg {
 			stderr.printf("\n" + msg + "\n");
 		}
 
-		private static delegate void callback_str(char* string_to_write, void* callback_data, ulong stamp, int break_after);
-
 		private static  callback_str write_to_evaluation_cell = (_string_to_write, cell_ptr, _stamp, _break) => {
 			string string_to_write;
 
@@ -1186,6 +1184,9 @@ namespace Seaborg {
 
 
 		private EvaluationData current_cell; 
+
+		[CCode (has_target = false)]
+		private delegate void callback_str(char* string_to_write, void* callback_data, ulong stamp, int break_after);
 
 		[CCode(cname = "init_connection", cheader_filename = "wstp_connection.h")]
 		private extern static void* init_connection(char* path);

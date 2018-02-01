@@ -845,7 +845,6 @@ namespace Seaborg {
 					break;
 				default:
 					return;
-					break;
 			}
 
 			iter.backward_cursor_position();

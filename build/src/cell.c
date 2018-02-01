@@ -4925,7 +4925,6 @@ static void seaborg_evaluation_cell_insert_handler (SeaborgEvaluationCell* self,
 			default:
 			{
 				return;
-				break;
 			}
 		}
 	}
