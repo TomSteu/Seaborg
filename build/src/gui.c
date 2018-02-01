@@ -259,6 +259,8 @@ static void _seaborg_evaluation_data_free0_ (gpointer var);
 static void _g_queue_free__seaborg_evaluation_data_free0_ (GQueue* self);
 static void seaborg_seaborg_application_real_activate (GApplication* base);
 void seaborg_id_generator_reset (void);
+void seaborg_seaborg_application_quit_app (SeaborgSeaborgApplication* self);
+static void _seaborg_seaborg_application_quit_app_gtk_widget_destroy (GtkWidget* _sender, gpointer self);
 void seaborg_seaborg_application_new_notebook (SeaborgSeaborgApplication* self);
 static void seaborg_seaborg_application_real_startup (GApplication* base);
 static void __lambda19_ (SeaborgSeaborgApplication* self);
@@ -1105,6 +1107,11 @@ static gpointer _g_object_ref0 (gpointer self) {
 }
 
 
+static void _seaborg_seaborg_application_quit_app_gtk_widget_destroy (GtkWidget* _sender, gpointer self) {
+	seaborg_seaborg_application_quit_app ((SeaborgSeaborgApplication*) self);
+}
+
+
 static void seaborg_seaborg_application_real_activate (GApplication* base) {
 	SeaborgSeaborgApplication * self;
 	GtkApplicationWindow* _tmp0_;
@@ -1137,6 +1144,7 @@ static void seaborg_seaborg_application_real_activate (GApplication* base) {
 	GtkApplicationWindow* _tmp25_;
 	GtkApplicationWindow* _tmp26_;
 	GtkApplicationWindow* _tmp27_;
+	GtkApplicationWindow* _tmp28_;
 	self = (SeaborgSeaborgApplication*) base;
 	g_application_set_resource_base_path ((GApplication*) self, "/tst/seaborg/./res/");
 	seaborg_id_generator_reset ();
@@ -1207,11 +1215,13 @@ static void seaborg_seaborg_application_real_activate (GApplication* base) {
 	_tmp24_ = self->priv->shortcuts;
 	gtk_application_window_set_help_overlay (_tmp23_, _tmp24_);
 	_tmp25_ = self->priv->main_window;
-	gtk_application_add_window ((GtkApplication*) self, (GtkWindow*) _tmp25_);
+	g_signal_connect_object ((GtkWidget*) _tmp25_, "destroy", (GCallback) _seaborg_seaborg_application_quit_app_gtk_widget_destroy, self, 0);
 	_tmp26_ = self->priv->main_window;
-	gtk_window_set_default_size ((GtkWindow*) _tmp26_, 800, 600);
+	gtk_application_add_window ((GtkApplication*) self, (GtkWindow*) _tmp26_);
 	_tmp27_ = self->priv->main_window;
-	gtk_widget_show_all ((GtkWidget*) _tmp27_);
+	gtk_window_set_default_size ((GtkWindow*) _tmp27_, 800, 600);
+	_tmp28_ = self->priv->main_window;
+	gtk_widget_show_all ((GtkWidget*) _tmp28_);
 	seaborg_seaborg_application_new_notebook (self);
 	_g_object_unref0 (shortcut_builder);
 	_g_free0 (shortcut_builder_string);
@@ -1291,7 +1301,7 @@ static void ___lambda25__g_simple_action_activate (GSimpleAction* _sender, GVari
 
 
 static void __lambda27_ (SeaborgSeaborgApplication* self) {
-	g_application_quit ((GApplication*) self);
+	seaborg_seaborg_application_quit_app (self);
 }
 
 
@@ -1506,6 +1516,12 @@ static void seaborg_seaborg_application_real_startup (GApplication* base) {
 	_g_object_unref0 (save_action);
 	_g_object_unref0 (open_action);
 	_g_object_unref0 (new_action);
+}
+
+
+void seaborg_seaborg_application_quit_app (SeaborgSeaborgApplication* self) {
+	g_return_if_fail (self != NULL);
+	g_application_quit ((GApplication*) self);
 }
 
 

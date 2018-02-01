@@ -160,6 +160,7 @@ namespace Seaborg {
 			main_window.set_titlebar(main_headerbar);
 			main_window.add(notebook_scroll);
 			main_window.set_help_overlay(shortcuts);
+			main_window.destroy.connect(quit_app);
 			this.add_window(main_window);
 
 			main_window.set_default_size(800, 600);
@@ -225,7 +226,7 @@ namespace Seaborg {
 			});
 
 			quit_action.activate.connect(() => {
-				this.quit();
+				quit_app();
 			});
 
 			close_action.activate.connect(() => {
@@ -298,6 +299,11 @@ namespace Seaborg {
 			eval_queue = new Queue<EvaluationData?>();
 
 
+		}
+
+		public void quit_app() {
+
+			this.quit();
 		}
 
 		public void schedule_evaluation(ICellContainer container) {

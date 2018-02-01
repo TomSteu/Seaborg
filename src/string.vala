@@ -138,9 +138,7 @@ namespace Seaborg {
 	}
 
 	static string replace_plot_input(string str) {
-		if(
-			str.contains("Plot")
-		) {
+		if(str.contains("Plot")) {
 			return "ReplaceAll[{ Graphics[A___] :> Block[{plot}, plot = Graphics[A]; Export[\"tmp/\" <> IntegerString[Hash[ToString[InputForm[plot]], \"SHA256\"], 16, 64] <> \".svg\", plot]; plot]," + 
 				"Graphics3D[A___] :> Block[{plot}, plot = Graphics3D[A]; Export[\"tmp/\" <> IntegerString[Hash[ToString[InputForm[plot]], \"SHA256\"], 16, 64] <> \".svg\", plot]; plot] }]["+ str + "]";
 		}
