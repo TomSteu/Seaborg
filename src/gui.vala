@@ -307,6 +307,9 @@ namespace Seaborg {
 		}
 
 		public void schedule_evaluation(ICellContainer container) {
+			EvaluationCell eva;
+			int last=-1;
+
 			lock(eval_queue) {
 
 				// add evalutation cells to be evaluated
@@ -316,20 +319,40 @@ namespace Seaborg {
 						schedule_evaluation((ICellContainer) container.Children.data[i]);
 
 					if(container.Children.data[i].marker_selected() && (! container.Children.data[i].lock) && container.Children.data[i] is EvaluationCell) {
-						if(Seaborg.check_input_packet(((EvaluationCell) container.Children.data[i]).get_text())) {
-							((EvaluationCell)container.Children.data[i]).lock = true;
-							((EvaluationCell) container.Children.data[i]).remove_text();
+						eva = (EvaluationCell) container.Children.data[i];
+						last = i;
+						if(Seaborg.check_input_packet(eva.get_text())) {
+							eva.lock = true;
+							eva.remove_text();
 							eval_queue.push_tail( EvaluationData() { 
-								cell = (void*) container.Children.data[i],
-								input = "ToString[" + Parameter.form + "[" + replace_plot_input(replace_characters(((EvaluationCell) container.Children.data[i]).get_text())) + "]]"
+								cell = (void*) eva,
+								input = "ToString[" + Parameter.form + "[" + replace_plot_input(replace_characters(eva.get_text())) + "]]"
 							});
-
 						}
 					}
 				}
 			}
 
 			start_evalutation_thread();
+			
+			if(last < 0)
+				return;
+
+			// grab focus on next cell
+			if(last+1 >= container.Children.data.length) {
+				EvaluationCell* newCell = new EvaluationCell(container);
+				container.add_before(-1, {newCell});
+				newCell->focus_cell();
+				container.recursive_untoggle_all();
+				newCell->toggle_all();
+				return;
+
+			}
+			
+			container.Children.data[last+1].focus_cell();
+			container.recursive_untoggle_all();
+			container.Children.data[last+1].toggle_all();
+
 		}
 			
 			// start evaluation thread, if not already running
