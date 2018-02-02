@@ -132,6 +132,8 @@ struct _SeaborgSeaborgApplicationPrivate {
 	GtkStackSwitcher* tab_switcher;
 	GtkStack* notebook_stack;
 	GMenu* main_menu;
+	GtkGrid* main_layout;
+	GtkInfoBar* message_bar;
 	GtkScrolledWindow* notebook_scroll;
 	GtkShortcutsWindow* shortcuts;
 	void* kernel_connection;
@@ -259,42 +261,44 @@ static void _seaborg_evaluation_data_free0_ (gpointer var);
 static void _g_queue_free__seaborg_evaluation_data_free0_ (GQueue* self);
 static void seaborg_seaborg_application_real_activate (GApplication* base);
 void seaborg_id_generator_reset (void);
+static void __lambda19_ (SeaborgSeaborgApplication* self, gint i);
+static void ___lambda19__gtk_info_bar_response (GtkInfoBar* _sender, gint response_id, gpointer self);
 void seaborg_seaborg_application_quit_app (SeaborgSeaborgApplication* self);
 static void _seaborg_seaborg_application_quit_app_gtk_widget_destroy (GtkWidget* _sender, gpointer self);
 void seaborg_seaborg_application_new_notebook (SeaborgSeaborgApplication* self);
 static void seaborg_seaborg_application_real_startup (GApplication* base);
-static void __lambda19_ (SeaborgSeaborgApplication* self);
-static void ___lambda19__g_simple_action_activate (GSimpleAction* _sender, GVariant* parameter, gpointer self);
 static void __lambda20_ (SeaborgSeaborgApplication* self);
-static void seaborg_seaborg_application_load_dialog (SeaborgSeaborgApplication* self);
 static void ___lambda20__g_simple_action_activate (GSimpleAction* _sender, GVariant* parameter, gpointer self);
 static void __lambda21_ (SeaborgSeaborgApplication* self);
-static void seaborg_seaborg_application_save_dialog (SeaborgSeaborgApplication* self);
-void seaborg_seaborg_application_save_notebook (SeaborgSeaborgApplication* self, const gchar* fn);
+static void seaborg_seaborg_application_load_dialog (SeaborgSeaborgApplication* self);
 static void ___lambda21__g_simple_action_activate (GSimpleAction* _sender, GVariant* parameter, gpointer self);
 static void __lambda22_ (SeaborgSeaborgApplication* self);
+static void seaborg_seaborg_application_save_dialog (SeaborgSeaborgApplication* self);
+void seaborg_seaborg_application_save_notebook (SeaborgSeaborgApplication* self, const gchar* fn);
 static void ___lambda22__g_simple_action_activate (GSimpleAction* _sender, GVariant* parameter, gpointer self);
 static void __lambda23_ (SeaborgSeaborgApplication* self);
-static void seaborg_seaborg_application_import_dialog (SeaborgSeaborgApplication* self);
 static void ___lambda23__g_simple_action_activate (GSimpleAction* _sender, GVariant* parameter, gpointer self);
-static void __lambda25_ (SeaborgSeaborgApplication* self);
+static void __lambda24_ (SeaborgSeaborgApplication* self);
+static void seaborg_seaborg_application_import_dialog (SeaborgSeaborgApplication* self);
+static void ___lambda24__g_simple_action_activate (GSimpleAction* _sender, GVariant* parameter, gpointer self);
+static void __lambda26_ (SeaborgSeaborgApplication* self);
 static void seaborg_seaborg_application_export_dialog (SeaborgSeaborgApplication* self);
-static void ___lambda25__g_simple_action_activate (GSimpleAction* _sender, GVariant* parameter, gpointer self);
-static void __lambda27_ (SeaborgSeaborgApplication* self);
-static void ___lambda27__g_simple_action_activate (GSimpleAction* _sender, GVariant* parameter, gpointer self);
+static void ___lambda26__g_simple_action_activate (GSimpleAction* _sender, GVariant* parameter, gpointer self);
 static void __lambda28_ (SeaborgSeaborgApplication* self);
+static void ___lambda28__g_simple_action_activate (GSimpleAction* _sender, GVariant* parameter, gpointer self);
+static void __lambda29_ (SeaborgSeaborgApplication* self);
 GType seaborg_notebook_get_type (void) G_GNUC_CONST;
 void seaborg_icell_toggle_all (SeaborgICell* self);
 void seaborg_icell_remove_recursively (SeaborgICell* self);
-static void ___lambda28__g_simple_action_activate (GSimpleAction* _sender, GVariant* parameter, gpointer self);
-static void __lambda29_ (SeaborgSeaborgApplication* self);
 static void ___lambda29__g_simple_action_activate (GSimpleAction* _sender, GVariant* parameter, gpointer self);
 static void __lambda30_ (SeaborgSeaborgApplication* self);
-void seaborg_seaborg_application_schedule_evaluation (SeaborgSeaborgApplication* self, SeaborgICellContainer* container);
 static void ___lambda30__g_simple_action_activate (GSimpleAction* _sender, GVariant* parameter, gpointer self);
-static void __lambda34_ (SeaborgSeaborgApplication* self);
+static void __lambda31_ (SeaborgSeaborgApplication* self);
+void seaborg_seaborg_application_schedule_evaluation (SeaborgSeaborgApplication* self, SeaborgICellContainer* container);
+static void ___lambda31__g_simple_action_activate (GSimpleAction* _sender, GVariant* parameter, gpointer self);
+static void __lambda35_ (SeaborgSeaborgApplication* self);
 gint try_abort (void* con);
-static void ___lambda34__g_simple_action_activate (GSimpleAction* _sender, GVariant* parameter, gpointer self);
+static void ___lambda35__g_simple_action_activate (GSimpleAction* _sender, GVariant* parameter, gpointer self);
 static void seaborg_seaborg_application_reset_kernel (SeaborgSeaborgApplication* self);
 GArray* seaborg_icell_container_get_Children (SeaborgICellContainer* self);
 gboolean seaborg_icell_marker_selected (SeaborgICell* self);
@@ -311,15 +315,15 @@ SeaborgEvaluationCell* seaborg_evaluation_cell_construct (GType object_type, Sea
 void seaborg_icell_add_before (SeaborgICell* self, gint pos, SeaborgICell** list, int list_length1);
 void seaborg_icell_focus_cell (SeaborgICell* self);
 void seaborg_icell_recursive_untoggle_all (SeaborgICell* self);
-static void* ___lambda31_ (SeaborgSeaborgApplication* self);
+static void* ___lambda32_ (SeaborgSeaborgApplication* self);
 gint check_connection (void* con);
-static gboolean ____lambda32_ (SeaborgSeaborgApplication* self);
-static void seaborg_seaborg_application_abort_eval (SeaborgSeaborgApplication* self);
-static gboolean _____lambda32__gsource_func (gpointer self);
-void evaluate (void* con, gchar* input, SeaborgSeaborgApplicationcallback_str callback, void* callback_data);
 static gboolean ____lambda33_ (SeaborgSeaborgApplication* self);
+static void seaborg_seaborg_application_abort_eval (SeaborgSeaborgApplication* self);
 static gboolean _____lambda33__gsource_func (gpointer self);
-static gpointer ____lambda31__gthread_func (gpointer self);
+void evaluate (void* con, gchar* input, SeaborgSeaborgApplicationcallback_str callback, void* callback_data);
+static gboolean ____lambda34_ (SeaborgSeaborgApplication* self);
+static gboolean _____lambda34__gsource_func (gpointer self);
+static gpointer ____lambda32__gthread_func (gpointer self);
 gint try_reset_after_abort (void* con);
 void close_connection (void* connection);
 void* init_connection (gchar* path);
@@ -336,10 +340,10 @@ gchar* seaborg_make_file_name (const gchar* _str);
 static void seaborg_seaborg_application_assemble_recursively (SeaborgSeaborgApplication* self, xmlNode* root, SeaborgICellContainer* container);
 static Block4Data* block4_data_ref (Block4Data* _data4_);
 static void block4_data_unref (void * _userdata_);
-static void* __lambda26_ (Block4Data* _data4_);
+static void* __lambda27_ (Block4Data* _data4_);
 static void seaborg_seaborg_application_abort_listener_thread (SeaborgSeaborgApplication* self);
 static gchar* seaborg_seaborg_application_list_cells_recursively (SeaborgSeaborgApplication* self, SeaborgICellContainer* container);
-static gpointer ___lambda26__gthread_func (gpointer self);
+static gpointer ___lambda27__gthread_func (gpointer self);
 GType seaborg_text_cell_get_type (void) G_GNUC_CONST;
 gchar* seaborg_evaluation_cell_get_output_text (SeaborgEvaluationCell* self);
 GType seaborg_cell_container_get_type (void) G_GNUC_CONST;
@@ -354,8 +358,8 @@ void seaborg_cell_container_set_level (SeaborgCellContainer* self, guint level);
 gchar* seaborg_save_replacement (const gchar* str);
 static Block5Data* block5_data_ref (Block5Data* _data5_);
 static void block5_data_unref (void * _userdata_);
-static void* __lambda24_ (Block5Data* _data5_);
-static gpointer ___lambda24__gthread_func (gpointer self);
+static void* __lambda25_ (Block5Data* _data5_);
+static gpointer ___lambda25__gthread_func (gpointer self);
 SeaborgSeaborgApplication* seaborg_seaborg_application_new (void);
 SeaborgSeaborgApplication* seaborg_seaborg_application_construct (GType object_type);
 static void seaborg_seaborg_application_finalize (GObject * obj);
@@ -1109,6 +1113,18 @@ static gpointer _g_object_ref0 (gpointer self) {
 }
 
 
+static void __lambda19_ (SeaborgSeaborgApplication* self, gint i) {
+	GtkInfoBar* _tmp0_;
+	_tmp0_ = self->priv->message_bar;
+	gtk_widget_hide ((GtkWidget*) _tmp0_);
+}
+
+
+static void ___lambda19__gtk_info_bar_response (GtkInfoBar* _sender, gint response_id, gpointer self) {
+	__lambda19_ ((SeaborgSeaborgApplication*) self, response_id);
+}
+
+
 static void _seaborg_seaborg_application_quit_app_gtk_widget_destroy (GtkWidget* _sender, gpointer self) {
 	seaborg_seaborg_application_quit_app ((SeaborgSeaborgApplication*) self);
 }
@@ -1118,35 +1134,46 @@ static void seaborg_seaborg_application_real_activate (GApplication* base) {
 	SeaborgSeaborgApplication * self;
 	GtkApplicationWindow* _tmp0_;
 	GtkHeaderBar* _tmp1_;
-	GtkStackSwitcher* _tmp2_;
-	GtkStack* _tmp3_;
-	GtkScrolledWindow* _tmp4_;
+	GtkGrid* _tmp2_;
+	GtkInfoBar* _tmp3_;
+	GtkStackSwitcher* _tmp4_;
+	GtkStack* _tmp5_;
+	GtkScrolledWindow* _tmp6_;
 	gchar* shortcut_builder_string = NULL;
-	gchar* _tmp5_;
+	gchar* _tmp7_;
 	GtkBuilder* shortcut_builder = NULL;
-	gint _tmp6_;
-	gint _tmp7_;
-	GtkBuilder* _tmp8_;
-	GObject* _tmp9_;
-	GtkShortcutsWindow* _tmp10_;
-	GtkStackSwitcher* _tmp11_;
-	GtkStack* _tmp12_;
-	GtkHeaderBar* _tmp13_;
-	GtkHeaderBar* _tmp14_;
-	GtkStackSwitcher* _tmp15_;
-	GtkScrolledWindow* _tmp16_;
-	GtkStack* _tmp17_;
-	GtkApplicationWindow* _tmp18_;
-	GtkApplicationWindow* _tmp19_;
+	gint _tmp8_;
+	gint _tmp9_;
+	GtkBuilder* _tmp10_;
+	GObject* _tmp11_;
+	GtkShortcutsWindow* _tmp12_;
+	GtkStackSwitcher* _tmp13_;
+	GtkStack* _tmp14_;
+	GtkInfoBar* _tmp15_;
+	GtkInfoBar* _tmp16_;
+	GtkInfoBar* _tmp17_;
+	GtkInfoBar* _tmp18_;
+	GtkInfoBar* _tmp19_;
 	GtkHeaderBar* _tmp20_;
-	GtkApplicationWindow* _tmp21_;
-	GtkScrolledWindow* _tmp22_;
-	GtkApplicationWindow* _tmp23_;
-	GtkShortcutsWindow* _tmp24_;
-	GtkApplicationWindow* _tmp25_;
-	GtkApplicationWindow* _tmp26_;
-	GtkApplicationWindow* _tmp27_;
-	GtkApplicationWindow* _tmp28_;
+	GtkHeaderBar* _tmp21_;
+	GtkStackSwitcher* _tmp22_;
+	GtkScrolledWindow* _tmp23_;
+	GtkStack* _tmp24_;
+	GtkGrid* _tmp25_;
+	GtkInfoBar* _tmp26_;
+	GtkGrid* _tmp27_;
+	GtkScrolledWindow* _tmp28_;
+	GtkApplicationWindow* _tmp29_;
+	GtkApplicationWindow* _tmp30_;
+	GtkHeaderBar* _tmp31_;
+	GtkApplicationWindow* _tmp32_;
+	GtkGrid* _tmp33_;
+	GtkApplicationWindow* _tmp34_;
+	GtkShortcutsWindow* _tmp35_;
+	GtkApplicationWindow* _tmp36_;
+	GtkApplicationWindow* _tmp37_;
+	GtkApplicationWindow* _tmp38_;
+	GtkApplicationWindow* _tmp39_;
 	self = (SeaborgSeaborgApplication*) base;
 	g_application_set_resource_base_path ((GApplication*) self, "/tst/seaborg/./res/");
 	seaborg_id_generator_reset ();
@@ -1158,19 +1185,27 @@ static void seaborg_seaborg_application_real_activate (GApplication* base) {
 	g_object_ref_sink (_tmp1_);
 	_g_object_unref0 (self->priv->main_headerbar);
 	self->priv->main_headerbar = _tmp1_;
-	_tmp2_ = (GtkStackSwitcher*) gtk_stack_switcher_new ();
+	_tmp2_ = (GtkGrid*) gtk_grid_new ();
 	g_object_ref_sink (_tmp2_);
-	_g_object_unref0 (self->priv->tab_switcher);
-	self->priv->tab_switcher = _tmp2_;
-	_tmp3_ = (GtkStack*) gtk_stack_new ();
+	_g_object_unref0 (self->priv->main_layout);
+	self->priv->main_layout = _tmp2_;
+	_tmp3_ = (GtkInfoBar*) gtk_info_bar_new ();
 	g_object_ref_sink (_tmp3_);
-	_g_object_unref0 (self->priv->notebook_stack);
-	self->priv->notebook_stack = _tmp3_;
-	_tmp4_ = (GtkScrolledWindow*) gtk_scrolled_window_new (NULL, NULL);
+	_g_object_unref0 (self->priv->message_bar);
+	self->priv->message_bar = _tmp3_;
+	_tmp4_ = (GtkStackSwitcher*) gtk_stack_switcher_new ();
 	g_object_ref_sink (_tmp4_);
+	_g_object_unref0 (self->priv->tab_switcher);
+	self->priv->tab_switcher = _tmp4_;
+	_tmp5_ = (GtkStack*) gtk_stack_new ();
+	g_object_ref_sink (_tmp5_);
+	_g_object_unref0 (self->priv->notebook_stack);
+	self->priv->notebook_stack = _tmp5_;
+	_tmp6_ = (GtkScrolledWindow*) gtk_scrolled_window_new (NULL, NULL);
+	g_object_ref_sink (_tmp6_);
 	_g_object_unref0 (self->priv->notebook_scroll);
-	self->priv->notebook_scroll = _tmp4_;
-	_tmp5_ = g_strdup ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" "<interface>" "<object class=\"GtkShortcutsWindow\" id=\"shortcuts\">" "<property name=\"modal\">1</property>" "<child>" "<object class=\"GtkShortcutsSection\">" "<property name=\"visible\">1</property>" "<property name=\"section-name\">shortcuts</property>" "<property name=\"max-height\">12</property>" "<child>" "<object class=\"GtkShortcutsGroup\">" "<property name=\"visible\">1</property>" "<property name=\"title\" translatable=\"yes\">Window</property>" "<child>" "<object class=\"GtkShortcutsShortcut\">" "<property name=\"visible\">1</property>" "<property name=\"accelerator\">&lt;ctrl&gt;N</property>" "<property name=\"title\" translatable=\"yes\">Create new notebook</pro" \
+	self->priv->notebook_scroll = _tmp6_;
+	_tmp7_ = g_strdup ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" "<interface>" "<object class=\"GtkShortcutsWindow\" id=\"shortcuts\">" "<property name=\"modal\">1</property>" "<child>" "<object class=\"GtkShortcutsSection\">" "<property name=\"visible\">1</property>" "<property name=\"section-name\">shortcuts</property>" "<property name=\"max-height\">12</property>" "<child>" "<object class=\"GtkShortcutsGroup\">" "<property name=\"visible\">1</property>" "<property name=\"title\" translatable=\"yes\">Window</property>" "<child>" "<object class=\"GtkShortcutsShortcut\">" "<property name=\"visible\">1</property>" "<property name=\"accelerator\">&lt;ctrl&gt;N</property>" "<property name=\"title\" translatable=\"yes\">Create new notebook</pro" \
 "perty>" "</object>" "</child>" "<child>" "<object class=\"GtkShortcutsShortcut\">" "<property name=\"visible\">1</property>" "<property name=\"accelerator\">&lt;ctrl&gt;O</property>" "<property name=\"title\" translatable=\"yes\">Open a notebook</propert" \
 "y>" "</object>" "</child>" "<child>" "<object class=\"GtkShortcutsShortcut\">" "<property name=\"visible\">1</property>" "<property name=\"accelerator\">&lt;ctrl&gt;S</property>" "<property name=\"title\" translatable=\"yes\">Quicksave the notebook</" \
 "property>" "</object>" "</child>" "<child>" "<object class=\"GtkShortcutsShortcut\">" "<property name=\"visible\">1</property>" "<property name=\"accelerator\">&lt;ctrl&gt;&lt;alt&gt;S</property>" "<property name=\"title\" translatable=\"yes\">Save the notebook</prope" \
@@ -1185,63 +1220,69 @@ static void seaborg_seaborg_application_real_activate (GApplication* base) {
 ">" "</object>" "</child>" "<child>" "<object class=\"GtkShortcutsShortcut\">" "<property name=\"visible\">1</property>" "<property name=\"accelerator\">&lt;ctrl&gt;period</property>" "<property name=\"title\" translatable=\"yes\">Abort evaluation</proper" \
 "ty>" "</object>" "</child>" "<child>" "<object class=\"GtkShortcutsShortcut\">" "<property name=\"visible\">1</property>" "<property name=\"accelerator\">&lt;ctrl&gt;y</property>" "<property name=\"title\" translatable=\"yes\">(Un)comment selected inp" \
 "ut</property>" "</object>" "</child>" "</object>" "</child>" "</object>" "</child>" "</object>" "</interface>");
-	shortcut_builder_string = _tmp5_;
-	_tmp6_ = strlen (shortcut_builder_string);
-	_tmp7_ = _tmp6_;
-	_tmp8_ = gtk_builder_new_from_string (shortcut_builder_string, (gssize) _tmp7_);
-	shortcut_builder = _tmp8_;
-	_tmp9_ = gtk_builder_get_object (shortcut_builder, "shortcuts");
-	_tmp10_ = _g_object_ref0 (G_TYPE_CHECK_INSTANCE_TYPE (_tmp9_, GTK_TYPE_SHORTCUTS_WINDOW) ? ((GtkShortcutsWindow*) _tmp9_) : NULL);
+	shortcut_builder_string = _tmp7_;
+	_tmp8_ = strlen (shortcut_builder_string);
+	_tmp9_ = _tmp8_;
+	_tmp10_ = gtk_builder_new_from_string (shortcut_builder_string, (gssize) _tmp9_);
+	shortcut_builder = _tmp10_;
+	_tmp11_ = gtk_builder_get_object (shortcut_builder, "shortcuts");
+	_tmp12_ = _g_object_ref0 (G_TYPE_CHECK_INSTANCE_TYPE (_tmp11_, GTK_TYPE_SHORTCUTS_WINDOW) ? ((GtkShortcutsWindow*) _tmp11_) : NULL);
 	_g_object_unref0 (self->priv->shortcuts);
-	self->priv->shortcuts = _tmp10_;
-	_tmp11_ = self->priv->tab_switcher;
-	_tmp12_ = self->priv->notebook_stack;
-	gtk_stack_switcher_set_stack (_tmp11_, _tmp12_);
-	_tmp13_ = self->priv->main_headerbar;
-	gtk_header_bar_set_show_close_button (_tmp13_, TRUE);
-	_tmp14_ = self->priv->main_headerbar;
-	_tmp15_ = self->priv->tab_switcher;
-	gtk_header_bar_set_custom_title (_tmp14_, (GtkWidget*) _tmp15_);
-	_tmp16_ = self->priv->notebook_scroll;
-	_tmp17_ = self->priv->notebook_stack;
-	gtk_container_add ((GtkContainer*) _tmp16_, (GtkWidget*) _tmp17_);
-	_tmp18_ = self->priv->main_window;
-	gtk_window_set_title ((GtkWindow*) _tmp18_, "Gtk Notebook");
-	_tmp19_ = self->priv->main_window;
+	self->priv->shortcuts = _tmp12_;
+	_tmp13_ = self->priv->tab_switcher;
+	_tmp14_ = self->priv->notebook_stack;
+	gtk_stack_switcher_set_stack (_tmp13_, _tmp14_);
+	_tmp15_ = self->priv->message_bar;
+	gtk_info_bar_set_default_response (_tmp15_, 0);
+	_tmp16_ = self->priv->message_bar;
+	gtk_info_bar_set_show_close_button (_tmp16_, TRUE);
+	_tmp17_ = self->priv->message_bar;
+	gtk_info_bar_set_message_type (_tmp17_, GTK_MESSAGE_INFO);
+	_tmp18_ = self->priv->message_bar;
+	gtk_widget_set_no_show_all ((GtkWidget*) _tmp18_, TRUE);
+	_tmp19_ = self->priv->message_bar;
+	g_signal_connect_object (_tmp19_, "response", (GCallback) ___lambda19__gtk_info_bar_response, self, 0);
 	_tmp20_ = self->priv->main_headerbar;
-	gtk_window_set_titlebar ((GtkWindow*) _tmp19_, (GtkWidget*) _tmp20_);
-	_tmp21_ = self->priv->main_window;
-	_tmp22_ = self->priv->notebook_scroll;
-	gtk_container_add ((GtkContainer*) _tmp21_, (GtkWidget*) _tmp22_);
-	_tmp23_ = self->priv->main_window;
-	_tmp24_ = self->priv->shortcuts;
-	gtk_application_window_set_help_overlay (_tmp23_, _tmp24_);
-	_tmp25_ = self->priv->main_window;
-	g_signal_connect_object ((GtkWidget*) _tmp25_, "destroy", (GCallback) _seaborg_seaborg_application_quit_app_gtk_widget_destroy, self, 0);
-	_tmp26_ = self->priv->main_window;
-	gtk_application_add_window ((GtkApplication*) self, (GtkWindow*) _tmp26_);
-	_tmp27_ = self->priv->main_window;
-	gtk_window_set_default_size ((GtkWindow*) _tmp27_, 800, 600);
-	_tmp28_ = self->priv->main_window;
-	gtk_widget_show_all ((GtkWidget*) _tmp28_);
+	gtk_header_bar_set_show_close_button (_tmp20_, TRUE);
+	_tmp21_ = self->priv->main_headerbar;
+	_tmp22_ = self->priv->tab_switcher;
+	gtk_header_bar_set_custom_title (_tmp21_, (GtkWidget*) _tmp22_);
+	_tmp23_ = self->priv->notebook_scroll;
+	_tmp24_ = self->priv->notebook_stack;
+	gtk_container_add ((GtkContainer*) _tmp23_, (GtkWidget*) _tmp24_);
+	_tmp25_ = self->priv->main_layout;
+	_tmp26_ = self->priv->message_bar;
+	gtk_grid_attach (_tmp25_, (GtkWidget*) _tmp26_, 0, 0, 1, 1);
+	_tmp27_ = self->priv->main_layout;
+	_tmp28_ = self->priv->notebook_scroll;
+	gtk_grid_attach (_tmp27_, (GtkWidget*) _tmp28_, 0, 1, 1, 1);
+	_tmp29_ = self->priv->main_window;
+	gtk_window_set_title ((GtkWindow*) _tmp29_, "Gtk Notebook");
+	_tmp30_ = self->priv->main_window;
+	_tmp31_ = self->priv->main_headerbar;
+	gtk_window_set_titlebar ((GtkWindow*) _tmp30_, (GtkWidget*) _tmp31_);
+	_tmp32_ = self->priv->main_window;
+	_tmp33_ = self->priv->main_layout;
+	gtk_container_add ((GtkContainer*) _tmp32_, (GtkWidget*) _tmp33_);
+	_tmp34_ = self->priv->main_window;
+	_tmp35_ = self->priv->shortcuts;
+	gtk_application_window_set_help_overlay (_tmp34_, _tmp35_);
+	_tmp36_ = self->priv->main_window;
+	g_signal_connect_object ((GtkWidget*) _tmp36_, "destroy", (GCallback) _seaborg_seaborg_application_quit_app_gtk_widget_destroy, self, 0);
+	_tmp37_ = self->priv->main_window;
+	gtk_application_add_window ((GtkApplication*) self, (GtkWindow*) _tmp37_);
+	_tmp38_ = self->priv->main_window;
+	gtk_window_set_default_size ((GtkWindow*) _tmp38_, 800, 600);
+	_tmp39_ = self->priv->main_window;
+	gtk_widget_show_all ((GtkWidget*) _tmp39_);
 	seaborg_seaborg_application_new_notebook (self);
 	_g_object_unref0 (shortcut_builder);
 	_g_free0 (shortcut_builder_string);
 }
 
 
-static void __lambda19_ (SeaborgSeaborgApplication* self) {
-	seaborg_seaborg_application_new_notebook (self);
-}
-
-
-static void ___lambda19__g_simple_action_activate (GSimpleAction* _sender, GVariant* parameter, gpointer self) {
-	__lambda19_ ((SeaborgSeaborgApplication*) self);
-}
-
-
 static void __lambda20_ (SeaborgSeaborgApplication* self) {
-	seaborg_seaborg_application_load_dialog (self);
+	seaborg_seaborg_application_new_notebook (self);
 }
 
 
@@ -1251,6 +1292,16 @@ static void ___lambda20__g_simple_action_activate (GSimpleAction* _sender, GVari
 
 
 static void __lambda21_ (SeaborgSeaborgApplication* self) {
+	seaborg_seaborg_application_load_dialog (self);
+}
+
+
+static void ___lambda21__g_simple_action_activate (GSimpleAction* _sender, GVariant* parameter, gpointer self) {
+	__lambda21_ ((SeaborgSeaborgApplication*) self);
+}
+
+
+static void __lambda22_ (SeaborgSeaborgApplication* self) {
 	GtkStack* _tmp0_;
 	const gchar* _tmp1_;
 	_tmp0_ = self->priv->notebook_stack;
@@ -1267,23 +1318,13 @@ static void __lambda21_ (SeaborgSeaborgApplication* self) {
 }
 
 
-static void ___lambda21__g_simple_action_activate (GSimpleAction* _sender, GVariant* parameter, gpointer self) {
-	__lambda21_ ((SeaborgSeaborgApplication*) self);
-}
-
-
-static void __lambda22_ (SeaborgSeaborgApplication* self) {
-	seaborg_seaborg_application_save_dialog (self);
-}
-
-
 static void ___lambda22__g_simple_action_activate (GSimpleAction* _sender, GVariant* parameter, gpointer self) {
 	__lambda22_ ((SeaborgSeaborgApplication*) self);
 }
 
 
 static void __lambda23_ (SeaborgSeaborgApplication* self) {
-	seaborg_seaborg_application_import_dialog (self);
+	seaborg_seaborg_application_save_dialog (self);
 }
 
 
@@ -1292,27 +1333,37 @@ static void ___lambda23__g_simple_action_activate (GSimpleAction* _sender, GVari
 }
 
 
-static void __lambda25_ (SeaborgSeaborgApplication* self) {
+static void __lambda24_ (SeaborgSeaborgApplication* self) {
+	seaborg_seaborg_application_import_dialog (self);
+}
+
+
+static void ___lambda24__g_simple_action_activate (GSimpleAction* _sender, GVariant* parameter, gpointer self) {
+	__lambda24_ ((SeaborgSeaborgApplication*) self);
+}
+
+
+static void __lambda26_ (SeaborgSeaborgApplication* self) {
 	seaborg_seaborg_application_export_dialog (self);
 }
 
 
-static void ___lambda25__g_simple_action_activate (GSimpleAction* _sender, GVariant* parameter, gpointer self) {
-	__lambda25_ ((SeaborgSeaborgApplication*) self);
-}
-
-
-static void __lambda27_ (SeaborgSeaborgApplication* self) {
-	seaborg_seaborg_application_quit_app (self);
-}
-
-
-static void ___lambda27__g_simple_action_activate (GSimpleAction* _sender, GVariant* parameter, gpointer self) {
-	__lambda27_ ((SeaborgSeaborgApplication*) self);
+static void ___lambda26__g_simple_action_activate (GSimpleAction* _sender, GVariant* parameter, gpointer self) {
+	__lambda26_ ((SeaborgSeaborgApplication*) self);
 }
 
 
 static void __lambda28_ (SeaborgSeaborgApplication* self) {
+	seaborg_seaborg_application_quit_app (self);
+}
+
+
+static void ___lambda28__g_simple_action_activate (GSimpleAction* _sender, GVariant* parameter, gpointer self) {
+	__lambda28_ ((SeaborgSeaborgApplication*) self);
+}
+
+
+static void __lambda29_ (SeaborgSeaborgApplication* self) {
 	SeaborgNotebook* nb = NULL;
 	GtkStack* _tmp0_;
 	GtkWidget* _tmp1_;
@@ -1332,20 +1383,6 @@ static void __lambda28_ (SeaborgSeaborgApplication* self) {
 }
 
 
-static void ___lambda28__g_simple_action_activate (GSimpleAction* _sender, GVariant* parameter, gpointer self) {
-	__lambda28_ ((SeaborgSeaborgApplication*) self);
-}
-
-
-static void __lambda29_ (SeaborgSeaborgApplication* self) {
-	GtkStack* _tmp0_;
-	GtkWidget* _tmp1_;
-	_tmp0_ = self->priv->notebook_stack;
-	_tmp1_ = gtk_stack_get_visible_child (_tmp0_);
-	seaborg_icell_remove_recursively ((SeaborgICell*) G_TYPE_CHECK_INSTANCE_CAST (_tmp1_, SEABORG_TYPE_NOTEBOOK, SeaborgNotebook));
-}
-
-
 static void ___lambda29__g_simple_action_activate (GSimpleAction* _sender, GVariant* parameter, gpointer self) {
 	__lambda29_ ((SeaborgSeaborgApplication*) self);
 }
@@ -1356,7 +1393,7 @@ static void __lambda30_ (SeaborgSeaborgApplication* self) {
 	GtkWidget* _tmp1_;
 	_tmp0_ = self->priv->notebook_stack;
 	_tmp1_ = gtk_stack_get_visible_child (_tmp0_);
-	seaborg_seaborg_application_schedule_evaluation (self, (SeaborgICellContainer*) G_TYPE_CHECK_INSTANCE_CAST (_tmp1_, SEABORG_TYPE_NOTEBOOK, SeaborgNotebook));
+	seaborg_icell_remove_recursively ((SeaborgICell*) G_TYPE_CHECK_INSTANCE_CAST (_tmp1_, SEABORG_TYPE_NOTEBOOK, SeaborgNotebook));
 }
 
 
@@ -1365,15 +1402,29 @@ static void ___lambda30__g_simple_action_activate (GSimpleAction* _sender, GVari
 }
 
 
-static void __lambda34_ (SeaborgSeaborgApplication* self) {
+static void __lambda31_ (SeaborgSeaborgApplication* self) {
+	GtkStack* _tmp0_;
+	GtkWidget* _tmp1_;
+	_tmp0_ = self->priv->notebook_stack;
+	_tmp1_ = gtk_stack_get_visible_child (_tmp0_);
+	seaborg_seaborg_application_schedule_evaluation (self, (SeaborgICellContainer*) G_TYPE_CHECK_INSTANCE_CAST (_tmp1_, SEABORG_TYPE_NOTEBOOK, SeaborgNotebook));
+}
+
+
+static void ___lambda31__g_simple_action_activate (GSimpleAction* _sender, GVariant* parameter, gpointer self) {
+	__lambda31_ ((SeaborgSeaborgApplication*) self);
+}
+
+
+static void __lambda35_ (SeaborgSeaborgApplication* self) {
 	void* _tmp0_;
 	_tmp0_ = self->priv->kernel_connection;
 	try_abort (_tmp0_);
 }
 
 
-static void ___lambda34__g_simple_action_activate (GSimpleAction* _sender, GVariant* parameter, gpointer self) {
-	__lambda34_ ((SeaborgSeaborgApplication*) self);
+static void ___lambda35__g_simple_action_activate (GSimpleAction* _sender, GVariant* parameter, gpointer self) {
+	__lambda35_ ((SeaborgSeaborgApplication*) self);
 }
 
 
@@ -1469,17 +1520,17 @@ static void seaborg_seaborg_application_real_startup (GApplication* base) {
 	stop_eval_action = _tmp19_;
 	_tmp20_ = g_simple_action_new ("close", NULL);
 	close_action = _tmp20_;
-	g_signal_connect_object (new_action, "activate", (GCallback) ___lambda19__g_simple_action_activate, self, 0);
-	g_signal_connect_object (open_action, "activate", (GCallback) ___lambda20__g_simple_action_activate, self, 0);
-	g_signal_connect_object (save_action, "activate", (GCallback) ___lambda21__g_simple_action_activate, self, 0);
-	g_signal_connect_object (save_as_action, "activate", (GCallback) ___lambda22__g_simple_action_activate, self, 0);
-	g_signal_connect_object (import_action, "activate", (GCallback) ___lambda23__g_simple_action_activate, self, 0);
-	g_signal_connect_object (export_action, "activate", (GCallback) ___lambda25__g_simple_action_activate, self, 0);
-	g_signal_connect_object (quit_action, "activate", (GCallback) ___lambda27__g_simple_action_activate, self, 0);
-	g_signal_connect_object (close_action, "activate", (GCallback) ___lambda28__g_simple_action_activate, self, 0);
-	g_signal_connect_object (remove_action, "activate", (GCallback) ___lambda29__g_simple_action_activate, self, 0);
-	g_signal_connect_object (eval_action, "activate", (GCallback) ___lambda30__g_simple_action_activate, self, 0);
-	g_signal_connect_object (stop_eval_action, "activate", (GCallback) ___lambda34__g_simple_action_activate, self, 0);
+	g_signal_connect_object (new_action, "activate", (GCallback) ___lambda20__g_simple_action_activate, self, 0);
+	g_signal_connect_object (open_action, "activate", (GCallback) ___lambda21__g_simple_action_activate, self, 0);
+	g_signal_connect_object (save_action, "activate", (GCallback) ___lambda22__g_simple_action_activate, self, 0);
+	g_signal_connect_object (save_as_action, "activate", (GCallback) ___lambda23__g_simple_action_activate, self, 0);
+	g_signal_connect_object (import_action, "activate", (GCallback) ___lambda24__g_simple_action_activate, self, 0);
+	g_signal_connect_object (export_action, "activate", (GCallback) ___lambda26__g_simple_action_activate, self, 0);
+	g_signal_connect_object (quit_action, "activate", (GCallback) ___lambda28__g_simple_action_activate, self, 0);
+	g_signal_connect_object (close_action, "activate", (GCallback) ___lambda29__g_simple_action_activate, self, 0);
+	g_signal_connect_object (remove_action, "activate", (GCallback) ___lambda30__g_simple_action_activate, self, 0);
+	g_signal_connect_object (eval_action, "activate", (GCallback) ___lambda31__g_simple_action_activate, self, 0);
+	g_signal_connect_object (stop_eval_action, "activate", (GCallback) ___lambda35__g_simple_action_activate, self, 0);
 	g_action_map_add_action ((GActionMap*) self, (GAction*) new_action);
 	g_action_map_add_action ((GActionMap*) self, (GAction*) open_action);
 	g_action_map_add_action ((GActionMap*) self, (GAction*) save_action);
@@ -1857,21 +1908,6 @@ static gpointer _g_thread_ref0 (gpointer self) {
 }
 
 
-static gboolean ____lambda32_ (SeaborgSeaborgApplication* self) {
-	gboolean result = FALSE;
-	seaborg_seaborg_application_abort_eval (self);
-	result = FALSE;
-	return result;
-}
-
-
-static gboolean _____lambda32__gsource_func (gpointer self) {
-	gboolean result;
-	result = ____lambda32_ ((SeaborgSeaborgApplication*) self);
-	return result;
-}
-
-
 static gboolean ____lambda33_ (SeaborgSeaborgApplication* self) {
 	gboolean result = FALSE;
 	seaborg_seaborg_application_abort_eval (self);
@@ -1887,7 +1923,22 @@ static gboolean _____lambda33__gsource_func (gpointer self) {
 }
 
 
-static void* ___lambda31_ (SeaborgSeaborgApplication* self) {
+static gboolean ____lambda34_ (SeaborgSeaborgApplication* self) {
+	gboolean result = FALSE;
+	seaborg_seaborg_application_abort_eval (self);
+	result = FALSE;
+	return result;
+}
+
+
+static gboolean _____lambda34__gsource_func (gpointer self) {
+	gboolean result;
+	result = ____lambda34_ ((SeaborgSeaborgApplication*) self);
+	return result;
+}
+
+
+static void* ___lambda32_ (SeaborgSeaborgApplication* self) {
 	void* result = NULL;
 	GError * _inner_error_ = NULL;
 	self->priv->listener_thread_is_running = TRUE;
@@ -1967,7 +2018,7 @@ static void* ___lambda31_ (SeaborgSeaborgApplication* self) {
 		_tmp11_ = self->priv->kernel_connection;
 		_tmp12_ = check_connection (_tmp11_);
 		if (_tmp12_ != 1) {
-			g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, _____lambda32__gsource_func, g_object_ref (self), g_object_unref);
+			g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, _____lambda33__gsource_func, g_object_ref (self), g_object_unref);
 			result = NULL;
 			return result;
 		}
@@ -1981,7 +2032,7 @@ static void* ___lambda31_ (SeaborgSeaborgApplication* self) {
 		_tmp19_ = self->priv->kernel_connection;
 		_tmp20_ = check_connection (_tmp19_);
 		if (_tmp20_ != 1) {
-			g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, _____lambda33__gsource_func, g_object_ref (self), g_object_unref);
+			g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, _____lambda34__gsource_func, g_object_ref (self), g_object_unref);
 			result = NULL;
 			return result;
 		}
@@ -2023,9 +2074,9 @@ static void* ___lambda31_ (SeaborgSeaborgApplication* self) {
 }
 
 
-static gpointer ____lambda31__gthread_func (gpointer self) {
+static gpointer ____lambda32__gthread_func (gpointer self) {
 	gpointer result;
-	result = ___lambda31_ ((SeaborgSeaborgApplication*) self);
+	result = ___lambda32_ ((SeaborgSeaborgApplication*) self);
 	g_object_unref (self);
 	return result;
 }
@@ -2054,7 +2105,7 @@ void seaborg_seaborg_application_start_evalutation_thread (SeaborgSeaborgApplica
 	_tmp5_ = self->priv->listener_thread_is_running;
 	if (!_tmp5_) {
 		GThread* _tmp6_;
-		_tmp6_ = g_thread_new ("seaborg-listener", ____lambda31__gthread_func, g_object_ref (self));
+		_tmp6_ = g_thread_new ("seaborg-listener", ____lambda32__gthread_func, g_object_ref (self));
 		_g_thread_unref0 (self->priv->listener_thread);
 		self->priv->listener_thread = _tmp6_;
 	}
@@ -2199,23 +2250,25 @@ static void seaborg_seaborg_application_reset_kernel (SeaborgSeaborgApplication*
 
 
 void seaborg_seaborg_application_kernel_msg (SeaborgSeaborgApplication* self, const gchar* msg) {
-	FILE* _tmp0_;
-	const gchar* _tmp1_;
-	gchar* _tmp2_;
-	gchar* _tmp3_;
-	gchar* _tmp4_;
-	gchar* _tmp5_;
+	GtkLabel* label = NULL;
+	const gchar* _tmp0_;
+	GtkLabel* _tmp1_;
+	GtkInfoBar* _tmp2_;
+	GtkContainer* _tmp3_;
+	GtkInfoBar* _tmp4_;
 	g_return_if_fail (self != NULL);
 	g_return_if_fail (msg != NULL);
-	_tmp0_ = stderr;
-	_tmp1_ = msg;
-	_tmp2_ = g_strconcat ("\n", _tmp1_, NULL);
-	_tmp3_ = _tmp2_;
-	_tmp4_ = g_strconcat (_tmp3_, "\n", NULL);
-	_tmp5_ = _tmp4_;
-	fprintf (_tmp0_, "%s", _tmp5_);
-	_g_free0 (_tmp5_);
-	_g_free0 (_tmp3_);
+	_tmp0_ = msg;
+	_tmp1_ = (GtkLabel*) gtk_label_new (_tmp0_);
+	g_object_ref_sink (_tmp1_);
+	label = _tmp1_;
+	_tmp2_ = self->priv->message_bar;
+	_tmp3_ = gtk_info_bar_get_content_area (_tmp2_);
+	gtk_container_add (_tmp3_, (GtkWidget*) label);
+	gtk_widget_show ((GtkWidget*) label);
+	_tmp4_ = self->priv->message_bar;
+	gtk_widget_show ((GtkWidget*) _tmp4_);
+	_g_object_unref0 (label);
 }
 
 
@@ -2935,7 +2988,7 @@ static void block4_data_unref (void * _userdata_) {
 }
 
 
-static void* __lambda26_ (Block4Data* _data4_) {
+static void* __lambda27_ (Block4Data* _data4_) {
 	SeaborgSeaborgApplication* self;
 	void* result = NULL;
 	void* _tmp2_;
@@ -3071,9 +3124,9 @@ static void* __lambda26_ (Block4Data* _data4_) {
 }
 
 
-static gpointer ___lambda26__gthread_func (gpointer self) {
+static gpointer ___lambda27__gthread_func (gpointer self) {
 	gpointer result;
-	result = __lambda26_ (self);
+	result = __lambda27_ (self);
 	block4_data_unref (self);
 	return result;
 }
@@ -3102,7 +3155,7 @@ void seaborg_seaborg_application_export_notebook (SeaborgSeaborgApplication* sel
 		return;
 	}
 	self->priv->listener_thread_is_running = TRUE;
-	_tmp3_ = g_thread_new ("seaborg-import", ___lambda26__gthread_func, block4_data_ref (_data4_));
+	_tmp3_ = g_thread_new ("seaborg-import", ___lambda27__gthread_func, block4_data_ref (_data4_));
 	_g_thread_unref0 (self->priv->listener_thread);
 	self->priv->listener_thread = _tmp3_;
 	block4_data_unref (_data4_);
@@ -4728,7 +4781,7 @@ static gchar* g_file_stream_read_line (FILE* self) {
 }
 
 
-static void* __lambda24_ (Block5Data* _data5_) {
+static void* __lambda25_ (Block5Data* _data5_) {
 	SeaborgSeaborgApplication* self;
 	void* result = NULL;
 	void* _tmp2_;
@@ -4888,9 +4941,9 @@ static void* __lambda24_ (Block5Data* _data5_) {
 }
 
 
-static gpointer ___lambda24__gthread_func (gpointer self) {
+static gpointer ___lambda25__gthread_func (gpointer self) {
 	gpointer result;
-	result = __lambda24_ (self);
+	result = __lambda25_ (self);
 	block5_data_unref (self);
 	return result;
 }
@@ -4919,7 +4972,7 @@ static void seaborg_seaborg_application_process_for_import (SeaborgSeaborgApplic
 		return;
 	}
 	self->priv->listener_thread_is_running = TRUE;
-	_tmp3_ = g_thread_new ("seaborg-import", ___lambda24__gthread_func, block5_data_ref (_data5_));
+	_tmp3_ = g_thread_new ("seaborg-import", ___lambda25__gthread_func, block5_data_ref (_data5_));
 	_g_thread_unref0 (self->priv->listener_thread);
 	self->priv->listener_thread = _tmp3_;
 	block5_data_unref (_data5_);
@@ -5020,6 +5073,8 @@ static void seaborg_seaborg_application_finalize (GObject * obj) {
 	_g_object_unref0 (self->priv->tab_switcher);
 	_g_object_unref0 (self->priv->notebook_stack);
 	_g_object_unref0 (self->priv->main_menu);
+	_g_object_unref0 (self->priv->main_layout);
+	_g_object_unref0 (self->priv->message_bar);
 	_g_object_unref0 (self->priv->notebook_scroll);
 	_g_object_unref0 (self->priv->shortcuts);
 	g_rec_mutex_clear (&self->priv->__lock_eval_queue);

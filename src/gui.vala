@@ -25,6 +25,8 @@ namespace Seaborg {
 			// widgets
 			main_window = new Gtk.ApplicationWindow(this);
 			main_headerbar = new Gtk.HeaderBar();
+			main_layout = new Gtk.Grid();
+			message_bar = new Gtk.InfoBar();
 			tab_switcher = new Gtk.StackSwitcher();
 			notebook_stack = new Gtk.Stack();
 			notebook_scroll = new Gtk.ScrolledWindow(null,null);
@@ -151,14 +153,23 @@ namespace Seaborg {
 
 
 			tab_switcher.stack = notebook_stack;
+
+			message_bar.set_default_response(0);
+			message_bar.set_show_close_button(true);
+			message_bar.set_message_type(MessageType.INFO);
+			message_bar.set_no_show_all(true);
+			message_bar.response.connect((i) => { message_bar.hide(); });
 			
 			main_headerbar.show_close_button = true;
 			main_headerbar.custom_title = tab_switcher;
 			notebook_scroll.add(notebook_stack);
+
+			main_layout.attach(message_bar, 0, 0, 1, 1);
+			main_layout.attach(notebook_scroll, 0, 1, 1, 1);
 			
 			main_window.title = "Gtk Notebook";
 			main_window.set_titlebar(main_headerbar);
-			main_window.add(notebook_scroll);
+			main_window.add(main_layout);
 			main_window.set_help_overlay(shortcuts);
 			main_window.destroy.connect(quit_app);
 			this.add_window(main_window);
@@ -480,7 +491,10 @@ namespace Seaborg {
 		}
 
 		public void kernel_msg(string msg) {
-			stderr.printf("\n" + msg + "\n");
+			Gtk.Label label = new Gtk.Label(msg);
+			message_bar.get_content_area().add(label);
+			label.show();
+			message_bar.show();
 		}
 
 		private static  callback_str write_to_evaluation_cell = (_string_to_write, cell_ptr, _stamp, _break) => {
@@ -1234,6 +1248,8 @@ namespace Seaborg {
 		private Gtk.StackSwitcher tab_switcher;
 		private Gtk.Stack notebook_stack;
 		private GLib.Menu main_menu;
+		private Gtk.Grid main_layout;
+		private Gtk.InfoBar message_bar;
 		private Gtk.ScrolledWindow notebook_scroll;
 		private Gtk.ShortcutsWindow shortcuts;
 		private void* kernel_connection;

@@ -1453,4 +1453,5 @@ namespace Seaborg {
 		private RadioMenuItem SubSectionType;
 		private RadioMenuItem SubSubSectionType;
 	}
+
 }
