@@ -870,8 +870,7 @@ namespace Seaborg {
 				int char_end, char_start;
 				string output, hash;
 				GLib.FileStream file;
-				Gdk.Pixbuf pb;
-				Rsvg.Handle handle;
+				PlotFrame plot;
 				TextIter iter1, iter2;
 
 				while(true) {
@@ -905,19 +904,10 @@ namespace Seaborg {
 						continue;
 					}
 
-					try {
+					plot = new PlotFrame("tmp/" + hash + ".svg");
 
-						handle = new Rsvg.Handle.from_file("tmp/" + hash + ".svg");
-						handle.close();
-						pb = handle.get_pixbuf();
 
-					} catch (GLib.Error err) {
-
-						pb = null;
-
-					}
-
-					if(pb == null) {
+					if(! plot.import_success()) {
 						pos_start = pos_end + 1;
 						continue;
 					}
@@ -929,12 +919,14 @@ namespace Seaborg {
 					OutputBuffer.get_iter_at_offset(out iter2, char_end+1);
 					OutputBuffer.delete(ref iter1, ref iter2);
 
-					// insert pixbuf
+					// insert plot
 					OutputBuffer.get_iter_at_offset(out iter1, char_start);
-					OutputBuffer.insert_pixbuf(iter1, pb);
+					OutputCell.add_child_at_anchor(plot, OutputBuffer.create_child_anchor(iter1));
 
 
 				}
+
+				this.show_all();
 			}
 		}
 
@@ -1452,6 +1444,31 @@ namespace Seaborg {
 		private RadioMenuItem SectionType;
 		private RadioMenuItem SubSectionType;
 		private RadioMenuItem SubSubSectionType;
+	}
+
+	public class PlotFrame : Gtk.Overlay {
+		public PlotFrame(string file) {
+
+			try {
+				
+				handle = new Rsvg.Handle.from_file(file);
+				handle.close();
+				plot = new Gtk.Image.from_pixbuf(handle.get_pixbuf());
+				this.add(plot);
+
+			} catch (GLib.Error err) {
+				handle = null;
+			}
+		}
+
+		public bool import_success() {
+			return (handle == null)? false : true;
+		} 
+
+		private Gtk.Image plot;
+		private Rsvg.Handle handle;
+		private Gtk.Button zoom_in;
+		private Gtk.Button zoom_out;
 	}
 
 }
