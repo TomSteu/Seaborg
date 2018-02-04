@@ -31,6 +31,38 @@
 	background-color: @theme_selected_bg_color;
 }
 
+/* background of depicted plots */
+.plot-frame {
+	background-color: transparent;
+
+}
+
+.transparent-widget {
+	background-color: transparent;
+	border-color: transparent;
+}
+
+/* buttons on plot for zooming */
+.zoom-button {
+	padding-left: 0px;
+	padding-right: 0px;
+	padding-top: 0px;
+	padding-bottom: 0px;
+	border-top-width: 0px;
+	border-bottom-width: 0px;
+	border-right-width: 0px; 
+	border-left-width: 0px;
+	margin-top: 0px;
+	margin-bottom: 0px;
+	margin-left: 0px;
+	margin-right: 0.3em;
+	min-width: 1em;
+	min-height: 1em;
+	font-weight: bold;
+}
+
+
+/* better not touch that */
 .container-grid {
 	padding-left: 0px;
 	padding-right: 0px;
@@ -38,7 +70,7 @@
 	padding-bottom: 0px;
 }
 
-
+/* better not touch that */
 .add-button {
 	color: transparent;
 	background-color: transparent;
