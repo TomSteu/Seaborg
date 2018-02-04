@@ -2,6 +2,7 @@ using Gtk;
 using Gdk;
 using GLib;
 using Rsvg;
+using Cairo;
 
 namespace Seaborg {
 
@@ -33,6 +34,15 @@ namespace Seaborg {
 
 			return false;
 
+		}
+
+		public void refresh_grid() {
+			if(Parent != null) {
+				Parent->refresh_grid();
+				return;
+			}
+
+			this.show_all();
 		}
 
 		public void recursive_untoggle_all() {
@@ -904,7 +914,7 @@ namespace Seaborg {
 						continue;
 					}
 
-					plot = new PlotFrame("tmp/" + hash + ".svg");
+					plot = new PlotFrame("tmp/" + hash + ".svg", this);
 
 
 					if(! plot.import_success()) {
@@ -1447,11 +1457,14 @@ namespace Seaborg {
 	}
 
 	public class PlotFrame : Gtk.Grid {
-		public PlotFrame(string file) {
+		
+		public PlotFrame(string file, ICell* _parent) {
+
+			parent = _parent;
 
 			try {
 
-				CssProvider css = new CssProvider();
+				css = new CssProvider();
 
 				try {
 
@@ -1471,10 +1484,12 @@ namespace Seaborg {
 				this.set_row_homogeneous(false);
 				this.set_column_homogeneous(false);
 				
-				plot = new Gtk.Image.from_pixbuf(handle.get_pixbuf());
+				plot = new Gtk.Image();
 				plot.get_style_context().add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 				plot.get_style_context().add_class("plot-frame");
 
+				zoom_factor = 1;
+				draw_image();
 				
 				toolbar = new Gtk.Grid();
 				toolbar.get_style_context().add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
@@ -1490,7 +1505,7 @@ namespace Seaborg {
 				zoom_out = new Gtk.Button.with_label("-");
 				zoom_out.get_style_context().add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 				zoom_out.get_style_context().add_class("zoom-button");
-				zoom_in.clicked.connect(do_zoom_out);
+				zoom_out.clicked.connect(do_zoom_out);
 				
 				toolbar.attach(zoom_in, 0, 0, 1, 1);
 				toolbar.attach(zoom_out, 0, 1, 1, 1);
@@ -1509,17 +1524,57 @@ namespace Seaborg {
 
 		private void do_zoom_in() {
 
+			zoom_factor++;
+			draw_image();
+			parent->refresh_grid();
+		
 		}
 
 		private void do_zoom_out() {
 
+			zoom_factor--;
+			draw_image();
+			parent->refresh_grid();
+
 		}
+
+		private void draw_image() {
+			
+			if(handle == null)
+				return;
+
+			double factor = GLib.Math.pow((1.2), zoom_factor);
+
+			if(int.min((int)(factor*handle.width), (int)(factor*handle.height)) < 1) {
+				zoom_factor++;
+				return;
+			}
+
+			Cairo.ImageSurface surface = new Cairo.ImageSurface(
+				Cairo.Format.ARGB32,
+				(int) (factor*handle.width),
+				(int) (factor*handle.height)
+			);
+
+			Cairo.Context context = new Cairo.Context(surface);
+			context.scale(factor, factor);
+			handle.render_cairo(context);
+
+			plot.clear();
+			plot.set_from_surface(surface);
+
+		}
+
+
 
 		private Gtk.Image plot;
 		private Rsvg.Handle handle;
 		private Gtk.Button zoom_in;
 		private Gtk.Button zoom_out;
 		private Gtk.Grid toolbar;
+		private int zoom_factor;
+		private CssProvider css;
+		private ICell* parent;
 	}
 
 }
