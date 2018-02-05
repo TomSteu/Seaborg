@@ -312,16 +312,7 @@ namespace Seaborg {
 
 			Title = new Gtk.TextView();
 			Title.get_style_context().add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
-			Title.wrap_mode = Gtk.WrapMode.WORD;
-			Title.monospace = false;
-			Title.editable = true;
-			Title.hexpand = true;
-			Title.halign = Gtk.Align.FILL;
-			Title.left_margin = 0;
-			Title.right_margin = 0;
-			Title.top_margin = 0;
-			Title.bottom_margin = 0;
-			Title.wrap_mode = Gtk.WrapMode.WORD;
+			Title.wrap_mode = Gtk.WrapMode.WORD_CHAR;
 			Title.monospace = false;
 			Title.editable = true;
 			Title.hexpand = true;
@@ -584,6 +575,7 @@ namespace Seaborg {
 			Level = level;
 			Title.get_style_context().add_class("title-" + Level.to_string());
 			this.cell_check_resize();
+			this.show_all();
 
 		}
 
