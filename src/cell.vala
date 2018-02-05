@@ -23,6 +23,7 @@ namespace Seaborg {
 		public abstract string get_text();
 		public abstract bool lock {get; set;}
 		public abstract void cell_check_resize();
+		public abstract void zoom_font(double factor);
 
 		public bool untoggle_handler(EventButton event) {
 
@@ -58,6 +59,7 @@ namespace Seaborg {
 	public interface ICellContainer : ICell {
 		public abstract GLib.Array<ICell> Children {get; set;}
 		public abstract GLib.Array<AddButton> AddButtons {get; set;}
+		public abstract double zoom_factor {get; set;}
 		public ICell* get_child_by_name(string child_name) {
 			ICell* child_cell = null;
 			for(int i=0; i<Children.data.length; i++) {
@@ -109,6 +111,7 @@ namespace Seaborg {
 			this.name = IdGenerator.get_id();
 			Parent = null;
 			Level = 7;
+			zoom_factor = 1;
 			Children = new GLib.Array<ICell>();
 			AddButtons = new GLib.Array<AddButton>();
 			
@@ -279,9 +282,16 @@ namespace Seaborg {
 			}
 		}
 
+		public void zoom_font(double factor) {
+			for(int i=0; i<Children.data.length; i++) {
+				Children.data[i].zoom_font(factor);
+			}
+		}
+
 		public GLib.Array<ICell> Children {get; set;}
 		public GLib.Array<AddButton> AddButtons {get; set;}
 		public ICellContainer* Parent {get; set;}
+		public double zoom_factor {get; set;}
 		private uint Level;
 		private Gtk.ToggleButton Marker;
 		private CssProvider css;
@@ -297,8 +307,10 @@ namespace Seaborg {
 			AddButtons = new GLib.Array<AddButton>();
 			column_spacing = 4;
 			row_spacing = 4;
+			zoom_factor = Parent->zoom_factor;
 
 			css = new CssProvider();
+			font_provider = new CssProvider();
 			this.get_style_context().add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 
 			try {
@@ -323,6 +335,7 @@ namespace Seaborg {
 			Title.bottom_margin = 0;
 			Title.button_press_event.connect(untoggle_handler);
 			Title.key_press_event.connect(insert_ellipsis);
+			Title.get_style_context().add_provider(font_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 
 
 			set_level(level);
@@ -571,12 +584,32 @@ namespace Seaborg {
 			if(Level == level)
 				return;
 			
-			Title.get_style_context().remove_class("title-" + Level.to_string());
-			Level = level;
-			Title.get_style_context().add_class("title-" + Level.to_string());
-			this.cell_check_resize();
-			this.show_all();
 
+			Level = level;
+			string zoom_string = 
+				"* { font-size: " + 
+				((0.2 * get_level() + 1.0)* zoom_factor).to_string() + 
+				"em; font-weight: bold; }";
+
+			try {
+				font_provider.load_from_data(zoom_string, zoom_string.length);
+			} catch (GLib.Error err) {}
+
+		}
+
+		public void zoom_font(double factor) {
+			zoom_factor = factor;
+			string zoom_string = 
+				"* { font-size: " + 
+				((0.2 * get_level() + 1.0)* zoom_factor).to_string() + 
+				"em; font-weight: bold; }";
+			try {
+				font_provider.load_from_data(zoom_string, zoom_string.length);
+			} catch (GLib.Error err) {}
+
+			for(int i=0; i<Children.data.length; i++) {
+				Children.data[i].zoom_font(factor);
+			}
 		}
 
 		public void focus_cell() {
@@ -627,10 +660,12 @@ namespace Seaborg {
 		public GLib.Array<ICell> Children {get; set;}
 		public GLib.Array<AddButton> AddButtons {get; set;}
 		public ICellContainer* Parent {get; set;}
+		public double zoom_factor {get; set;}
 		private uint Level;
 		private TextView Title;
 		private Gtk.ToggleButton Marker;
 		private CssProvider css;
+		private CssProvider font_provider;
 		private bool isExpanded;
 	}
 
@@ -642,11 +677,14 @@ namespace Seaborg {
 			Parent = par;
 			column_spacing = 4;
 			css = new CssProvider();
+			font_provider = new CssProvider();
 			this.get_style_context().add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 			_lock = false;
 
 			try {
 
+				string font_string = "* { font-size: " + Parent->zoom_factor.to_string() + "em; }";
+				font_provider.load_from_data(font_string, font_string.length);
 				css.load_from_path("res/seaborg.css");
 
 			} catch(GLib.Error error) {
@@ -690,6 +728,7 @@ namespace Seaborg {
 			InputCell.bottom_margin = 0;
 			InputCell.button_press_event.connect(untoggle_handler);
 			InputCell.key_press_event.connect(key_handler);
+			InputCell.get_style_context().add_provider(font_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 			InputBuffer.insert_text.connect(insert_handler);
 
 			OutputBuffer = new Gtk.SourceBuffer(null);
@@ -723,6 +762,7 @@ namespace Seaborg {
 			OutputCell.top_margin = 0;
 			OutputCell.bottom_margin = 0;
 			OutputCell.button_press_event.connect(untoggle_handler);
+			InputCell.get_style_context().add_provider(font_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 
 
 			Marker = new Gtk.ToggleButton();
@@ -958,6 +998,13 @@ namespace Seaborg {
 			OutputCell.check_resize();
 		}
 
+		public void zoom_font(double factor) {
+			string zoom_string = "* { font-size: " + factor.to_string() + "em; }";
+			try {
+				font_provider.load_from_data(zoom_string, zoom_string.length);
+			} catch (GLib.Error err) {}
+		}
+
 		public ICellContainer* Parent {get; set;}
 		private Gtk.SourceView InputCell;
 		private Gtk.SourceBuffer InputBuffer;
@@ -967,6 +1014,7 @@ namespace Seaborg {
 		private bool isExpanded;
 		private bool _lock;
 		private CssProvider css;
+		private CssProvider font_provider;
 
 	}
 
@@ -977,11 +1025,14 @@ namespace Seaborg {
 			Parent = par;
 			column_spacing = 4;
 			CssProvider css = new CssProvider();
+			font_provider = new CssProvider();
 			get_style_context().add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 
 			try {
 
+				string font_string = "* { font-size: " + Parent->zoom_factor.to_string() + "em; } ";
 				css.load_from_path("res/seaborg.css");
+				font_provider.load_from_data(font_string, font_string.length);
 
 			} catch(GLib.Error error) {
 
@@ -1000,6 +1051,7 @@ namespace Seaborg {
 			Cell.bottom_margin = 0;
 			Cell.button_press_event.connect(untoggle_handler);
 			Cell.key_press_event.connect(insert_ellipsis);
+			get_style_context().add_provider(font_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 
 			Marker = new Gtk.ToggleButton();
 			Marker.get_style_context().add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
@@ -1046,6 +1098,13 @@ namespace Seaborg {
 			Cell.check_resize();
 		}
 
+		public void zoom_font(double factor) {
+			string zoom_string = "* { font-size: " + factor.to_string() + "em; }";
+			try {
+				font_provider.load_from_data(zoom_string, zoom_string.length);
+			} catch (GLib.Error err) {}
+		}
+
 		public void remove_recursively() {}
 		public void collapse_all() {}
 		public void expand_all() {}
@@ -1084,6 +1143,7 @@ namespace Seaborg {
 
 		private Gtk.TextView Cell;
 		private Gtk.ToggleButton Marker;
+		private Gtk.CssProvider font_provider;
 	}
 
 	// add buttons to insert cell
