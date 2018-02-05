@@ -22,6 +22,7 @@ namespace Seaborg {
 		public abstract void set_text(string _text);
 		public abstract string get_text();
 		public abstract bool lock {get; set;}
+		public abstract void cell_check_resize();
 
 		public bool untoggle_handler(EventButton event) {
 
@@ -34,15 +35,6 @@ namespace Seaborg {
 
 			return false;
 
-		}
-
-		public void refresh_grid() {
-			if(Parent != null) {
-				Parent->refresh_grid();
-				return;
-			}
-
-			this.show_all();
 		}
 
 		public void recursive_untoggle_all() {
@@ -279,6 +271,13 @@ namespace Seaborg {
 
 		public void set_text(string _text) {}
 		public string get_text() { return ""; }
+
+		public void cell_check_resize() {
+
+			for(int i=0; i<Children.data.length; i++) {
+				Children.data[i].cell_check_resize();
+			}
+		}
 
 		public GLib.Array<ICell> Children {get; set;}
 		public GLib.Array<AddButton> AddButtons {get; set;}
@@ -584,11 +583,21 @@ namespace Seaborg {
 			Title.get_style_context().remove_class("title-" + Level.to_string());
 			Level = level;
 			Title.get_style_context().add_class("title-" + Level.to_string());
+			cell_check_resize();
 
 		}
 
 		public void focus_cell() {
 			Title.grab_focus();
+		}
+
+		public void cell_check_resize() {
+
+			Title.check_resize();
+
+			for(int i=0; i<Children.data.length; i++) {
+				Children.data[i].cell_check_resize();
+			}
 		}
 
 		private bool press_handler(EventButton event) {
@@ -952,6 +961,11 @@ namespace Seaborg {
 			return OutputBuffer.text;
 		}
 
+		public void cell_check_resize() {
+			InputCell.check_resize();
+			OutputCell.check_resize();
+		}
+
 		public ICellContainer* Parent {get; set;}
 		private Gtk.SourceView InputCell;
 		private Gtk.SourceBuffer InputBuffer;
@@ -1034,6 +1048,10 @@ namespace Seaborg {
 
 		public string get_text() {
 			return Cell.buffer.text;
+		}
+
+		public void cell_check_resize() {
+			Cell.check_resize();
 		}
 
 		public void remove_recursively() {}
@@ -1458,7 +1476,7 @@ namespace Seaborg {
 
 	public class PlotFrame : Gtk.Grid {
 		
-		public PlotFrame(string file, ICell* _parent) {
+		public PlotFrame(string file, EvaluationCell* _parent) {
 
 			parent = _parent;
 
@@ -1526,7 +1544,7 @@ namespace Seaborg {
 
 			zoom_factor++;
 			draw_image();
-			parent->refresh_grid();
+			parent->cell_check_resize();
 		
 		}
 
@@ -1534,7 +1552,7 @@ namespace Seaborg {
 
 			zoom_factor--;
 			draw_image();
-			parent->refresh_grid();
+			parent->cell_check_resize();
 
 		}
 
@@ -1574,7 +1592,7 @@ namespace Seaborg {
 		private Gtk.Grid toolbar;
 		private int zoom_factor;
 		private CssProvider css;
-		private ICell* parent;
+		private EvaluationCell* parent;
 	}
 
 }
