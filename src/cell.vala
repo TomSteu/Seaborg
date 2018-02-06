@@ -283,6 +283,8 @@ namespace Seaborg {
 		}
 
 		public void zoom_font(double factor) {
+			zoom_factor = factor;
+
 			for(int i=0; i<Children.data.length; i++) {
 				Children.data[i].zoom_font(factor);
 			}
@@ -594,6 +596,7 @@ namespace Seaborg {
 			try {
 				font_provider.load_from_data(zoom_string, zoom_string.length);
 			} catch (GLib.Error err) {}
+
 
 		}
 
