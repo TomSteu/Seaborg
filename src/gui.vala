@@ -96,6 +96,20 @@ namespace Seaborg {
 				            "<child>"+
 				              "<object class=\"GtkShortcutsShortcut\">"+
 				                "<property name=\"visible\">1</property>"+
+				                "<property name=\"accelerator\">&lt;ctrl&gt;plus</property>"+
+				                "<property name=\"title\" translatable=\"yes\">Zoom in</property>"+
+				              "</object>"+
+				            "</child>"+
+				            "<child>"+
+				              "<object class=\"GtkShortcutsShortcut\">"+
+				                "<property name=\"visible\">1</property>"+
+				                "<property name=\"accelerator\">&lt;ctrl&gt;minus</property>"+
+				                "<property name=\"title\" translatable=\"yes\">Zoom in</property>"+
+				              "</object>"+
+				            "</child>"+
+				            "<child>"+
+				              "<object class=\"GtkShortcutsShortcut\">"+
+				                "<property name=\"visible\">1</property>"+
 				                "<property name=\"accelerator\">&lt;ctrl&gt;W</property>"+
 				                "<property name=\"title\" translatable=\"yes\">Close Notebook</property>"+
 				              "</object>"+
@@ -207,6 +221,8 @@ namespace Seaborg {
 			var eval_action = new GLib.SimpleAction("eval", null);
 			var stop_eval_action = new GLib.SimpleAction("stop", null);
 			var close_action = new GLib.SimpleAction("close", null);
+			var zoom_in_action = new GLib.SimpleAction("zoomin", null);
+			var zoom_out_action = new GLib.SimpleAction("zoomout", null);
 
 			new_action.activate.connect(() => {
 				new_notebook();
@@ -265,6 +281,14 @@ namespace Seaborg {
 			
 			});
 
+			zoom_in_action.activate.connect(() => {
+				zoom_factor += 0.1;
+			});
+
+			zoom_out_action.activate.connect(() => {
+				zoom_factor -= 0.1;
+			});
+
 
 			this.add_action(new_action);
 			this.add_action(open_action);
@@ -277,6 +301,8 @@ namespace Seaborg {
 			this.add_action(stop_eval_action);
 			this.add_action(quit_action);
 			this.add_action(close_action);
+			this.add_action(zoom_in_action);
+			this.add_action(zoom_out_action);
 
 
 			const string[] new_accels = {"<Control>N", null};
@@ -291,6 +317,8 @@ namespace Seaborg {
 			const string[] stop_eval_accels = {"<Control>period", "<Control>S", null};
 			const string[] close_accels = {"<Control>W", null};
 			const string[] quit_accels = {"<Control>Q", null};
+			const string[] zoom_in_accels = {"<Control>plus", "<Control>ZoomIn", "<Control>KP_Add", null};
+			const string[] zoom_out_accels = {"<Control>minus", "<Control>ZoomOut", "<Control>KP_Subtract", null};
 
 			this.set_accels_for_action("app.new", new_accels);
 			this.set_accels_for_action("app.open", open_accels);
@@ -304,6 +332,9 @@ namespace Seaborg {
 			this.set_accels_for_action("win.show-help-overlay", shortcut_accels);
 			this.set_accels_for_action("app.eval", eval_accels);
 			this.set_accels_for_action("app.stop", stop_eval_accels);
+			this.set_accels_for_action("app.zoomin", zoom_in_accels);
+			this.set_accels_for_action("app.zoomout", zoom_out_accels);
+
 			
 			// connecting kernel
 			reset_kernel();
@@ -491,6 +522,11 @@ namespace Seaborg {
 		}
 
 		public void kernel_msg(string msg) {
+
+			foreach (Gtk.Widget child in message_bar.get_content_area().get_children()) {
+				message_bar.get_content_area().remove(child);
+			}
+
 			Gtk.Label label = new Gtk.Label(msg);
 			message_bar.get_content_area().add(label);
 			label.show();
@@ -1242,6 +1278,22 @@ namespace Seaborg {
 
 		[CCode(cname = "try_reset_after_abort", cheader_filename = "wstp_connection.h")]
 		private extern static int try_reset_after_abort(void* con);
+
+		private double zoom_factor {
+			get {
+				return ((Seaborg.Notebook)notebook_stack.get_visible_child()).zoom_factor;
+			}
+
+			set {
+				
+				if(value > 4.0 || value < 0.1)
+					return;
+
+				((Seaborg.Notebook)notebook_stack.get_visible_child()).zoom_font(value);
+
+			}
+		}
+
 
 		private Gtk.ApplicationWindow main_window;
 		private Gtk.HeaderBar main_headerbar;

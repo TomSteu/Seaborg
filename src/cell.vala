@@ -765,7 +765,7 @@ namespace Seaborg {
 			OutputCell.top_margin = 0;
 			OutputCell.bottom_margin = 0;
 			OutputCell.button_press_event.connect(untoggle_handler);
-			InputCell.get_style_context().add_provider(font_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
+			OutputCell.get_style_context().add_provider(font_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 
 
 			Marker = new Gtk.ToggleButton();
