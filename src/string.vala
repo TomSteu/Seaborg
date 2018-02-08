@@ -137,13 +137,17 @@ namespace Seaborg {
 		return "(*" + str + "*)";
 	}
 
-	static string replace_plot_input(string str) {
-		if(Parameter.replace_plot) {
-			return "ReplaceAll[{ Graphics[A___] :> Block[{plot}, plot = Graphics[A]; Export[\"tmp/\" <> IntegerString[Hash[ToString[InputForm[plot]], \"SHA256\"], 16, 64] <> \".svg\", plot]; plot]," + 
-				"Graphics3D[A___] :> Block[{plot}, plot = Graphics3D[A]; Export[\"tmp/\" <> IntegerString[Hash[ToString[InputForm[plot]], \"SHA256\"], 16, 64] <> \".svg\", plot]; plot] }]["+ str + "]";
+
+	static string replace_form(string str) {
+		switch (Parameter.output) {
+			case Form.Input:
+				return "ToString[InputForm[" + str + "]]";
+			case Form.InputReplaceGraphics: 
+				return "ToString[InputForm[ReplaceAll[{ Graphics[A___] :> Block[{plot}, plot = Graphics[A]; Export[\"tmp/\" <> IntegerString[Hash[ToString[InputForm[plot]], \"SHA256\"], 16, 64] <> \".svg\", plot]; plot]," + 
+				"Graphics3D[A___] :> Block[{plot}, plot = Graphics3D[A]; Export[\"tmp/\" <> IntegerString[Hash[ToString[InputForm[plot]], \"SHA256\"], 16, 64] <> \".svg\", plot]; plot] }]["+ str + "]]]";
 		}
 
-		return str;
+		return "ToString[InputForm[" + str + "]]";
 	}
 
 	static int find_closing_bracket(string str, int start = 0) {

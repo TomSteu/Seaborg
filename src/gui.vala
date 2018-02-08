@@ -414,7 +414,7 @@ namespace Seaborg {
 							eva.remove_text();
 							eval_queue.push_tail( EvaluationData() { 
 								cell = (void*) eva,
-								input = "ToString[" + Parameter.form + "[" + replace_plot_input(replace_characters(eva.get_text())) + "]]"
+								input = replace_form(replace_characters(eva.get_text()))
 							});
 						}
 					}

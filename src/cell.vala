@@ -918,7 +918,7 @@ namespace Seaborg {
 			OutputBuffer.insert(ref iter, _text, _text.length);
 
 			// replace Graphics with pictures
-			if(Parameter.replace_plot && _text.contains("Graphics")) {
+			if(Parameter.output == Form.InputReplaceGraphics && _text.contains("Graphics")) {
 
 				int pos_end, pos_start = 0;
 				int char_end, char_start;
