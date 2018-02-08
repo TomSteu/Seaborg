@@ -378,6 +378,19 @@ namespace Seaborg {
 
 		public void quit_app() {
 
+			GLib.Dir tmp = GLib.Dir.open("tmp/");
+			string fn;
+			
+			while(true) {
+				
+				fn = tmp.read_name();
+				
+				if(fn == null)
+					break;
+				
+				GLib.FileUtils.remove("tmp/" + fn);
+			}
+
 			this.quit();
 		}
 
