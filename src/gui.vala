@@ -89,6 +89,13 @@ namespace Seaborg {
 				            "<child>"+
 				              "<object class=\"GtkShortcutsShortcut\">"+
 				                "<property name=\"visible\">1</property>"+
+				                "<property name=\"accelerator\">&lt;ctrl&gt;Tab</property>"+
+				                "<property name=\"title\" translatable=\"yes\">Cycle Tabs</property>"+
+				              "</object>"+
+				            "</child>"+
+				            "<child>"+
+				              "<object class=\"GtkShortcutsShortcut\">"+
+				                "<property name=\"visible\">1</property>"+
 				                "<property name=\"accelerator\">&lt;Primary&gt;question &lt;Primary&gt;F1</property>"+
 				                "<property name=\"title\" translatable=\"yes\">Show shortcuts</property>"+
 				              "</object>"+
@@ -104,7 +111,7 @@ namespace Seaborg {
 				              "<object class=\"GtkShortcutsShortcut\">"+
 				                "<property name=\"visible\">1</property>"+
 				                "<property name=\"accelerator\">&lt;ctrl&gt;minus</property>"+
-				                "<property name=\"title\" translatable=\"yes\">Zoom in</property>"+
+				                "<property name=\"title\" translatable=\"yes\">Zoom out</property>"+
 				              "</object>"+
 				            "</child>"+
 				            "<child>"+
@@ -186,6 +193,32 @@ namespace Seaborg {
 			main_window.add(main_layout);
 			main_window.set_help_overlay(shortcuts);
 			main_window.destroy.connect(quit_app);
+			main_window.key_press_event.connect( (key) => {
+				
+				if(key.type == Gdk.EventType.KEY_PRESS && (bool)(key.state & Gdk.ModifierType.CONTROL_MASK) && key.keyval == Gdk.Key.Tab) {
+
+					if(notebook_stack.get_children().length() > 1u ) {
+						
+						if(notebook_stack.get_visible_child() != notebook_stack.get_children().last().data) {
+							
+							notebook_stack.set_visible_child(
+								notebook_stack.get_children().find(notebook_stack.get_visible_child()).next.data
+							);
+
+						} else {
+							
+							notebook_stack.set_visible_child(notebook_stack.get_children().first().data);
+						}
+
+					}
+
+					return true;
+				}
+
+				return false;
+
+			});
+
 			this.add_window(main_window);
 
 			main_window.set_default_size(800, 600);
