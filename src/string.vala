@@ -145,6 +145,8 @@ namespace Seaborg {
 			case Form.InputReplaceGraphics: 
 				return "ToString[InputForm[ReplaceAll[{ Graphics[A___] :> Block[{plot}, plot = Graphics[A]; Export[\"tmp/\" <> IntegerString[Hash[ToString[InputForm[plot]], \"SHA256\"], 16, 64] <> \".svg\", plot]; plot]," + 
 				"Graphics3D[A___] :> Block[{plot}, plot = Graphics3D[A]; Export[\"tmp/\" <> IntegerString[Hash[ToString[InputForm[plot]], \"SHA256\"], 16, 64] <> \".svg\", plot]; plot] }]["+ str + "]]]";
+			case Form.Rendered:
+				return "Function[{arg}, Export[\"tmp/\" <> IntegerString[Hash[arg, \"SHA256\"], 16, 64] <> \".svg\", arg]; arg ][ToString[StandardForm[Style[" + str + ", FontColor->Gray ]]]]";
 		}
 
 		return "ToString[InputForm[" + str + "]]";
