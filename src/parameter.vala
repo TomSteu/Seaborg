@@ -1,3 +1,5 @@
+using Gdk;
+
 namespace Seaborg {
 
 	public enum Form {
@@ -12,7 +14,8 @@ namespace Seaborg {
 		public static bool code_highlighting = true;
 		public static bool stdlib_highlighting = false;
 		public static bool replace_plot = true;
-		public static Form output = Form.InputReplaceGraphics;
+		public static Form output = Form.Rendered;
+		public static Gdk.RGBA font_color;
 	}
 
 }

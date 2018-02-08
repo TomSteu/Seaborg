@@ -20,7 +20,11 @@ namespace Seaborg {
 
 			this.set_resource_base_path("/tst/seaborg/./res/");
 
+			// reset ID generator for cells
 			IdGenerator.reset();
+
+			// reset background color for rendered formulas
+			Parameter.font_color = (new Gtk.SourceView()).get_style_context().get_color(Gtk.StateFlags.NORMAL);
 			
 			// widgets
 			main_window = new Gtk.ApplicationWindow(this);

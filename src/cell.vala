@@ -915,6 +915,42 @@ namespace Seaborg {
 
 			TextIter iter;
 			OutputBuffer.get_end_iter(out iter);
+			
+			// replace all formulas by SVGs
+			if(Parameter.output == Form.Rendered) {
+				
+				string txt_rep = _text.replace("\n", "");
+				
+				// file is encoded by hash
+				string fn = "tmp/" + 
+					GLib.Checksum.compute_for_string(
+						GLib.ChecksumType.SHA256, 
+						txt_rep,
+						txt_rep.length
+					) + ".svg" ;
+
+				GLib.FileStream? file = GLib.FileStream.open(fn, "r");
+				if(file == null) {
+					OutputBuffer.insert(ref iter, _text, _text.length);
+					return;
+				}
+
+				PlotFrame plot = new PlotFrame(fn, this);
+				
+				if(! plot.import_success()) {
+					OutputBuffer.insert(ref iter, _text, _text.length);
+					return;
+				}
+
+				// insert line break and formula
+				OutputBuffer.insert(ref iter, "\n", 1);
+				OutputBuffer.get_end_iter(out iter);
+				OutputCell.add_child_at_anchor(plot, OutputBuffer.create_child_anchor(iter));
+				this.show_all();
+
+				return;
+			}
+
 			OutputBuffer.insert(ref iter, _text, _text.length);
 
 			// replace Graphics with pictures
@@ -982,6 +1018,7 @@ namespace Seaborg {
 
 				this.show_all();
 			}
+			
 		}
 
 		public string get_text() {

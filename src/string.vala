@@ -143,10 +143,12 @@ namespace Seaborg {
 			case Form.Input:
 				return "ToString[InputForm[" + str + "]]";
 			case Form.InputReplaceGraphics: 
-				return "ToString[InputForm[ReplaceAll[{ Graphics[A___] :> Block[{plot}, plot = Graphics[A]; Export[\"tmp/\" <> IntegerString[Hash[ToString[InputForm[plot]], \"SHA256\"], 16, 64] <> \".svg\", plot]; plot]," + 
+				return "ToString[InputForm[ReplaceAll[{ Graphics[A___] :> Block[{plot}, plot = Graphics[A]; Export[\"tmp/\" <> IntegerString[Hash[ToString[InputForm[plot], CharacterEncoding->\"UTF8\"], \"SHA256\"], 16, 64] <> \".svg\", plot]; plot]," + 
 				"Graphics3D[A___] :> Block[{plot}, plot = Graphics3D[A]; Export[\"tmp/\" <> IntegerString[Hash[ToString[InputForm[plot]], \"SHA256\"], 16, 64] <> \".svg\", plot]; plot] }]["+ str + "]]]";
 			case Form.Rendered:
-				return "Function[{arg}, Export[\"tmp/\" <> IntegerString[Hash[arg, \"SHA256\"], 16, 64] <> \".svg\", arg]; arg ][ToString[StandardForm[Style[" + str + ", FontColor->Gray ]]]]";
+				return "Function[{arg}, Export[\"tmp/\" <> IntegerString[Hash[ToString[InputForm[arg], CharacterEncoding->\"UTF8\"], \"SHA256\"], 16, 64] <> \".svg\", ToString[StandardForm[Style[arg, FontColor->RGBColor["
+					+ Parameter.font_color.red.to_string() + ", " + Parameter.font_color.green.to_string() + ", " + Parameter.font_color.blue.to_string() + ", " + Parameter.font_color.alpha.to_string()
+					+ "]]]]]; ToString[InputForm[arg]]][" + str + "]";
 		}
 
 		return "ToString[InputForm[" + str + "]]";
