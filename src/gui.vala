@@ -121,6 +121,13 @@ namespace Seaborg {
 				            "<child>"+
 				              "<object class=\"GtkShortcutsShortcut\">"+
 				                "<property name=\"visible\">1</property>"+
+				                "<property name=\"accelerator\">&lt;ctrl&gt;F</property>"+
+				                "<property name=\"title\" translatable=\"yes\">Search</property>"+
+				              "</object>"+
+				            "</child>"+
+				            "<child>"+
+				              "<object class=\"GtkShortcutsShortcut\">"+
+				                "<property name=\"visible\">1</property>"+
 				                "<property name=\"accelerator\">&lt;ctrl&gt;W</property>"+
 				                "<property name=\"title\" translatable=\"yes\">Close Notebook</property>"+
 				              "</object>"+
@@ -184,13 +191,28 @@ namespace Seaborg {
 			message_bar.set_message_type(MessageType.INFO);
 			message_bar.set_no_show_all(true);
 			message_bar.response.connect((i) => { message_bar.hide(); });
+
+			search_entry = new Gtk.SearchEntry();
+			search_entry.hexpand = true;
+			search_entry.halign = Gtk.Align.FILL;
+			search_entry.set_width_chars(32);
+			
+			search_box = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 0);
+			search_box.pack_start(search_entry);
+
+			search_bar = new Gtk.SearchBar();
+			search_bar.add(search_box);
+			search_bar.connect_entry(search_entry);
+			search_bar.show_close_button = true;
+			search_bar.search_mode_enabled = false;
 			
 			main_headerbar.show_close_button = true;
 			main_headerbar.custom_title = tab_switcher;
 			notebook_scroll.add(notebook_stack);
 
 			main_layout.attach(message_bar, 0, 0, 1, 1);
-			main_layout.attach(notebook_scroll, 0, 1, 1, 1);
+			main_layout.attach(search_bar, 0, 1, 1, 1);
+			main_layout.attach(notebook_scroll, 0, 2, 1, 1);
 			
 			main_window.title = "Gtk Notebook";
 			main_window.set_titlebar(main_headerbar);
@@ -241,6 +263,7 @@ namespace Seaborg {
 			main_menu.append("Save", "app.save");
 			main_menu.append("Save as", "app.saveas");
 			main_menu.append("Import", "app.import");
+			main_menu.append("Find", "app.find");
 			main_menu.append("Keyboard Shortcuts", "win.show-help-overlay");
 			main_menu.append("Close Notebook", "app.close");
 			main_menu.append("Quit", "app.quit");
@@ -260,6 +283,7 @@ namespace Seaborg {
 			var close_action = new GLib.SimpleAction("close", null);
 			var zoom_in_action = new GLib.SimpleAction("zoomin", null);
 			var zoom_out_action = new GLib.SimpleAction("zoomout", null);
+			var find_action = new GLib.SimpleAction("find", null);
 
 			new_action.activate.connect(() => {
 				new_notebook();
@@ -326,6 +350,17 @@ namespace Seaborg {
 				zoom_factor -= 0.1;
 			});
 
+			find_action.activate.connect(() => {
+				
+				string? sel = Gtk.Clipboard.get_for_display(main_window.get_display(), Gdk.SELECTION_CLIPBOARD).wait_for_text();
+				
+				if(sel != null) {
+					search_entry.set_text(sel);
+				}
+	
+				search_bar.search_mode_enabled = true;
+			});
+
 
 			this.add_action(new_action);
 			this.add_action(open_action);
@@ -340,6 +375,7 @@ namespace Seaborg {
 			this.add_action(close_action);
 			this.add_action(zoom_in_action);
 			this.add_action(zoom_out_action);
+			this.add_action(find_action);
 
 
 			const string[] new_accels = {"<Control>N", null};
@@ -356,6 +392,7 @@ namespace Seaborg {
 			const string[] quit_accels = {"<Control>Q", null};
 			const string[] zoom_in_accels = {"<Control>plus", "<Control>ZoomIn", "<Control>KP_Add", null};
 			const string[] zoom_out_accels = {"<Control>minus", "<Control>ZoomOut", "<Control>KP_Subtract", null};
+			const string[] find_accels = {"<Control>F", null};
 
 			this.set_accels_for_action("app.new", new_accels);
 			this.set_accels_for_action("app.open", open_accels);
@@ -371,6 +408,7 @@ namespace Seaborg {
 			this.set_accels_for_action("app.stop", stop_eval_accels);
 			this.set_accels_for_action("app.zoomin", zoom_in_accels);
 			this.set_accels_for_action("app.zoomout", zoom_out_accels);
+			this.set_accels_for_action("app.find", find_accels);
 
 			
 			// connecting kernel
@@ -1354,6 +1392,9 @@ namespace Seaborg {
 		private GLib.Menu main_menu;
 		private Gtk.Grid main_layout;
 		private Gtk.InfoBar message_bar;
+		private Gtk.SearchBar search_bar;
+		private Gtk.SearchEntry search_entry;
+		private Gtk.Box search_box;
 		private Gtk.ScrolledWindow notebook_scroll;
 		private Gtk.ShortcutsWindow shortcuts;
 		private void* kernel_connection;

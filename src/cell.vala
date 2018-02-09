@@ -130,6 +130,7 @@ namespace Seaborg {
 			}
 
 			Marker = new Gtk.ToggleButton();
+			Marker.can_focus = false;
 			var style_context = Marker.get_style_context();
 			style_context.add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 			style_context.add_class("cell-marker");
@@ -337,12 +338,14 @@ namespace Seaborg {
 			Title.bottom_margin = 0;
 			Title.button_press_event.connect(untoggle_handler);
 			Title.key_press_event.connect(insert_ellipsis);
+			Title.get_buffer().add_selection_clipboard(Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD));
 			Title.get_style_context().add_provider(font_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 
 
 			set_level(level);
 
 			Marker = new Gtk.ToggleButton();
+			Marker.can_focus = false;
 			var style_context = Marker.get_style_context();
 			style_context.add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 			style_context.add_class("cell-marker");
@@ -733,9 +736,11 @@ namespace Seaborg {
 			InputCell.key_press_event.connect(key_handler);
 			InputCell.get_style_context().add_provider(font_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 			InputBuffer.insert_text.connect(insert_handler);
+			InputBuffer.add_selection_clipboard(Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD));
 
 			OutputBuffer = new Gtk.SourceBuffer(null);
 			OutputBuffer.highlight_matching_brackets = true;
+			OutputBuffer.add_selection_clipboard(Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD));
 			if(Parameter.code_highlighting) {
 				OutputBuffer.style_scheme = sm.get_scheme("seaborg");
 				if(Parameter.stdlib_highlighting){
@@ -769,6 +774,7 @@ namespace Seaborg {
 
 
 			Marker = new Gtk.ToggleButton();
+			Marker.can_focus = false;
 			var style_context = Marker.get_style_context();
 			style_context.add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 			style_context.add_class("cell-marker");
@@ -1091,9 +1097,11 @@ namespace Seaborg {
 			Cell.bottom_margin = 0;
 			Cell.button_press_event.connect(untoggle_handler);
 			Cell.key_press_event.connect(insert_ellipsis);
+			Cell.get_buffer().add_selection_clipboard(Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD));
 			get_style_context().add_provider(font_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 
 			Marker = new Gtk.ToggleButton();
+			Marker.can_focus = false;
 			Marker.get_style_context().add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 			Marker.get_style_context().add_class("cell-marker");
 
