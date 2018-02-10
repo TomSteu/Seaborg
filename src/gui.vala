@@ -196,6 +196,14 @@ namespace Seaborg {
 			search_entry.hexpand = true;
 			search_entry.halign = Gtk.Align.FILL;
 			search_entry.set_width_chars(32);
+			search_entry.search_changed.connect(() => {
+
+				foreach (Gtk.Widget child  in notebook_stack.get_children()) {
+					((Seaborg.Notebook) child).search_settings.set_search_text((search_entry.text != "") ? search_entry.text : null);
+				}
+
+
+			});
 			
 			search_box = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 0);
 			search_box.pack_start(search_entry);
