@@ -82,6 +82,7 @@ namespace Seaborg {
 		public abstract GLib.Array<ICell> Children {get; set;}
 		public abstract GLib.Array<AddButton> AddButtons {get; set;}
 		public abstract double zoom_factor {get; set;}
+		public abstract Gtk.SourceSearchSettings search_settings {get; set;}
 		public ICell* get_child_by_name(string child_name) {
 			ICell* child_cell = null;
 			for(int i=0; i<Children.data.length; i++) {
@@ -150,6 +151,9 @@ namespace Seaborg {
 
 				css = CssProvider.get_default();
 			}
+
+			search_settings = new Gtk.SourceSearchSettings();
+			search_settings.wrap_around = false;
 
 			Marker = new Gtk.ToggleButton();
 			Marker.can_focus = false;
@@ -317,6 +321,7 @@ namespace Seaborg {
 		public GLib.Array<AddButton> AddButtons {get; set;}
 		public ICellContainer* Parent {get; set;}
 		public double zoom_factor {get; set;}
+		public Gtk.SourceSearchSettings search_settings {get; set;}
 		private uint Level;
 		private Gtk.ToggleButton Marker;
 		private CssProvider css;
@@ -333,6 +338,7 @@ namespace Seaborg {
 			column_spacing = 4;
 			row_spacing = 4;
 			zoom_factor = Parent->zoom_factor;
+			search_settings = Parent->search_settings;
 
 			css = new CssProvider();
 			font_provider = new CssProvider();
@@ -372,6 +378,8 @@ namespace Seaborg {
 			Title.get_style_context().add_provider(font_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 			TitleBuffer.insert_text.connect(insert_handler);
 			TitleBuffer.add_selection_clipboard(Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD));
+
+			search_context = new Gtk.SourceSearchContext(TitleBuffer, Parent->search_settings);
 
 			set_level(level);
 
@@ -698,6 +706,8 @@ namespace Seaborg {
 		public GLib.Array<AddButton> AddButtons {get; set;}
 		public ICellContainer* Parent {get; set;}
 		public double zoom_factor {get; set;}
+		public Gtk.SourceSearchSettings search_settings {get; set;}
+		private Gtk.SourceSearchContext search_context;
 		private uint Level;
 		private SourceView Title;
 		private SourceBuffer TitleBuffer;
@@ -770,6 +780,8 @@ namespace Seaborg {
 			InputBuffer.insert_text.connect(insert_handler);
 			InputBuffer.add_selection_clipboard(Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD));
 
+			input_search_context = new Gtk.SourceSearchContext(InputBuffer, Parent->search_settings);
+
 			OutputBuffer = new Gtk.SourceBuffer(null);
 			OutputBuffer.highlight_matching_brackets = true;
 			OutputBuffer.add_selection_clipboard(Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD));
@@ -803,6 +815,8 @@ namespace Seaborg {
 			OutputCell.bottom_margin = 0;
 			OutputCell.button_press_event.connect(untoggle_handler);
 			OutputCell.get_style_context().add_provider(font_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
+
+			output_search_context = new Gtk.SourceSearchContext(OutputBuffer, Parent->search_settings);
 
 
 			Marker = new Gtk.ToggleButton();
@@ -1066,6 +1080,8 @@ namespace Seaborg {
 		private Gtk.SourceBuffer InputBuffer;
 		private Gtk.SourceView OutputCell;
 		private Gtk.SourceBuffer OutputBuffer;
+		private Gtk.SourceSearchContext input_search_context;
+		private Gtk.SourceSearchContext output_search_context;
 		private Gtk.ToggleButton Marker;
 		private bool isExpanded;
 		private bool _lock;
@@ -1120,6 +1136,8 @@ namespace Seaborg {
 			Cell.get_style_context().add_provider(font_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 			CellBuffer.insert_text.connect(insert_handler);
 			CellBuffer.add_selection_clipboard(Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD));
+
+			search_context = new Gtk.SourceSearchContext(CellBuffer, Parent->search_settings);
 
 			Marker = new Gtk.ToggleButton();
 			Marker.can_focus = false;
@@ -1212,6 +1230,7 @@ namespace Seaborg {
 
 		private Gtk.SourceView Cell;
 		private Gtk.SourceBuffer CellBuffer;
+		private Gtk.SourceSearchContext search_context;
 		private Gtk.ToggleButton Marker;
 		private Gtk.CssProvider font_provider;
 	}
