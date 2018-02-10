@@ -52,6 +52,28 @@ namespace Seaborg {
 			}
 		}
 
+		protected void insert_handler(ref TextIter iter, string txt, int txt_len) {
+
+			switch (txt) {
+				case "(":
+					iter.get_buffer().insert(ref iter, ")", 1);
+					break;
+				case "[":
+					iter.get_buffer().insert(ref iter, "]", 1);
+					break;
+				case "{":
+					iter.get_buffer().insert(ref iter, "}", 1);
+					break;
+				default:
+					return;
+			}
+
+			iter.backward_cursor_position();
+			iter.get_buffer().place_cursor(iter);
+
+			return;
+		}
+
 	}
 
 	
@@ -325,8 +347,17 @@ namespace Seaborg {
 				css = CssProvider.get_default();
 			}
 
-			Title = new Gtk.TextView();
-			Title.get_style_context().add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
+			TitleBuffer = new Gtk.SourceBuffer(null);
+			TitleBuffer.highlight_matching_brackets = true;
+			Title = new Gtk.SourceView.with_buffer(TitleBuffer);
+			Title.show_line_numbers = false;
+			Title.highlight_current_line = false;
+			Title.auto_indent = true;
+			Title.indent_on_tab = true;
+			Title.tab_width = 3;
+			Title.insert_spaces_instead_of_tabs = false;
+			Title.smart_backspace = true;
+			Title.show_line_marks = false;
 			Title.wrap_mode = Gtk.WrapMode.WORD_CHAR;
 			Title.monospace = false;
 			Title.editable = true;
@@ -338,9 +369,9 @@ namespace Seaborg {
 			Title.bottom_margin = 0;
 			Title.button_press_event.connect(untoggle_handler);
 			Title.key_press_event.connect(insert_ellipsis);
-			Title.get_buffer().add_selection_clipboard(Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD));
 			Title.get_style_context().add_provider(font_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
-
+			TitleBuffer.insert_text.connect(insert_handler);
+			TitleBuffer.add_selection_clipboard(Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD));
 
 			set_level(level);
 
@@ -668,7 +699,8 @@ namespace Seaborg {
 		public ICellContainer* Parent {get; set;}
 		public double zoom_factor {get; set;}
 		private uint Level;
-		private TextView Title;
+		private SourceView Title;
+		private SourceBuffer TitleBuffer;
 		private Gtk.ToggleButton Marker;
 		private CssProvider css;
 		private CssProvider font_provider;
@@ -891,28 +923,6 @@ namespace Seaborg {
 			return false;
 		}
 
-		private void insert_handler(ref TextIter iter, string txt, int txt_len) {
-
-			switch (txt) {
-				case "(":
-					iter.get_buffer().insert(ref iter, ")", 1);
-					break;
-				case "[":
-					iter.get_buffer().insert(ref iter, "]", 1);
-					break;
-				case "{":
-					iter.get_buffer().insert(ref iter, "}", 1);
-					break;
-				default:
-					return;
-			}
-
-			iter.backward_cursor_position();
-			iter.get_buffer().place_cursor(iter);
-
-			return;
-		}
-
 		public void set_text(string _text) {
 			InputBuffer.text = _text;
 		}
@@ -1085,8 +1095,18 @@ namespace Seaborg {
 				css = CssProvider.get_default();
 			}
 
-			Cell = new Gtk.TextView();
-			Cell.wrap_mode = Gtk.WrapMode.WORD;
+			CellBuffer = new Gtk.SourceBuffer(null);
+			CellBuffer.highlight_matching_brackets = true;
+			Cell = new Gtk.SourceView.with_buffer(CellBuffer);
+			Cell.show_line_numbers = false;
+			Cell.highlight_current_line = false;
+			Cell.auto_indent = true;
+			Cell.indent_on_tab = true;
+			Cell.tab_width = 3;
+			Cell.insert_spaces_instead_of_tabs = false;
+			Cell.smart_backspace = true;
+			Cell.show_line_marks = false;
+			Cell.wrap_mode = Gtk.WrapMode.WORD_CHAR;
 			Cell.monospace = false;
 			Cell.editable = true;
 			Cell.hexpand = true;
@@ -1097,8 +1117,9 @@ namespace Seaborg {
 			Cell.bottom_margin = 0;
 			Cell.button_press_event.connect(untoggle_handler);
 			Cell.key_press_event.connect(insert_ellipsis);
-			Cell.get_buffer().add_selection_clipboard(Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD));
-			get_style_context().add_provider(font_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
+			Cell.get_style_context().add_provider(font_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
+			CellBuffer.insert_text.connect(insert_handler);
+			CellBuffer.add_selection_clipboard(Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD));
 
 			Marker = new Gtk.ToggleButton();
 			Marker.can_focus = false;
@@ -1189,7 +1210,8 @@ namespace Seaborg {
 			return false;
 		}
 
-		private Gtk.TextView Cell;
+		private Gtk.SourceView Cell;
+		private Gtk.SourceBuffer CellBuffer;
 		private Gtk.ToggleButton Marker;
 		private Gtk.CssProvider font_provider;
 	}
