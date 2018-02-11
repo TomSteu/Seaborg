@@ -235,4 +235,11 @@ namespace Seaborg {
 		return -1;
 
 	}
+
+	public enum SearchType {
+		StartForwards,
+		EndBackwards,
+		CursorForwards,
+		CursorBackwards
+	}
 }

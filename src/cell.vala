@@ -24,6 +24,7 @@ namespace Seaborg {
 		public abstract bool lock {get; set;}
 		public abstract void cell_check_resize();
 		public abstract void zoom_font(double factor);
+		public abstract bool search(SearchType type);
 
 		public bool untoggle_handler(EventButton event) {
 
@@ -315,6 +316,16 @@ namespace Seaborg {
 			for(int i=0; i<Children.data.length; i++) {
 				Children.data[i].zoom_font(factor);
 			}
+		}
+
+		public bool search(SearchType type) {
+
+			for(int i=0; i<Children.data.length; i++) {
+				if(Children.data[i].search(type))
+					return true;
+			}
+
+			return false;
 		}
 
 		public GLib.Array<ICell> Children {get; set;}
@@ -701,6 +712,93 @@ namespace Seaborg {
 			return false;
 		}
 
+		public bool search(SearchType type) {
+			
+			bool res = false;
+
+			switch (type) {
+
+				case SearchType.StartForwards:
+
+					Gtk.TextIter origin, start, end;
+					bool has_wrapped_around;
+
+					TitleBuffer.get_start_iter(out origin);
+					res = search_context.forward2(origin, out start, out end, out has_wrapped_around);
+					res = res && (!has_wrapped_around);
+
+					if(res) {
+						TitleBuffer.select_range(start, end);
+						focus_cell();
+						return res;
+					}
+
+					break;
+
+				case SearchType.EndBackwards:
+
+					Gtk.TextIter origin, start, end;
+					bool has_wrapped_around;
+
+					TitleBuffer.get_end_iter(out origin);
+					res = search_context.backward2(origin, out start, out end, out has_wrapped_around);
+					res = res && (!has_wrapped_around);
+
+					if(res) {
+						TitleBuffer.select_range(start, end);
+						focus_cell();
+						return res;
+					}
+
+					break;
+
+				case SearchType.CursorForwards:
+
+					Gtk.TextIter origin, start, end;
+					bool has_wrapped_around;
+
+					TitleBuffer.get_iter_at_mark(out origin, TitleBuffer.get_insert());
+					res = search_context.forward2(origin, out start, out end, out has_wrapped_around);
+					res = res && (!has_wrapped_around);
+
+					if(res) {
+						TitleBuffer.select_range(start, end);
+						focus_cell();
+						return res;
+					}
+
+					break;
+
+					
+
+				case SearchType.CursorBackwards:
+
+					Gtk.TextIter origin, start, end;
+					bool has_wrapped_around;
+
+					TitleBuffer.get_iter_at_mark(out origin, TitleBuffer.get_insert());
+					res = search_context.backward2(origin, out start, out end, out has_wrapped_around);
+					res = res && (!has_wrapped_around);
+
+					if(res) {
+						TitleBuffer.select_range(start, end);
+						focus_cell();
+						return res;
+					}
+
+					break;	
+			}
+
+			if(! res) {
+				for(int i=0; i<Children.data.length; i++) {
+					if(Children.data[i].search(type))
+						return true;
+				}
+			}
+
+			return false;
+		}
+
 
 		public GLib.Array<ICell> Children {get; set;}
 		public GLib.Array<AddButton> AddButtons {get; set;}
@@ -1075,6 +1173,130 @@ namespace Seaborg {
 			} catch (GLib.Error err) {}
 		}
 
+		public bool search(SearchType type) {
+			
+
+			switch (type) {
+				
+				case SearchType.StartForwards:
+
+					Gtk.TextIter origin, start, end;
+					bool has_wrapped_around, res;
+
+					InputBuffer.get_start_iter(out origin);
+					res = input_search_context.forward2(origin, out start, out end, out has_wrapped_around);
+					res = res && (!has_wrapped_around);
+
+					if(res) {
+						InputBuffer.select_range(start, end);
+						focus_cell();
+						return res;
+					}
+
+					if(isExpanded) {
+						OutputBuffer.get_start_iter(out origin);
+						res = output_search_context.forward2(origin, out start, out end, out has_wrapped_around);
+						res = res && (!has_wrapped_around);
+
+						if(res) {
+							OutputBuffer.select_range(start, end);
+							focus_cell();
+						}
+					}
+
+					return res;
+
+				case SearchType.EndBackwards:
+
+					Gtk.TextIter origin, start, end;
+					bool has_wrapped_around, res;
+
+					if(isExpanded) {
+
+						OutputBuffer.get_end_iter(out origin);
+						res = output_search_context.backward2(origin, out start, out end, out has_wrapped_around);
+						res = res && (!has_wrapped_around);
+
+						if(res) {
+							InputBuffer.select_range(start, end);
+							focus_cell();
+							return res;
+						}
+					}
+
+					InputBuffer.get_end_iter(out origin);
+					res = input_search_context.backward2(origin, out start, out end, out has_wrapped_around);
+					res = res && (!has_wrapped_around);
+
+					if(res) {
+						InputBuffer.select_range(start, end);
+						focus_cell();
+					}
+
+					return res;
+
+				case SearchType.CursorForwards:
+
+					Gtk.TextIter origin, start, end;
+					bool has_wrapped_around, res;
+
+					InputBuffer.get_iter_at_mark(out origin, InputBuffer.get_insert());
+					res = input_search_context.forward2(origin, out start, out end, out has_wrapped_around);
+					res = res && (!has_wrapped_around);
+
+					if(res) {
+						InputBuffer.select_range(start, end);
+						focus_cell();
+						return res;
+					}
+
+					if(isExpanded) {
+						OutputBuffer.get_iter_at_mark(out origin, OutputBuffer.get_insert());
+						res = output_search_context.forward2(origin, out start, out end, out has_wrapped_around);
+						res = res && (!has_wrapped_around);
+
+						if(res) {
+							OutputBuffer.select_range(start, end);
+							focus_cell();
+						}
+					}
+
+					return res;
+
+				case SearchType.CursorBackwards:
+
+					Gtk.TextIter origin, start, end;
+					bool has_wrapped_around, res;
+
+					if(isExpanded) {
+
+						OutputBuffer.get_iter_at_mark(out origin, OutputBuffer.get_insert());
+						res = output_search_context.backward2(origin, out start, out end, out has_wrapped_around);
+						res = res && (!has_wrapped_around);
+
+						if(res) {
+							InputBuffer.select_range(start, end);
+							focus_cell();
+							return res;
+						}
+					}
+
+					InputBuffer.get_iter_at_mark(out origin, InputBuffer.get_insert());
+					res = input_search_context.backward2(origin, out start, out end, out has_wrapped_around);
+					res = res && (!has_wrapped_around);
+
+					if(res) {
+						InputBuffer.select_range(start, end);
+						focus_cell();
+					}
+
+					return res;
+
+			}
+
+			return false;
+		}
+
 		public ICellContainer* Parent {get; set;}
 		private Gtk.SourceView InputCell;
 		private Gtk.SourceBuffer InputBuffer;
@@ -1202,6 +1424,80 @@ namespace Seaborg {
 		public void add_before(int pos, ICell[] list) {}
 		public void remove_from(int pos, int number, bool trash) {}
 		public ICellContainer* Parent {get; set;}
+
+		public bool search(SearchType type) {
+			
+
+			switch (type) {
+				
+				case SearchType.StartForwards:
+
+					Gtk.TextIter origin, start, end;
+					bool has_wrapped_around, res;
+
+					CellBuffer.get_start_iter(out origin);
+					res = search_context.forward2(origin, out start, out end, out has_wrapped_around);
+					res = res && (!has_wrapped_around);
+
+					if(res) {
+						CellBuffer.select_range(start, end);
+						focus_cell();
+					}
+
+					return res;
+
+				case SearchType.EndBackwards:
+
+					Gtk.TextIter origin, start, end;
+					bool has_wrapped_around, res;
+
+					CellBuffer.get_end_iter(out origin);
+					res = search_context.backward2(origin, out start, out end, out has_wrapped_around);
+					res = res && (!has_wrapped_around);
+
+					if(res) {
+						CellBuffer.select_range(start, end);
+						focus_cell();
+					}
+
+					return res;
+
+				case SearchType.CursorForwards:
+
+					Gtk.TextIter origin, start, end;
+					bool has_wrapped_around, res;
+
+					CellBuffer.get_iter_at_mark(out origin, CellBuffer.get_insert());
+					res = search_context.forward2(origin, out start, out end, out has_wrapped_around);
+					res = res && (!has_wrapped_around);
+
+					if(res) {
+						CellBuffer.select_range(start, end);
+						focus_cell();
+					}
+
+					return res;
+
+				case SearchType.CursorBackwards:
+
+					Gtk.TextIter origin, start, end;
+					bool has_wrapped_around, res;
+
+					CellBuffer.get_iter_at_mark(out origin, CellBuffer.get_insert());
+					res = search_context.backward2(origin, out start, out end, out has_wrapped_around);
+					res = res && (!has_wrapped_around);
+
+					if(res) {
+						CellBuffer.select_range(start, end);
+						focus_cell();
+					}
+
+					return res;
+
+			}
+
+			return false;
+		}
 
 		private bool press_handler(EventButton event) {
 
