@@ -6,6 +6,19 @@ using Cairo;
 
 namespace Seaborg {
 
+	/* Cell Levels:
+	 * 
+	 *   0 - Evaluation/Text
+	 *   1 - Subsubsection
+	 *   2 - Subsection
+	 *   3 - Section
+	 *   4 - Subchapter
+	 *   5 - Chapter 
+	 *   6 - Title
+	 *   7 - Notebook
+	 *
+	 */
+
 	// interface for each cell as well as containers for cells
 	public interface ICell : Gtk.Widget {
 		public abstract void toggle_all();
@@ -25,6 +38,7 @@ namespace Seaborg {
 		public abstract void cell_check_resize();
 		public abstract void zoom_font(double factor);
 		public abstract bool search(SearchType type);
+		public abstract void replace_all(string rep);
 
 		public bool untoggle_handler(EventButton event) {
 
@@ -77,8 +91,6 @@ namespace Seaborg {
 
 	}
 
-	
-
 	public interface ICellContainer : ICell {
 		public abstract GLib.Array<ICell> Children {get; set;}
 		public abstract GLib.Array<AddButton> AddButtons {get; set;}
@@ -116,19 +128,6 @@ namespace Seaborg {
 
   		private static int id = 0;
 	}
-
-	/* Cell Levels:
-	 * 
-	 *   0 - Evaluation/Text
-	 *   1 - Subsubsection
-	 *   2 - Subsection
-	 *   3 - Section
-	 *   4 - Subchapter
-	 *   5 - Chapter 
-	 *   6 - Title
-	 *   7 - Notebook
-	 *
-	 */
 
 	public class Notebook : Gtk.Grid, ICell, ICellContainer {
 		public Notebook() {
@@ -326,6 +325,13 @@ namespace Seaborg {
 			}
 
 			return false;
+		}
+
+		public void replace_all(string rep) {
+
+			for(int i=0; i<Children.data.length; i++) {
+				Children.data[i].replace_all(rep);
+			}
 		}
 
 		public GLib.Array<ICell> Children {get; set;}
@@ -799,6 +805,17 @@ namespace Seaborg {
 			return false;
 		}
 
+		public void replace_all(string rep) {
+
+			try {
+				search_context.replace_all(rep, rep.length);
+			} catch (GLib.Error err) {}
+
+			for(int i=0; i<Children.data.length; i++) {
+				Children.data[i].replace_all(rep);
+			}
+		}
+
 
 		public GLib.Array<ICell> Children {get; set;}
 		public GLib.Array<AddButton> AddButtons {get; set;}
@@ -1238,16 +1255,20 @@ namespace Seaborg {
 				case SearchType.CursorForwards:
 
 					Gtk.TextIter origin, start, end;
-					bool has_wrapped_around, res;
+					bool has_wrapped_around, res = false;
 
-					InputBuffer.get_iter_at_mark(out origin, InputBuffer.get_insert());
-					res = input_search_context.forward2(origin, out start, out end, out has_wrapped_around);
-					res = res && (!has_wrapped_around);
+					if(! (isExpanded && OutputBuffer.has_selection)) {
 
-					if(res) {
-						InputBuffer.select_range(start, end);
-						focus_cell();
-						return res;
+						InputBuffer.get_iter_at_mark(out origin, InputBuffer.get_insert());
+						res = input_search_context.forward2(origin, out start, out end, out has_wrapped_around);
+						res = res && (!has_wrapped_around);
+
+						if(res) {
+							InputBuffer.select_range(start, end);
+							focus_cell();
+							return res;
+						}
+
 					}
 
 					if(isExpanded) {
@@ -1268,7 +1289,7 @@ namespace Seaborg {
 					Gtk.TextIter origin, start, end;
 					bool has_wrapped_around, res;
 
-					if(isExpanded) {
+					if(isExpanded  && (! InputBuffer.has_selection)) {
 
 						OutputBuffer.get_iter_at_mark(out origin, OutputBuffer.get_insert());
 						res = output_search_context.backward2(origin, out start, out end, out has_wrapped_around);
@@ -1295,6 +1316,14 @@ namespace Seaborg {
 			}
 
 			return false;
+		}
+
+		public void replace_all(string rep) {
+
+			try {
+				input_search_context.replace_all(rep, rep.length);
+			} catch (GLib.Error err) {}
+
 		}
 
 		public ICellContainer* Parent {get; set;}
@@ -1522,6 +1551,14 @@ namespace Seaborg {
 			}
 
 			return false;
+		}
+
+		public void replace_all(string rep) {
+
+			try {
+				search_context.replace_all(rep, rep.length);
+			} catch (GLib.Error err) {}
+
 		}
 
 		private Gtk.SourceView Cell;
