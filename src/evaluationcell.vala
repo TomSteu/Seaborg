@@ -31,17 +31,11 @@ namespace Seaborg {
  			lm.search_path = new string[] {"res/sourceview/"};
  			sm.search_path = new string[] {"res/sourceview/"};
 			
+ 			
+
  			InputBuffer = new Gtk.SourceBuffer(null);
-			InputBuffer.highlight_matching_brackets = true;
-			if(Parameter.code_highlighting) {
-				InputBuffer.style_scheme = sm.get_scheme("seaborg");
-				if(Parameter.stdlib_highlighting){
-					InputBuffer.language =  lm.get_language("wolfram");
-				}
-				else {
-					InputBuffer.language =  lm.get_language("wolfram-nostdlib");
-				}
-			}
+			InputBuffer.highlight_matching_brackets = true;			
+
 			InputCell = new Gtk.SourceView.with_buffer(InputBuffer);
 			InputCell.show_line_numbers = false;
 			InputCell.highlight_current_line = false;
@@ -68,18 +62,11 @@ namespace Seaborg {
 
 			input_search_context = new Gtk.SourceSearchContext(InputBuffer, Parent->search_settings);
 
+			
+
 			OutputBuffer = new Gtk.SourceBuffer(null);
 			OutputBuffer.highlight_matching_brackets = true;
 			OutputBuffer.add_selection_clipboard(Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD));
-			if(Parameter.code_highlighting) {
-				OutputBuffer.style_scheme = sm.get_scheme("seaborg");
-				if(Parameter.stdlib_highlighting){
-					OutputBuffer.language =  lm.get_language("wolfram");
-				}
-				else {
-					OutputBuffer.language =  lm.get_language("wolfram-nostdlib");
-				}
-			}
 
 			OutputCell = new Gtk.SourceView.with_buffer(OutputBuffer);
 			OutputCell.show_line_numbers = false;
@@ -101,6 +88,29 @@ namespace Seaborg {
 			OutputCell.bottom_margin = 0;
 			OutputCell.button_press_event.connect(untoggle_handler);
 			OutputCell.get_style_context().add_provider(font_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
+
+			if(Parameter.dark_theme) {
+				InputBuffer.style_scheme = sm.get_scheme("seaborg-dark");
+				OutputBuffer.style_scheme = sm.get_scheme("seaborg-dark");
+			} else {
+				InputBuffer.style_scheme = sm.get_scheme("seaborg-light");
+				OutputBuffer.style_scheme = sm.get_scheme("seaborg-light");
+			}
+			
+			if(Parameter.code_highlighting != Highlighting.None) {
+				
+				if(Parameter.code_highlighting == Highlighting.Full) {
+					InputBuffer.language =  lm.get_language("wolfram");
+					OutputBuffer.language =  lm.get_language("wolfram");
+				}
+
+				if(Parameter.code_highlighting == Highlighting.NoStdlib) {
+					InputBuffer.language =  lm.get_language("wolfram-nostdlib");
+					OutputBuffer.language =  lm.get_language("wolfram-nostdlib");
+				}
+			}
+
+			
 
 			output_search_context = new Gtk.SourceSearchContext(OutputBuffer, Parent->search_settings);
 
