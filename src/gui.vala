@@ -213,9 +213,33 @@ namespace Seaborg {
 			search_bar.connect_entry(search_entry);
 			search_bar.show_close_button = true;
 			search_bar.search_mode_enabled = false;
+
+			Gtk.Box quick_option_box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
+			quick_option_box.add(new Gtk.Separator(Gtk.Orientation.HORIZONTAL));
+			
+			Gtk.RadioButton input_form_button = new Gtk.RadioButton.with_label_from_widget (null, "Input Form");
+			input_form_button.toggled.connect(() => { Parameter.output = Form.Input; });
+			Gtk.RadioButton input_form_with_plot_button = new Gtk.RadioButton.with_label_from_widget (input_form_button, "Input Form with Graphics");
+			input_form_with_plot_button.toggled.connect(() => { Parameter.output = Form.InputReplaceGraphics; });
+			Gtk.RadioButton svg_button = new Gtk.RadioButton.with_label_from_widget (input_form_button, "SVG output");
+			svg_button.toggled.connect(() => { Parameter.output = Form.Rendered; });
+			quick_option_box.add(input_form_button);
+			quick_option_box.add(input_form_with_plot_button);
+			quick_option_box.add(svg_button);
+			quick_option_box.show_all();
+
+
+			quick_option_button = new Gtk.MenuButton();
+			quick_option_button.use_popover = true;
+			quick_option_button.set_label("⚙");
+			quick_option_button.popover = new Gtk.Popover(quick_option_button);
+			quick_option_button.popover.add(quick_option_box);
+			
 			
 			main_headerbar.show_close_button = true;
 			main_headerbar.custom_title = tab_switcher;
+			main_headerbar.pack_start(quick_option_button);
+
 			notebook_scroll.add(notebook_stack);
 
 			main_layout.attach(message_bar, 0, 0, 1, 1);
@@ -1405,6 +1429,7 @@ namespace Seaborg {
 		private Gtk.Box search_box;
 		private Gtk.ScrolledWindow notebook_scroll;
 		private Gtk.ShortcutsWindow shortcuts;
+		private Gtk.MenuButton quick_option_button;
 		private void* kernel_connection;
 		private GLib.Queue<EvaluationData?> eval_queue;
 		private GLib.Thread<void*> listener_thread;
@@ -1415,5 +1440,7 @@ namespace Seaborg {
 	int main(string[] args) {
 
 		return new SeaborgApplication().run(args);
+
+		
 	}
 }

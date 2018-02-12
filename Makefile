@@ -58,7 +58,7 @@ wstp_connection.o:
 
 .PHONY: clean
 clean:
-	rm ./build/wstp_connection.o
+	rm ./build/*.o
 
 .PHONY: run
 run:
