@@ -226,6 +226,14 @@ namespace Seaborg {
 			search_bar.connect_entry(search_entry);
 			search_bar.show_close_button = true;
 			search_bar.search_mode_enabled = false;
+			search_bar.notify["search-mode-enabled"].connect((property, sender) => {search_button.active = search_bar.search_mode_enabled;});
+
+			search_button = new Gtk.ToggleButton();
+			search_button.always_show_image = true;
+			search_button.set_image(new Gtk.Image.from_icon_name("edit-find", IconSize.BUTTON));
+			search_button.toggled.connect(() => {
+				search_bar.search_mode_enabled = search_button.active;
+			});
 
 			// quick option popup menu
 			Gtk.Box quick_option_box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
@@ -272,7 +280,8 @@ namespace Seaborg {
 
 			quick_option_button = new Gtk.MenuButton();
 			quick_option_button.use_popover = true;
-			quick_option_button.set_label("⚙");
+			quick_option_button.always_show_image = true;
+			quick_option_button.set_image(new Gtk.Image.from_icon_name("document-edit", IconSize.BUTTON));
 			quick_option_button.popover = new Gtk.Popover(quick_option_button);
 			quick_option_button.popover.add(quick_option_box);
 
@@ -281,6 +290,7 @@ namespace Seaborg {
 			main_headerbar.show_close_button = true;
 			main_headerbar.custom_title = tab_switcher;
 			main_headerbar.pack_start(quick_option_button);
+			main_headerbar.pack_start(search_button);
 
 
 			// main layout
@@ -1471,6 +1481,7 @@ namespace Seaborg {
 		private Gtk.InfoBar message_bar;
 		private Gtk.SearchBar search_bar;
 		private Gtk.SearchEntry search_entry;
+		private Gtk.ToggleButton search_button;
 		private Gtk.Box search_box;
 		private Gtk.ScrolledWindow notebook_scroll;
 		private Gtk.ShortcutsWindow shortcuts;
