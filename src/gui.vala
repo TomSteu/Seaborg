@@ -234,14 +234,20 @@ namespace Seaborg {
 			eval_button.get_style_context().add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 			eval_button.get_style_context().add_class("popmenu-button");
 			eval_button.set_alignment(0.0f, 0.5f);
-			eval_button.clicked.connect(() => { schedule_evaluation((Seaborg.Notebook)notebook_stack.get_visible_child()); });
+			eval_button.clicked.connect(() => { 
+				schedule_evaluation((Seaborg.Notebook)notebook_stack.get_visible_child());
+				quick_option_button.popover.popdown();
+			});
 			quick_option_box.add(eval_button);
 
 			Gtk.Button cancel_button = new Gtk.Button.with_label("Cancel all evaluations");
 			cancel_button.get_style_context().add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 			cancel_button.get_style_context().add_class("popmenu-button");
 			cancel_button.set_alignment(0.0f, 0.5f);
-			cancel_button.clicked.connect(() => { try_abort(kernel_connection); });
+			cancel_button.clicked.connect(() => { 
+				try_abort(kernel_connection);
+				quick_option_button.popover.popdown();
+			});
 			quick_option_box.add(cancel_button);
 			
 			quick_option_box.add(new Gtk.Separator(Gtk.Orientation.HORIZONTAL));
@@ -275,6 +281,7 @@ namespace Seaborg {
 			main_headerbar.show_close_button = true;
 			main_headerbar.custom_title = tab_switcher;
 			main_headerbar.pack_start(quick_option_button);
+
 
 			// main layout
 			notebook_scroll.add(notebook_stack);
