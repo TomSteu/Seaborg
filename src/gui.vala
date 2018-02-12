@@ -20,6 +20,18 @@ namespace Seaborg {
 
 			this.set_resource_base_path("/tst/seaborg/./res/");
 
+			// try to find seaborg CSS file
+			css_provider = new CssProvider();
+
+			try {
+
+				css_provider.load_from_path("res/seaborg.css");
+
+			} catch(GLib.Error error) {
+
+				css_provider = CssProvider.get_default();
+			}
+
 			// reset ID generator for cells
 			IdGenerator.reset();
 
@@ -34,6 +46,8 @@ namespace Seaborg {
 			tab_switcher = new Gtk.StackSwitcher();
 			notebook_stack = new Gtk.Stack();
 			notebook_scroll = new Gtk.ScrolledWindow(null,null);
+			
+			// shortcut menu
 			string shortcut_builder_string = 
 				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>"+
 				"<interface>"+
@@ -183,15 +197,14 @@ namespace Seaborg {
 			shortcuts = shortcut_builder.get_object("shortcuts") as Gtk.ShortcutsWindow;
 
 
-
-			tab_switcher.stack = notebook_stack;
-
+			// message bar
 			message_bar.set_default_response(0);
 			message_bar.set_show_close_button(true);
 			message_bar.set_message_type(MessageType.INFO);
 			message_bar.set_no_show_all(true);
 			message_bar.response.connect((i) => { message_bar.hide(); });
 
+			// search bar
 			search_entry = new Gtk.SearchEntry();
 			search_entry.hexpand = true;
 			search_entry.halign = Gtk.Align.FILL;
@@ -214,18 +227,40 @@ namespace Seaborg {
 			search_bar.show_close_button = true;
 			search_bar.search_mode_enabled = false;
 
+			// quick option popup menu
 			Gtk.Box quick_option_box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
-			quick_option_box.add(new Gtk.Separator(Gtk.Orientation.HORIZONTAL));
 			
+			Gtk.Button eval_button = new Gtk.Button.with_label("Evaluate selection");
+			eval_button.get_style_context().add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
+			eval_button.get_style_context().add_class("popmenu-button");
+			eval_button.set_alignment(0.0f, 0.5f);
+			eval_button.clicked.connect(() => { schedule_evaluation((Seaborg.Notebook)notebook_stack.get_visible_child()); });
+			quick_option_box.add(eval_button);
+
+			Gtk.Button cancel_button = new Gtk.Button.with_label("Cancel all evaluations");
+			cancel_button.get_style_context().add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
+			cancel_button.get_style_context().add_class("popmenu-button");
+			cancel_button.set_alignment(0.0f, 0.5f);
+			cancel_button.clicked.connect(() => { try_abort(kernel_connection); });
+			quick_option_box.add(cancel_button);
+			
+			quick_option_box.add(new Gtk.Separator(Gtk.Orientation.HORIZONTAL));
+
 			Gtk.RadioButton input_form_button = new Gtk.RadioButton.with_label_from_widget (null, "Input Form");
+			input_form_button.active = (Parameter.output == Form.Input);
 			input_form_button.toggled.connect(() => { Parameter.output = Form.Input; });
-			Gtk.RadioButton input_form_with_plot_button = new Gtk.RadioButton.with_label_from_widget (input_form_button, "Input Form with Graphics");
-			input_form_with_plot_button.toggled.connect(() => { Parameter.output = Form.InputReplaceGraphics; });
-			Gtk.RadioButton svg_button = new Gtk.RadioButton.with_label_from_widget (input_form_button, "SVG output");
-			svg_button.toggled.connect(() => { Parameter.output = Form.Rendered; });
 			quick_option_box.add(input_form_button);
+
+			Gtk.RadioButton input_form_with_plot_button = new Gtk.RadioButton.with_label_from_widget (input_form_button, "Input Form with Graphics");
+			input_form_with_plot_button.active = (Parameter.output == Form.InputReplaceGraphics);
+			input_form_with_plot_button.toggled.connect(() => { Parameter.output = Form.InputReplaceGraphics; });
 			quick_option_box.add(input_form_with_plot_button);
+
+			Gtk.RadioButton svg_button = new Gtk.RadioButton.with_label_from_widget (input_form_button, "SVG output");
+			svg_button.active = (Parameter.output == Form.Rendered);
+			svg_button.toggled.connect(() => { Parameter.output = Form.Rendered; });
 			quick_option_box.add(svg_button);
+
 			quick_option_box.show_all();
 
 
@@ -234,18 +269,21 @@ namespace Seaborg {
 			quick_option_button.set_label("⚙");
 			quick_option_button.popover = new Gtk.Popover(quick_option_button);
 			quick_option_button.popover.add(quick_option_box);
-			
-			
+
+			// header
+			tab_switcher.stack = notebook_stack;
 			main_headerbar.show_close_button = true;
 			main_headerbar.custom_title = tab_switcher;
 			main_headerbar.pack_start(quick_option_button);
 
+			// main layout
 			notebook_scroll.add(notebook_stack);
 
 			main_layout.attach(message_bar, 0, 0, 1, 1);
 			main_layout.attach(search_bar, 0, 1, 1, 1);
 			main_layout.attach(notebook_scroll, 0, 2, 1, 1);
 			
+			// main window
 			main_window.title = "Gtk Notebook";
 			main_window.set_titlebar(main_headerbar);
 			main_window.add(main_layout);
@@ -1434,6 +1472,7 @@ namespace Seaborg {
 		private GLib.Queue<EvaluationData?> eval_queue;
 		private GLib.Thread<void*> listener_thread;
 		private bool listener_thread_is_running=false;
+		private CssProvider css_provider;
 	}
 
 

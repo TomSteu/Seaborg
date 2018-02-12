@@ -45,6 +45,22 @@
 	background-image: none;
 }
 
+.popmenu-button {
+	background-color: transparent;
+	background-image: none;
+	border-color: transparent;
+
+}
+
+.popmenu-button:hover {
+	background-color: @theme_selected_bg_color;
+}
+
+.popmenu-button:active {
+	background-color: transparent;
+}
+
+
 /* buttons on plot for zooming */
 .zoom-button {
 	padding-left: 0px;
