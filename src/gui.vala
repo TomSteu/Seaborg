@@ -235,6 +235,7 @@ namespace Seaborg {
 				search_bar.search_mode_enabled = search_button.active;
 			});
 
+
 			// quick option popup menu
 			Gtk.Box quick_option_box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
 			
@@ -285,12 +286,32 @@ namespace Seaborg {
 			quick_option_button.popover = new Gtk.Popover(quick_option_button);
 			quick_option_button.popover.add(quick_option_box);
 
+			// zoom control
+			zoom_box = new Gtk.SpinButton.with_range(0.1, 3.0, 0.1);
+			zoom_box.digits = 2u;
+			zoom_box.numeric = true;
+			zoom_box.snap_to_ticks = false;
+			zoom_box.update_policy = Gtk.SpinButtonUpdatePolicy.IF_VALID;
+			zoom_box.wrap = false;
+			zoom_box.set_icon_from_icon_name(EntryIconPosition.PRIMARY, "zoom-fit-best");
+			zoom_box.set_width_chars(6);
+			zoom_box.hexpand = true;
+			zoom_box.halign = Gtk.Align.END;
+			zoom_box.value_changed.connect(() => {
+				zoom_factor = zoom_box.value;
+			});
+
+			notebook_stack.notify["visible-child"].connect((property, sender) => {
+				zoom_box.value = zoom_factor;
+			});
+
 			// header
 			tab_switcher.stack = notebook_stack;
 			main_headerbar.show_close_button = true;
 			main_headerbar.custom_title = tab_switcher;
 			main_headerbar.pack_start(quick_option_button);
 			main_headerbar.pack_start(search_button);
+			main_headerbar.pack_end(zoom_box);
 
 
 			// main layout
@@ -1463,10 +1484,11 @@ namespace Seaborg {
 
 			set {
 				
-				if(value > 4.0 || value < 0.1)
+				if(value > 3.0 || value < 0.1)
 					return;
 
 				((Seaborg.Notebook)notebook_stack.get_visible_child()).zoom_font(value);
+				zoom_box.value = zoom_factor;
 
 			}
 		}
@@ -1483,6 +1505,7 @@ namespace Seaborg {
 		private Gtk.SearchEntry search_entry;
 		private Gtk.ToggleButton search_button;
 		private Gtk.Box search_box;
+		private Gtk.SpinButton zoom_box;
 		private Gtk.ScrolledWindow notebook_scroll;
 		private Gtk.ShortcutsWindow shortcuts;
 		private Gtk.MenuButton quick_option_button;
