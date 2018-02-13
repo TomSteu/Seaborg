@@ -230,7 +230,7 @@ namespace Seaborg {
 
 			search_button = new Gtk.ToggleButton();
 			search_button.always_show_image = true;
-			search_button.set_image(new Gtk.Image.from_icon_name("edit-find", IconSize.BUTTON));
+			search_button.set_image(new Gtk.Image.from_icon_name("edit-find-symbolic", IconSize.BUTTON));
 			search_button.toggled.connect(() => {
 				search_bar.search_mode_enabled = search_button.active;
 			});
@@ -282,7 +282,7 @@ namespace Seaborg {
 			quick_option_button = new Gtk.MenuButton();
 			quick_option_button.use_popover = true;
 			quick_option_button.always_show_image = true;
-			quick_option_button.set_image(new Gtk.Image.from_icon_name("document-edit", IconSize.BUTTON));
+			quick_option_button.set_image(new Gtk.Image.from_icon_name("document-edit-symbolic", IconSize.BUTTON));
 			quick_option_button.popover = new Gtk.Popover(quick_option_button);
 			quick_option_button.popover.add(quick_option_box);
 
@@ -293,7 +293,7 @@ namespace Seaborg {
 			zoom_box.snap_to_ticks = false;
 			zoom_box.update_policy = Gtk.SpinButtonUpdatePolicy.IF_VALID;
 			zoom_box.wrap = false;
-			zoom_box.set_icon_from_icon_name(EntryIconPosition.PRIMARY, "zoom-fit-best");
+			zoom_box.set_icon_from_icon_name(EntryIconPosition.PRIMARY, "zoom-fit-best-symbolic");
 			zoom_box.set_width_chars(6);
 			zoom_box.hexpand = true;
 			zoom_box.halign = Gtk.Align.END;
