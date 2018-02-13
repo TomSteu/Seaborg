@@ -353,6 +353,19 @@ namespace Seaborg {
 
 			});
 
+			main_window.scroll_event.connect((scroll) => {
+
+				if((bool)(scroll.state & Gdk.ModifierType.CONTROL_MASK)) {
+
+					if(scroll.direction == Gdk.ScrollDirection.UP) { zoom_factor += 0.1; }
+					if(scroll.direction == Gdk.ScrollDirection.DOWN) { zoom_factor -= 0.1; }
+
+					return true;
+				} 
+
+				return false;
+			});
+
 			this.add_window(main_window);
 
 			main_window.set_default_size(800, 600);
