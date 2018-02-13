@@ -536,6 +536,10 @@ namespace Seaborg {
 			reset_kernel();
 			eval_queue = new Queue<EvaluationData?>();
 
+			// apply settings
+			Gtk.Settings settings = Gtk.Settings.get_default();
+			settings.gtk_application_prefer_dark_theme = Parameter.dark_theme;
+
 
 		}
 
