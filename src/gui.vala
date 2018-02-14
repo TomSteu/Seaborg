@@ -262,18 +262,18 @@ namespace Seaborg {
 			quick_option_box.add(new Gtk.Separator(Gtk.Orientation.HORIZONTAL));
 
 			Gtk.RadioButton input_form_button = new Gtk.RadioButton.with_label_from_widget (null, "Input Form");
-			input_form_button.active = (Parameter.output == Form.Input);
-			input_form_button.toggled.connect(() => { Parameter.output = Form.Input; });
+			input_form_button.active = (Parameter.output == Form.INPUT);
+			input_form_button.toggled.connect(() => { Parameter.output = Form.INPUT; });
 			quick_option_box.add(input_form_button);
 
 			Gtk.RadioButton input_form_with_plot_button = new Gtk.RadioButton.with_label_from_widget (input_form_button, "Input Form with Graphics");
-			input_form_with_plot_button.active = (Parameter.output == Form.InputReplaceGraphics);
-			input_form_with_plot_button.toggled.connect(() => { Parameter.output = Form.InputReplaceGraphics; });
+			input_form_with_plot_button.active = (Parameter.output == Form.INPUTREPLACEGRAPHICS);
+			input_form_with_plot_button.toggled.connect(() => { Parameter.output = Form.INPUTREPLACEGRAPHICS; });
 			quick_option_box.add(input_form_with_plot_button);
 
 			Gtk.RadioButton svg_button = new Gtk.RadioButton.with_label_from_widget (input_form_button, "SVG output");
-			svg_button.active = (Parameter.output == Form.Rendered);
-			svg_button.toggled.connect(() => { Parameter.output = Form.Rendered; });
+			svg_button.active = (Parameter.output == Form.RENDERED);
+			svg_button.toggled.connect(() => { Parameter.output = Form.RENDERED; });
 			quick_option_box.add(svg_button);
 
 			quick_option_box.show_all();
@@ -369,9 +369,12 @@ namespace Seaborg {
 			this.add_window(main_window);
 
 			main_window.set_default_size(800, 600);
+			
+			if(notebook_stack.get_children().length() <= 0u)
+				new_notebook();
+
 			main_window.show_all();
 
-			new_notebook();
 
 		}
 
@@ -559,6 +562,8 @@ namespace Seaborg {
 					GLib.FileUtils.remove("tmp/" + fn);
 				}
 			} catch(GLib.FileError err) {}
+
+			save_preferences();
 			
 			this.quit();
 		}
@@ -1334,6 +1339,52 @@ namespace Seaborg {
 
 			});
 
+		}
+
+		private void save_preferences() {
+			GLib.FileStream save_file = GLib.FileStream.open("config.xml", "w");
+			if(save_file == null) {
+				kernel_msg("Error saving preferences");
+				return;
+			}
+
+			int w_width, w_height;
+			string? fn = null;
+
+			main_window.get_size(out w_width, out w_height);
+
+			save_file.printf("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
+			save_file.printf("<seaborg version=\"1.0\">\n");
+			save_file.printf("	</kernel_init>" + Parameter.kernel_init  + "</kernel_init>\n");
+			save_file.printf("	<code_highlighting>" + Parameter.code_highlighting.to_string() + "</code_highlighting>\n");
+			save_file.printf("	<dark_theme>" + Parameter.dark_theme.to_string() + "</dark_theme>\n");
+			save_file.printf("	<output>" + Parameter.output.to_string() + "</output>\n");
+			save_file.printf("	<window_width>" + w_width.to_string() + "</window_width>\n");
+			save_file.printf("	<window_height>" + w_height.to_string() + "</window_height>\n");
+			save_file.printf("	<open_notebooks>\n");
+
+			foreach (Gtk.Widget child in notebook_stack.get_children()) {
+
+				notebook_stack.set_visible_child(child);
+				fn = notebook_stack.get_visible_child_name();
+
+				if(fn != null && fn != "") {
+
+					save_file.printf("		<notebook>\n");
+					save_file.printf("			<name>" + fn + "</name>\n");
+					save_file.printf("			<zoom>" + ((Seaborg.Notebook) child).zoom_factor.to_string() + "</zoom>\n");
+					save_file.printf("		</notebook>\n");
+
+				}
+
+				
+			}
+
+			save_file.printf("	</open_notebooks>\n");
+			save_file.printf("</seaborg>\n");
+			save_file.flush();
+
+			return;
 		}
 
 

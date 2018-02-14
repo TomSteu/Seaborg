@@ -140,12 +140,12 @@ namespace Seaborg {
 
 	static string replace_form(string str) {
 		switch (Parameter.output) {
-			case Form.Input:
+			case Form.INPUT:
 				return "ToString[InputForm[" + str + "]]";
-			case Form.InputReplaceGraphics: 
+			case Form.INPUTREPLACEGRAPHICS: 
 				return "ToString[InputForm[ReplaceAll[{ Graphics[A___] :> Block[{plot}, plot = Graphics[A]; Export[\"tmp/\" <> IntegerString[Hash[ToString[InputForm[plot], CharacterEncoding->\"UTF8\"], \"SHA256\"], 16, 64] <> \".svg\", plot]; plot]," + 
 				"Graphics3D[A___] :> Block[{plot}, plot = Graphics3D[A]; Export[\"tmp/\" <> IntegerString[Hash[ToString[InputForm[plot]], \"SHA256\"], 16, 64] <> \".svg\", plot]; plot] }]["+ str + "]]]";
-			case Form.Rendered:
+			case Form.RENDERED:
 				return "Function[{arg}, Export[\"tmp/\" <> IntegerString[Hash[ToString[InputForm[arg], CharacterEncoding->\"UTF8\"], \"SHA256\"], 16, 64] <> \".svg\", ToString[StandardForm[Style[arg, FontColor->RGBColor["
 					+ Parameter.font_color.red.to_string() + ", " + Parameter.font_color.green.to_string() + ", " + Parameter.font_color.blue.to_string() + ", " + Parameter.font_color.alpha.to_string()
 					+ "]]]]]; ToString[InputForm[arg]]][" + str + "]";

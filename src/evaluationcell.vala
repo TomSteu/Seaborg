@@ -97,14 +97,14 @@ namespace Seaborg {
 				OutputBuffer.style_scheme = sm.get_scheme("seaborg-light");
 			}
 			
-			if(Parameter.code_highlighting != Highlighting.None) {
+			if(Parameter.code_highlighting != Highlighting.NONE) {
 				
-				if(Parameter.code_highlighting == Highlighting.Full) {
+				if(Parameter.code_highlighting == Highlighting.FULL) {
 					InputBuffer.language =  lm.get_language("wolfram");
 					OutputBuffer.language =  lm.get_language("wolfram");
 				}
 
-				if(Parameter.code_highlighting == Highlighting.NoStdlib) {
+				if(Parameter.code_highlighting == Highlighting.NOSTDLIB) {
 					InputBuffer.language =  lm.get_language("wolfram-nostdlib");
 					OutputBuffer.language =  lm.get_language("wolfram-nostdlib");
 				}
@@ -243,7 +243,7 @@ namespace Seaborg {
 			OutputBuffer.get_end_iter(out iter);
 			
 			// replace all formulas by SVGs
-			if(Parameter.output == Form.Rendered) {
+			if(Parameter.output == Form.RENDERED) {
 				
 				string txt_rep = _text.replace("\n", "");
 				
@@ -280,7 +280,7 @@ namespace Seaborg {
 			OutputBuffer.insert(ref iter, _text, _text.length);
 
 			// replace Graphics with pictures
-			if(Parameter.output == Form.InputReplaceGraphics && _text.contains("Graphics")) {
+			if(Parameter.output == Form.INPUTREPLACEGRAPHICS && _text.contains("Graphics")) {
 
 				int pos_end, pos_start = 0;
 				int char_end, char_start;
