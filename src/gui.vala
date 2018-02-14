@@ -261,18 +261,15 @@ namespace Seaborg {
 			
 			quick_option_box.add(new Gtk.Separator(Gtk.Orientation.HORIZONTAL));
 
-			Gtk.RadioButton input_form_button = new Gtk.RadioButton.with_label_from_widget (null, "Input Form");
-			input_form_button.active = (Parameter.output == Form.INPUT);
+			input_form_button = new Gtk.RadioButton.with_label_from_widget (null, "Input Form");
 			input_form_button.toggled.connect(() => { Parameter.output = Form.INPUT; });
 			quick_option_box.add(input_form_button);
 
-			Gtk.RadioButton input_form_with_plot_button = new Gtk.RadioButton.with_label_from_widget (input_form_button, "Input Form with Graphics");
-			input_form_with_plot_button.active = (Parameter.output == Form.INPUTREPLACEGRAPHICS);
+			input_form_with_plot_button = new Gtk.RadioButton.with_label_from_widget (input_form_button, "Input Form with Graphics");
 			input_form_with_plot_button.toggled.connect(() => { Parameter.output = Form.INPUTREPLACEGRAPHICS; });
 			quick_option_box.add(input_form_with_plot_button);
 
-			Gtk.RadioButton svg_button = new Gtk.RadioButton.with_label_from_widget (input_form_button, "SVG output");
-			svg_button.active = (Parameter.output == Form.RENDERED);
+			svg_button = new Gtk.RadioButton.with_label_from_widget (input_form_button, "SVG output");
 			svg_button.toggled.connect(() => { Parameter.output = Form.RENDERED; });
 			quick_option_box.add(svg_button);
 
@@ -327,6 +324,8 @@ namespace Seaborg {
 			main_window.add(main_layout);
 			main_window.set_help_overlay(shortcuts);
 			main_window.destroy.connect(quit_app);
+
+			// cycle open notebooks
 			main_window.key_press_event.connect( (key) => {
 				
 				if(key.type == Gdk.EventType.KEY_PRESS && (bool)(key.state & Gdk.ModifierType.CONTROL_MASK) && key.keyval == Gdk.Key.Tab) {
@@ -353,6 +352,7 @@ namespace Seaborg {
 
 			});
 
+			// zoom by scrolling
 			main_window.scroll_event.connect((scroll) => {
 
 				if((bool)(scroll.state & Gdk.ModifierType.CONTROL_MASK)) {
@@ -368,10 +368,19 @@ namespace Seaborg {
 
 			this.add_window(main_window);
 
-			main_window.set_default_size(800, 600);
-			
+			// read config.xml
+			load_preferences();
+
 			if(notebook_stack.get_children().length() <= 0u)
 				new_notebook();
+
+			input_form_button.active = (Parameter.output == Form.INPUT);
+			input_form_with_plot_button.active = (Parameter.output == Form.INPUTREPLACEGRAPHICS);
+			svg_button.active = (Parameter.output == Form.RENDERED);
+
+			// connecting kernel
+			reset_kernel();
+			eval_queue = new Queue<EvaluationData?>();
 
 			main_window.show_all();
 
@@ -534,10 +543,6 @@ namespace Seaborg {
 			this.set_accels_for_action("app.zoomout", zoom_out_accels);
 			this.set_accels_for_action("app.find", find_accels);
 
-			
-			// connecting kernel
-			reset_kernel();
-			eval_queue = new Queue<EvaluationData?>();
 
 			// apply settings
 			Gtk.Settings settings = Gtk.Settings.get_default();
@@ -1355,7 +1360,7 @@ namespace Seaborg {
 
 			save_file.printf("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
 			save_file.printf("<seaborg version=\"1.0\">\n");
-			save_file.printf("	</kernel_init>" + Parameter.kernel_init  + "</kernel_init>\n");
+			save_file.printf("	<kernel_init>" + Parameter.kernel_init  + "</kernel_init>\n");
 			save_file.printf("	<code_highlighting>" + Parameter.code_highlighting.to_string() + "</code_highlighting>\n");
 			save_file.printf("	<dark_theme>" + Parameter.dark_theme.to_string() + "</dark_theme>\n");
 			save_file.printf("	<output>" + Parameter.output.to_string() + "</output>\n");
@@ -1384,6 +1389,152 @@ namespace Seaborg {
 			save_file.printf("</seaborg>\n");
 			save_file.flush();
 
+			return;
+		}
+
+		private void load_preferences() {
+
+			// apply defaults
+			int width = 800;
+			int height = 600;
+			double zfactor;
+			string fn,version;
+
+			main_window.set_default_size(width, height);
+
+			Parameter.kernel_init = "-linkname \"math -wstp -mathlink\"";
+
+			// parse xml string 
+			Xml.Doc* doc = Xml.Parser.parse_file("config.xml");
+			if(doc == null) {
+				return;
+			}
+
+			// get root node
+			Xml.Node* root = doc->get_root_element ();
+			if(root == null) {
+				kernel_msg("Error parsing config file");
+				delete doc;
+				return;
+			}
+
+			if(root->name != "seaborg") {
+				delete doc;
+				return;
+			}
+
+			// get version
+			version = root->get_prop("version");
+			if(version == null) {
+				kernel_msg("Error parsing config file");
+				delete doc;
+				return;
+			}
+			if(double.parse(version) > 1.0) {
+				kernel_msg("Warning: config file belongs to newer version");
+			}
+
+			for(Xml.Node* iter = root->children; iter != null; iter = iter->next) {
+				if(iter->type == Xml.ElementType.ELEMENT_NODE) {
+					switch (iter->name) {
+						
+						case "kernel_init":
+							
+							Parameter.kernel_init = iter->get_content();							
+							break;
+					
+						case "code_highlighting":
+							
+							switch(iter->get_content()) {
+								case "SEABORG_HIGHLIGHING_NONE":
+									Parameter.code_highlighting = Highlighting.NONE;
+									break;
+								case "SEABORG_HIGHLIGHING_NOSTDLIB":
+									Parameter.code_highlighting = Highlighting.NOSTDLIB;
+									break;
+								case "SEABORG_HIGHLIGHING_FULL":
+									Parameter.code_highlighting = Highlighting.FULL;
+									break;
+							}
+							break;
+
+						case "dark_theme":
+
+							Parameter.dark_theme = bool.parse(iter->get_content());
+							break;
+
+						case "output":
+
+							switch (iter->get_content()) {
+								case "SEABORG_FORM_INPUT":
+									Parameter.output = Form.INPUT;
+									break;
+								case "SEABORG_FORM_INPUTREPLACEGRAPHICS":
+									Parameter.output = Form.INPUTREPLACEGRAPHICS;
+									break;
+								case "SEABORG_FORM_RENDERED":
+									Parameter.output = Form.RENDERED;
+									break;
+							}
+							break;
+
+						case "window_width":
+							
+							width = int.parse(iter->get_content());
+							if(width <= 0)
+								width = 800;
+							break;
+
+						case "window_height":
+							
+							height = int.parse(iter->get_content());
+							if(height <= 0)
+								height = 600;
+							break;
+
+						case "open_notebooks":
+
+							for(Xml.Node* iter2 = iter->children; iter2 != null; iter2 = iter2->next) {
+								if(iter2->name == "notebook") {
+									
+									zfactor = 1.0;
+									fn = "";
+
+									for(Xml.Node* iter3 = iter2->children; iter3 != null; iter3 = iter3->next) {
+
+										
+
+										switch (iter3->name) {
+											case "name":
+												fn = iter3->get_content();
+												break;
+
+											case "zoom":
+												zfactor = double.parse(iter3->get_content());
+												if(zfactor < 0.1 || zfactor > 3.0) {
+													zfactor = 1.0;
+												}
+												break;
+										}
+
+									}
+
+									if(fn != null && fn != "") {
+										load_notebook(fn);
+										zoom_factor = zfactor;
+									}
+								}
+							}
+
+							break;
+					
+					}
+				}
+			}
+
+			main_window.resize(width, height);
+
+			delete doc;
 			return;
 		}
 
@@ -1577,6 +1728,9 @@ namespace Seaborg {
 		private Gtk.ScrolledWindow notebook_scroll;
 		private Gtk.ShortcutsWindow shortcuts;
 		private Gtk.MenuButton quick_option_button;
+		private Gtk.RadioButton input_form_button;
+		private Gtk.RadioButton input_form_with_plot_button;
+		private Gtk.RadioButton svg_button;
 		private void* kernel_connection;
 		private GLib.Queue<EvaluationData?> eval_queue;
 		private GLib.Thread<void*> listener_thread;

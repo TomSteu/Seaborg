@@ -16,10 +16,10 @@ namespace Seaborg {
 
 	public struct Parameter {
 
-		public static const string kernel_init = "-linkname \"math -wstp -mathlink\"";
+		public static string kernel_init;
 		public static Highlighting code_highlighting = Highlighting.NOSTDLIB;
 		public static bool dark_theme = true;
-		public static Form output = Form.RENDERED;
+		public static Form output = Form.INPUTREPLACEGRAPHICS;
 		public static Gdk.RGBA font_color;
 	}
 

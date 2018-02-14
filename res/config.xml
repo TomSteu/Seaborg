@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <seaborg version="1.0">
-	</kernel_init>-linkname "math -wstp -mathlink"</kernel_init>
+	<kernel_init>-linkname "math -wstp -mathlink"</kernel_init>
 	<code_highlighting>SEABORG_HIGHLIGHTING_NOSTDLIB</code_highlighting>
 	<dark_theme>true</dark_theme>
 	<output>SEABORG_FORM_INPUT</output>
