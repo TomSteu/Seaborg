@@ -142,6 +142,13 @@ namespace Seaborg {
 				            "<child>"+
 				              "<object class=\"GtkShortcutsShortcut\">"+
 				                "<property name=\"visible\">1</property>"+
+				                "<property name=\"accelerator\">&lt;ctrl&gt;P</property>"+
+				                "<property name=\"title\" translatable=\"yes\">Preferences</property>"+
+				              "</object>"+
+				            "</child>"+
+				            "<child>"+
+				              "<object class=\"GtkShortcutsShortcut\">"+
+				                "<property name=\"visible\">1</property>"+
 				                "<property name=\"accelerator\">&lt;ctrl&gt;W</property>"+
 				                "<property name=\"title\" translatable=\"yes\">Close Notebook</property>"+
 				              "</object>"+
@@ -302,6 +309,22 @@ namespace Seaborg {
 				zoom_box.value = zoom_factor;
 			});
 
+			// preferences window
+			preferences_window = new Gtk.Window();
+			preferences_window.destroy_with_parent = true;
+			preferences_window.set_no_show_all(true);
+			preferences_window.title = "Preferences";
+			preferences_window.window_position = Gtk.WindowPosition.MOUSE;
+			preferences_window.deletable = false;
+			preferences_window.key_press_event.connect((key) => {
+				if(key.type == Gdk.EventType.KEY_PRESS && key.keyval == Gdk.Key.Escape)
+					preferences_window.hide();
+
+				return true;
+			});
+
+			
+
 			// header
 			tab_switcher.stack = notebook_stack;
 			main_headerbar.show_close_button = true;
@@ -324,6 +347,7 @@ namespace Seaborg {
 			main_window.add(main_layout);
 			main_window.set_help_overlay(shortcuts);
 			main_window.destroy.connect(quit_app);
+			main_window.window_position = Gtk.WindowPosition.MOUSE;
 
 			// cycle open notebooks
 			main_window.key_press_event.connect( (key) => {
@@ -397,6 +421,7 @@ namespace Seaborg {
 			main_menu.append("Save as", "app.saveas");
 			main_menu.append("Import", "app.import");
 			main_menu.append("Find", "app.find");
+			main_menu.append("Preferences", "app.pref");
 			main_menu.append("Keyboard Shortcuts", "win.show-help-overlay");
 			main_menu.append("Close Notebook", "app.close");
 			main_menu.append("Quit", "app.quit");
@@ -417,6 +442,7 @@ namespace Seaborg {
 			var zoom_in_action = new GLib.SimpleAction("zoomin", null);
 			var zoom_out_action = new GLib.SimpleAction("zoomout", null);
 			var find_action = new GLib.SimpleAction("find", null);
+			var pref_action = new GLib.SimpleAction("pref", null);
 
 			new_action.activate.connect(() => {
 				new_notebook();
@@ -494,6 +520,12 @@ namespace Seaborg {
 				search_bar.search_mode_enabled = true;
 			});
 
+			pref_action.activate.connect(() => {
+				
+				preferences_window.present();
+
+			});
+
 
 			this.add_action(new_action);
 			this.add_action(open_action);
@@ -509,6 +541,7 @@ namespace Seaborg {
 			this.add_action(zoom_in_action);
 			this.add_action(zoom_out_action);
 			this.add_action(find_action);
+			this.add_action(pref_action);
 
 
 			const string[] new_accels = {"<Control>N", null};
@@ -519,13 +552,14 @@ namespace Seaborg {
 			const string[] export_accels = {"<Control>E", null};
 			const string[] rm_accels = {"<Control>Delete","<Control>D", null};
 			const string[] shortcut_accels = {"<Control>F1", "<Control>question", null};
-			const string[] eval_accels = {"<Control>Return", null};
+			const string[] eval_accels = {"<Control>Return", "<Control>KP_Enter", null};
 			const string[] stop_eval_accels = {"<Control>period", "<Control>S", null};
 			const string[] close_accels = {"<Control>W", null};
 			const string[] quit_accels = {"<Control>Q", null};
 			const string[] zoom_in_accels = {"<Control>plus", "<Control>ZoomIn", "<Control>KP_Add", null};
 			const string[] zoom_out_accels = {"<Control>minus", "<Control>ZoomOut", "<Control>KP_Subtract", null};
 			const string[] find_accels = {"<Control>F", null};
+			const string[] pref_accels = {"<Control>P", null};
 
 			this.set_accels_for_action("app.new", new_accels);
 			this.set_accels_for_action("app.open", open_accels);
@@ -542,6 +576,7 @@ namespace Seaborg {
 			this.set_accels_for_action("app.zoomin", zoom_in_accels);
 			this.set_accels_for_action("app.zoomout", zoom_out_accels);
 			this.set_accels_for_action("app.find", find_accels);
+			this.set_accels_for_action("app.pref", pref_accels);
 
 
 			// apply settings
@@ -1731,6 +1766,7 @@ namespace Seaborg {
 		private Gtk.RadioButton input_form_button;
 		private Gtk.RadioButton input_form_with_plot_button;
 		private Gtk.RadioButton svg_button;
+		private Gtk.Window preferences_window;
 		private void* kernel_connection;
 		private GLib.Queue<EvaluationData?> eval_queue;
 		private GLib.Thread<void*> listener_thread;
