@@ -223,6 +223,7 @@ namespace Seaborg {
 			message_bar.set_no_show_all(true);
 			message_bar.response.connect((i) => { message_bar.hide(); });
 
+			
 			// search bar
 			search_entry = new Gtk.SearchEntry();
 			search_entry.hexpand = true;
@@ -256,6 +257,7 @@ namespace Seaborg {
 
 
 			// quick option popup menu
+
 			Gtk.Box quick_option_box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
 			
 			Gtk.Button eval_button = new Gtk.Button.with_label("Evaluate selection");
@@ -305,6 +307,8 @@ namespace Seaborg {
 			quick_option_button.popover = new Gtk.Popover(quick_option_button);
 			quick_option_button.popover.add(quick_option_box);
 
+			
+
 			// zoom control
 			zoom_box = new Gtk.SpinButton.with_range(0.1, 3.0, 0.1);
 			zoom_box.digits = 2u;
@@ -330,6 +334,8 @@ namespace Seaborg {
 			notebook_stack.notify["visible-child"].connect((property, sender) => {
 				zoom_box.value = zoom_factor;
 			});
+
+			
 
 			// preferences window
 			preferences_window = new Gtk.Window();
@@ -378,11 +384,32 @@ namespace Seaborg {
 			dark_theme_pref.active = Parameter.dark_theme;
 			dark_theme_pref.toggled.connect(() => { Parameter.dark_theme = dark_theme_pref.active; });
 
+			Gtk.Label highlighting_heading = new Gtk.Label("Code highlighting");
+			highlighting_heading.get_style_context().add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
+			highlighting_heading.get_style_context().add_class("pref-heading");
+			highlighting_heading.halign = Gtk.Align.START;
+
+			highlight_none_button = new Gtk.RadioButton.with_label_from_widget(null, "None");
+			highlight_none_button.active = (Parameter.code_highlighting == Highlighting.NONE);
+			highlight_none_button.toggled.connect(() => { Parameter.code_highlighting = Highlighting.NONE; });
+
+			highlight_nostdlib_button = new Gtk.RadioButton.with_label_from_widget(highlight_none_button, "Syntax only (recommended)");
+			highlight_nostdlib_button.active = (Parameter.code_highlighting == Highlighting.NOSTDLIB);
+			highlight_nostdlib_button.toggled.connect(() => { Parameter.code_highlighting = Highlighting.NOSTDLIB; });
+
+			highlight_full_button = new Gtk.RadioButton.with_label_from_widget(highlight_none_button, "Full");
+			highlight_full_button.active = (Parameter.code_highlighting == Highlighting.FULL);
+			highlight_full_button.toggled.connect(() => { Parameter.code_highlighting = Highlighting.FULL; });
+
 			pref_body_grid.attach(kernel_heading, 0, 0, 3, 1);
 			pref_body_grid.attach(new Gtk.Label("Initialization string: "), 1, 1, 1, 1);
 			pref_body_grid.attach(init_entry, 2, 1, 1, 1);
 			pref_body_grid.attach(appearence_heading, 0, 3, 3, 1);
 			pref_body_grid.attach(dark_theme_pref, 1, 4, 2, 1);
+			pref_body_grid.attach(highlighting_heading, 0, 6, 3, 1);
+			pref_body_grid.attach(highlight_none_button, 1, 7, 1, 1);
+			pref_body_grid.attach(highlight_nostdlib_button, 1, 8, 1, 1);
+			pref_body_grid.attach(highlight_full_button, 1, 9, 1, 1);
 
 			Gtk.ScrolledWindow pref_scroll = new Gtk.ScrolledWindow(null, null);
 			pref_scroll.add(pref_body_grid);
@@ -395,7 +422,10 @@ namespace Seaborg {
 			preferences_header.show_all();
 			
 			preferences_window.set_titlebar(preferences_header);
+			preferences_window.set_default_size(800, 600);
 			preferences_window.add(pref_scroll);
+
+			
 
 			// header
 			tab_switcher.stack = notebook_stack;
@@ -1025,6 +1055,8 @@ namespace Seaborg {
 
 			notebook_stack.add_titled(notebook, "", "New Notebook");
 			notebook_stack.set_visible_child(notebook);
+			cell->focus_cell();
+			cell->toggle_all();
 
 		}
 
@@ -1838,6 +1870,9 @@ namespace Seaborg {
 		private Gtk.Window preferences_window;
 		private Gtk.Entry init_entry;
 		private Gtk.CheckButton dark_theme_pref;
+		private Gtk.RadioButton highlight_none_button;
+		private Gtk.RadioButton highlight_nostdlib_button;
+		private Gtk.RadioButton highlight_full_button;
 		private void* kernel_connection;
 		private GLib.Queue<EvaluationData?> eval_queue;
 		private GLib.Thread<void*> listener_thread;
