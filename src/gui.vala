@@ -38,7 +38,7 @@ namespace Seaborg {
 			// reset background color for rendered formulas
 			Parameter.font_color = (new Gtk.SourceView()).get_style_context().get_color(Gtk.StateFlags.NORMAL);
 			
-			// widgets
+			// init widgets
 			main_window = new Gtk.ApplicationWindow(this);
 			main_headerbar = new Gtk.HeaderBar();
 			main_layout = new Gtk.Grid();
@@ -46,6 +46,18 @@ namespace Seaborg {
 			tab_switcher = new Gtk.StackSwitcher();
 			notebook_stack = new Gtk.Stack();
 			notebook_scroll = new Gtk.ScrolledWindow(null,null);
+
+			//some initializations for the window
+			main_window.title = "Seaborg";
+			main_window.set_titlebar(main_headerbar);
+			main_window.show_menubar = false;
+
+			// read config.xml
+			load_preferences();
+
+			// apply settings
+			Gtk.Settings settings = Gtk.Settings.get_default();
+			settings.gtk_application_prefer_dark_theme = Parameter.dark_theme;
 			
 			// shortcut menu
 			string shortcut_builder_string = 
@@ -269,14 +281,17 @@ namespace Seaborg {
 			quick_option_box.add(new Gtk.Separator(Gtk.Orientation.HORIZONTAL));
 
 			input_form_button = new Gtk.RadioButton.with_label_from_widget (null, "Input Form");
+			input_form_button.active = (Parameter.output == Form.INPUT);
 			input_form_button.toggled.connect(() => { Parameter.output = Form.INPUT; });
 			quick_option_box.add(input_form_button);
 
 			input_form_with_plot_button = new Gtk.RadioButton.with_label_from_widget (input_form_button, "Input Form with Graphics");
+			input_form_with_plot_button.active = (Parameter.output == Form.INPUTREPLACEGRAPHICS);
 			input_form_with_plot_button.toggled.connect(() => { Parameter.output = Form.INPUTREPLACEGRAPHICS; });
 			quick_option_box.add(input_form_with_plot_button);
 
 			svg_button = new Gtk.RadioButton.with_label_from_widget (input_form_button, "SVG output");
+			svg_button.active = (Parameter.output == Form.RENDERED);
 			svg_button.toggled.connect(() => { Parameter.output = Form.RENDERED; });
 			quick_option_box.add(svg_button);
 
@@ -301,6 +316,13 @@ namespace Seaborg {
 			zoom_box.set_width_chars(6);
 			zoom_box.hexpand = true;
 			zoom_box.halign = Gtk.Align.END;
+			
+			if(notebook_stack.get_visible_child() != null) {
+				zoom_box.value = zoom_factor;
+			} else {
+				zoom_box.value = 1.0;
+			}
+						
 			zoom_box.value_changed.connect(() => {
 				zoom_factor = zoom_box.value;
 			});
@@ -313,7 +335,6 @@ namespace Seaborg {
 			preferences_window = new Gtk.Window();
 			preferences_window.destroy_with_parent = true;
 			preferences_window.set_no_show_all(true);
-			preferences_window.title = "Preferences";
 			preferences_window.window_position = Gtk.WindowPosition.MOUSE;
 			preferences_window.deletable = false;
 			preferences_window.key_press_event.connect((key) => {
@@ -323,7 +344,58 @@ namespace Seaborg {
 				return true;
 			});
 
+
+			Gtk.Button pref_ok_button = new Gtk.Button.from_icon_name("emblem-ok-symbolic");
+			pref_ok_button.clicked.connect(() => { preferences_window.hide(); });
+
+			Gtk.Grid pref_body_grid = new Gtk.Grid();
+			pref_body_grid.column_spacing = 32;
+			pref_body_grid.row_spacing = 10;
+			pref_body_grid.row_homogeneous = true;
+			pref_body_grid.halign = Gtk.Align.CENTER;
+			pref_body_grid.valign = Gtk.Align.START;
+			pref_body_grid.get_style_context().add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
+			pref_body_grid.get_style_context().add_class("pref-grid");
+
+
+			Gtk.Label kernel_heading = new Gtk.Label("Kernel");
+			kernel_heading.get_style_context().add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
+			kernel_heading.get_style_context().add_class("pref-heading");
+			kernel_heading.halign = Gtk.Align.START;
+
+			init_entry = new Gtk.Entry();
+			init_entry.set_width_chars(32);
+			init_entry.text = Parameter.kernel_init;
+			init_entry.changed.connect(() => { Parameter.kernel_init = init_entry.get_text(); });
+
+			Gtk.Label appearence_heading = new Gtk.Label("Appearence");
+			appearence_heading.get_style_context().add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
+			appearence_heading.get_style_context().add_class("pref-heading");
+			appearence_heading.halign = Gtk.Align.START;
+
+			dark_theme_pref = new Gtk.CheckButton.with_label(" prefer dark theme variant");
+			dark_theme_pref.halign = Gtk.Align.START;
+			dark_theme_pref.active = Parameter.dark_theme;
+			dark_theme_pref.toggled.connect(() => { Parameter.dark_theme = dark_theme_pref.active; });
+
+			pref_body_grid.attach(kernel_heading, 0, 0, 3, 1);
+			pref_body_grid.attach(new Gtk.Label("Initialization string: "), 1, 1, 1, 1);
+			pref_body_grid.attach(init_entry, 2, 1, 1, 1);
+			pref_body_grid.attach(appearence_heading, 0, 3, 3, 1);
+			pref_body_grid.attach(dark_theme_pref, 1, 4, 2, 1);
+
+			Gtk.ScrolledWindow pref_scroll = new Gtk.ScrolledWindow(null, null);
+			pref_scroll.add(pref_body_grid);
+			pref_scroll.show_all();
 			
+			Gtk.HeaderBar preferences_header = new Gtk.HeaderBar();
+			preferences_header.title = "Preferences";
+			preferences_header.pack_end(pref_ok_button);
+			preferences_header.show_close_button = false;
+			preferences_header.show_all();
+			
+			preferences_window.set_titlebar(preferences_header);
+			preferences_window.add(pref_scroll);
 
 			// header
 			tab_switcher.stack = notebook_stack;
@@ -336,14 +408,21 @@ namespace Seaborg {
 
 			// main layout
 			notebook_scroll.add(notebook_stack);
+			// block scrolling on zoom
+			notebook_scroll.scroll_event.connect((scroll) => {
+
+				if((bool)(scroll.state & Gdk.ModifierType.CONTROL_MASK)) {
+					return true;
+				} 
+				return false;
+			});
+
 
 			main_layout.attach(message_bar, 0, 0, 1, 1);
 			main_layout.attach(search_bar, 0, 1, 1, 1);
 			main_layout.attach(notebook_scroll, 0, 2, 1, 1);
 			
 			// main window
-			main_window.title = "Gtk Notebook";
-			main_window.set_titlebar(main_headerbar);
 			main_window.add(main_layout);
 			main_window.set_help_overlay(shortcuts);
 			main_window.destroy.connect(quit_app);
@@ -392,15 +471,8 @@ namespace Seaborg {
 
 			this.add_window(main_window);
 
-			// read config.xml
-			load_preferences();
-
 			if(notebook_stack.get_children().length() <= 0u)
 				new_notebook();
-
-			input_form_button.active = (Parameter.output == Form.INPUT);
-			input_form_with_plot_button.active = (Parameter.output == Form.INPUTREPLACEGRAPHICS);
-			svg_button.active = (Parameter.output == Form.RENDERED);
 
 			// connecting kernel
 			reset_kernel();
@@ -578,10 +650,6 @@ namespace Seaborg {
 			this.set_accels_for_action("app.find", find_accels);
 			this.set_accels_for_action("app.pref", pref_accels);
 
-
-			// apply settings
-			Gtk.Settings settings = Gtk.Settings.get_default();
-			settings.gtk_application_prefer_dark_theme = Parameter.dark_theme;
 
 
 		}
@@ -1475,7 +1543,7 @@ namespace Seaborg {
 						
 						case "kernel_init":
 							
-							Parameter.kernel_init = iter->get_content();							
+							Parameter.kernel_init = iter->get_content();				
 							break;
 					
 						case "code_highlighting":
@@ -1742,7 +1810,8 @@ namespace Seaborg {
 					return;
 
 				((Seaborg.Notebook)notebook_stack.get_visible_child()).zoom_font(value);
-				zoom_box.value = zoom_factor;
+				if(zoom_box != null)
+					zoom_box.value = zoom_factor;
 
 			}
 		}
@@ -1767,6 +1836,8 @@ namespace Seaborg {
 		private Gtk.RadioButton input_form_with_plot_button;
 		private Gtk.RadioButton svg_button;
 		private Gtk.Window preferences_window;
+		private Gtk.Entry init_entry;
+		private Gtk.CheckButton dark_theme_pref;
 		private void* kernel_connection;
 		private GLib.Queue<EvaluationData?> eval_queue;
 		private GLib.Thread<void*> listener_thread;

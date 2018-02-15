@@ -106,3 +106,12 @@
 	min-height: 0.7em;
 
 }
+
+.pref-grid {
+	margin: 1em;
+}
+
+.pref-heading {
+	font-weight: bold;
+}
+
