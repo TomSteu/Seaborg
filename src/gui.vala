@@ -44,6 +44,7 @@ namespace Seaborg {
 			main_layout = new Gtk.Grid();
 			message_bar = new Gtk.InfoBar();
 			tab_switcher = new Gtk.StackSwitcher();
+			tab_scroll = new Gtk.ScrolledWindow(null, null);
 			notebook_stack = new Gtk.Stack();
 			notebook_scroll = new Gtk.ScrolledWindow(null,null);
 
@@ -54,7 +55,6 @@ namespace Seaborg {
 
 			// read config.xml
 			load_preferences();
-			stderr.printf("Load: " + Parameter.code_highlighting.to_string() + "\n");
 
 			// apply settings
 			Gtk.Settings settings = Gtk.Settings.get_default();
@@ -427,12 +427,23 @@ namespace Seaborg {
 			preferences_window.set_default_size(800, 600);
 			preferences_window.add(pref_scroll);
 
+
+
+			// notebook switcher
+			tab_switcher.stack = notebook_stack;
+			tab_switcher.hexpand = true;
+			tab_switcher.halign = Gtk.Align.CENTER;
+
+			tab_scroll.hexpand = true;
+			tab_scroll.halign = Gtk.Align.FILL;
+			tab_scroll.vscrollbar_policy = Gtk.PolicyType.NEVER;
+			tab_scroll.hscrollbar_policy = Gtk.PolicyType.EXTERNAL;
+			tab_scroll.add_with_viewport(tab_switcher);
 			
 
 			// header
-			tab_switcher.stack = notebook_stack;
 			main_headerbar.show_close_button = true;
-			main_headerbar.custom_title = tab_switcher;
+			main_headerbar.custom_title = tab_scroll;
 			main_headerbar.pack_start(quick_option_button);
 			main_headerbar.pack_start(search_button);
 			main_headerbar.pack_end(zoom_box);
@@ -1854,6 +1865,7 @@ namespace Seaborg {
 		private Gtk.ApplicationWindow main_window;
 		private Gtk.HeaderBar main_headerbar;
 		private Gtk.StackSwitcher tab_switcher;
+		private Gtk.ScrolledWindow tab_scroll;
 		private Gtk.Stack notebook_stack;
 		private GLib.Menu main_menu;
 		private Gtk.Grid main_layout;
