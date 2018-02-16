@@ -54,6 +54,7 @@ namespace Seaborg {
 
 			// read config.xml
 			load_preferences();
+			stderr.printf("Load: " + Parameter.code_highlighting.to_string() + "\n");
 
 			// apply settings
 			Gtk.Settings settings = Gtk.Settings.get_default();
@@ -283,20 +284,20 @@ namespace Seaborg {
 			quick_option_box.add(new Gtk.Separator(Gtk.Orientation.HORIZONTAL));
 
 			input_form_button = new Gtk.RadioButton.with_label_from_widget (null, "Input Form");
-			input_form_button.active = (Parameter.output == Form.INPUT);
-			input_form_button.toggled.connect(() => { Parameter.output = Form.INPUT; });
-			quick_option_box.add(input_form_button);
-
 			input_form_with_plot_button = new Gtk.RadioButton.with_label_from_widget (input_form_button, "Input Form with Graphics");
-			input_form_with_plot_button.active = (Parameter.output == Form.INPUTREPLACEGRAPHICS);
-			input_form_with_plot_button.toggled.connect(() => { Parameter.output = Form.INPUTREPLACEGRAPHICS; });
-			quick_option_box.add(input_form_with_plot_button);
-
 			svg_button = new Gtk.RadioButton.with_label_from_widget (input_form_button, "SVG output");
-			svg_button.active = (Parameter.output == Form.RENDERED);
-			svg_button.toggled.connect(() => { Parameter.output = Form.RENDERED; });
-			quick_option_box.add(svg_button);
 
+			input_form_button.active = (Parameter.output == Form.INPUT);
+			input_form_with_plot_button.active = (Parameter.output == Form.INPUTREPLACEGRAPHICS);
+			svg_button.active = (Parameter.output == Form.RENDERED);
+			
+			input_form_button.toggled.connect(() => { Parameter.output = Form.INPUT; });
+			input_form_with_plot_button.toggled.connect(() => { Parameter.output = Form.INPUTREPLACEGRAPHICS; });
+			svg_button.toggled.connect(() => { Parameter.output = Form.RENDERED; });
+
+			quick_option_box.add(input_form_button);
+			quick_option_box.add(input_form_with_plot_button);
+			quick_option_box.add(svg_button);
 			quick_option_box.show_all();
 
 
@@ -390,16 +391,17 @@ namespace Seaborg {
 			highlighting_heading.halign = Gtk.Align.START;
 
 			highlight_none_button = new Gtk.RadioButton.with_label_from_widget(null, "None");
-			highlight_none_button.active = (Parameter.code_highlighting == Highlighting.NONE);
-			highlight_none_button.toggled.connect(() => { Parameter.code_highlighting = Highlighting.NONE; });
-
 			highlight_nostdlib_button = new Gtk.RadioButton.with_label_from_widget(highlight_none_button, "Syntax only (recommended)");
-			highlight_nostdlib_button.active = (Parameter.code_highlighting == Highlighting.NOSTDLIB);
-			highlight_nostdlib_button.toggled.connect(() => { Parameter.code_highlighting = Highlighting.NOSTDLIB; });
-
 			highlight_full_button = new Gtk.RadioButton.with_label_from_widget(highlight_none_button, "Full");
+			
+			highlight_none_button.active = (Parameter.code_highlighting == Highlighting.NONE);
+			highlight_nostdlib_button.active = (Parameter.code_highlighting == Highlighting.NOSTDLIB);
 			highlight_full_button.active = (Parameter.code_highlighting == Highlighting.FULL);
+
+			highlight_none_button.toggled.connect(() => { Parameter.code_highlighting = Highlighting.NONE; });
+			highlight_nostdlib_button.toggled.connect(() => { Parameter.code_highlighting = Highlighting.NOSTDLIB; });
 			highlight_full_button.toggled.connect(() => { Parameter.code_highlighting = Highlighting.FULL; });
+
 
 			pref_body_grid.attach(kernel_heading, 0, 0, 3, 1);
 			pref_body_grid.attach(new Gtk.Label("Initialization string: "), 1, 1, 1, 1);
