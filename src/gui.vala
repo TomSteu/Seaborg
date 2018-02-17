@@ -298,7 +298,8 @@ namespace Seaborg {
 
 			replace_all_button = new Gtk.Button.with_label("Replace All");
 			replace_all_button.clicked.connect(() => {
-
+				if(!(replace_entry.text == null) && !(replace_entry.text == ""))
+					((Seaborg.Notebook) notebook_stack.get_visible_child()).replace_all(replace_entry.text);
 			});
 
 			replace_box = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 0);
