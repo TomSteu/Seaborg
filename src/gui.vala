@@ -278,7 +278,44 @@ namespace Seaborg {
 			match_button_box.pack_start(search_case);
 			match_button_box.pack_start(search_word);
 			match_button_box.pack_start(search_regex);
-			
+
+			search_next = new Gtk.Button.from_icon_name("go-down-symbolic");
+			search_next.clicked.connect(() => {
+
+			});
+
+			search_prev = new Gtk.Button.from_icon_name("go-up-symbolic");
+			search_prev.clicked.connect(() => {
+				
+			});
+
+			Gtk.Box search_select_box = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 0);
+			search_select_box.pack_start(search_next);
+			search_select_box.pack_start(search_prev);
+
+			replace_entry = new Gtk.Entry();
+			replace_entry.set_width_chars(16);
+
+			replace_all_button = new Gtk.Button.with_label("Replace All");
+			replace_all_button.clicked.connect(() => {
+
+			});
+
+			replace_box = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 0);
+			replace_box.pack_start(replace_entry);
+			replace_box.pack_start(replace_all_button);
+
+
+			replace_expand = new Gtk.ToggleButton();
+			replace_expand.set_image(new Gtk.Image.from_icon_name("edit-find-replace-symbolic", IconSize.BUTTON));
+			replace_expand.has_tooltip = true;
+			replace_expand.tooltip_text = "replace";
+			replace_expand.active = false;
+			replace_expand.notify["active"].connect((property, sender) => { replace_box.visible = replace_expand.active; });
+			replace_box.notify["visible"].connect((property, sender) => { replace_expand.active = replace_box.visible; });
+			search_select_box.pack_start(replace_expand);
+
+
 			search_box = new Gtk.FlowBox();
 			search_box.orientation = Gtk.Orientation.HORIZONTAL;
 			search_box.selection_mode = Gtk.SelectionMode.NONE;
@@ -291,6 +328,10 @@ namespace Seaborg {
 			search_box.add(match_button_box);
 			search_box.add(new Gtk.Grid());
 			search_box.add(search_entry);
+			search_box.add(new Gtk.Grid());
+			search_box.add(search_select_box);
+			search_box.add(new Gtk.Grid());
+			search_box.add(replace_box);
 
 
 			search_bar = new Gtk.SearchBar();
@@ -586,6 +627,8 @@ namespace Seaborg {
 			eval_queue = new Queue<EvaluationData?>();
 
 			main_window.show_all();
+			replace_expand.active = false;
+
 
 
 		}
@@ -1961,6 +2004,12 @@ namespace Seaborg {
 		private Gtk.ToggleButton search_case;
 		private Gtk.ToggleButton search_word;
 		private Gtk.ToggleButton search_regex;
+		private Gtk.Button search_next;
+		private Gtk.Button search_prev;
+		private Gtk.ToggleButton replace_expand;
+		private Gtk.Box replace_box;
+		private Gtk.Entry replace_entry;
+		private Gtk.Button replace_all_button;
 		private Gtk.SpinButton zoom_box;
 		private Gtk.ScrolledWindow notebook_scroll;
 		private Gtk.ShortcutsWindow shortcuts;
