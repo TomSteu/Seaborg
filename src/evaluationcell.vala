@@ -388,6 +388,8 @@ namespace Seaborg {
 					if(res) {
 						InputBuffer.select_range(start, end);
 						focus_cell();
+						recursive_untoggle_all();
+						toggle_all();
 						return res;
 					}
 
@@ -399,6 +401,8 @@ namespace Seaborg {
 						if(res) {
 							OutputBuffer.select_range(start, end);
 							focus_cell();
+							recursive_untoggle_all();
+							toggle_all();
 						}
 					}
 
@@ -418,6 +422,8 @@ namespace Seaborg {
 						if(res) {
 							InputBuffer.select_range(start, end);
 							focus_cell();
+							recursive_untoggle_all();
+							toggle_all();
 							return res;
 						}
 					}
@@ -429,6 +435,8 @@ namespace Seaborg {
 					if(res) {
 						InputBuffer.select_range(start, end);
 						focus_cell();
+						recursive_untoggle_all();
+						toggle_all();
 					}
 
 					return res;
@@ -447,6 +455,8 @@ namespace Seaborg {
 						if(res) {
 							InputBuffer.select_range(start, end);
 							focus_cell();
+							recursive_untoggle_all();
+							toggle_all();
 							return res;
 						}
 
@@ -460,6 +470,8 @@ namespace Seaborg {
 						if(res) {
 							OutputBuffer.select_range(start, end);
 							focus_cell();
+							recursive_untoggle_all();
+							toggle_all();
 						}
 					}
 
@@ -479,6 +491,8 @@ namespace Seaborg {
 						if(res) {
 							InputBuffer.select_range(start, end);
 							focus_cell();
+							recursive_untoggle_all();
+							toggle_all();
 							return res;
 						}
 					}
@@ -490,10 +504,38 @@ namespace Seaborg {
 					if(res) {
 						InputBuffer.select_range(start, end);
 						focus_cell();
+						recursive_untoggle_all();
+						toggle_all();
 					}
 
 					return res;
 
+			}
+
+			return false;
+		}
+
+		public bool do_forward_search(ref bool found_last) {
+			if(found_last) {
+				return search(SearchType.StartForwards);
+			}
+
+			if(InputBuffer.has_selection || OutputBuffer.has_selection) {
+				found_last = true;
+				return search(SearchType.CursorForwards);
+			}
+
+			return false;
+		}
+
+		public bool do_backward_search(ref bool found_last) {
+			if(found_last) {
+				return search(SearchType.EndBackwards);
+			}
+
+			if(InputBuffer.has_selection || OutputBuffer.has_selection) {
+				found_last = true;
+				return search(SearchType.CursorBackwards);
 			}
 
 			return false;

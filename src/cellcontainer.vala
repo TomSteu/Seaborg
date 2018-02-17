@@ -394,6 +394,8 @@ namespace Seaborg {
 					if(res) {
 						TitleBuffer.select_range(start, end);
 						focus_cell();
+						recursive_untoggle_all();
+						toggle_all();
 						return res;
 					}
 
@@ -411,6 +413,8 @@ namespace Seaborg {
 					if(res) {
 						TitleBuffer.select_range(start, end);
 						focus_cell();
+						recursive_untoggle_all();
+						toggle_all();
 						return res;
 					}
 
@@ -428,6 +432,8 @@ namespace Seaborg {
 					if(res) {
 						TitleBuffer.select_range(start, end);
 						focus_cell();
+						recursive_untoggle_all();
+						toggle_all();
 						return res;
 					}
 
@@ -447,6 +453,8 @@ namespace Seaborg {
 					if(res) {
 						TitleBuffer.select_range(start, end);
 						focus_cell();
+						recursive_untoggle_all();
+						toggle_all();
 						return res;
 					}
 
@@ -472,6 +480,57 @@ namespace Seaborg {
 			for(int i=0; i<Children.data.length; i++) {
 				Children.data[i].replace_all(rep);
 			}
+		}
+
+		public bool do_forward_search(ref bool found_last) {
+			
+			if(found_last) {
+
+				if(search(SearchType.StartForwards))
+					return true;
+
+			} else {
+
+				if(TitleBuffer.has_selection) {
+					
+					found_last = true;
+					if(search(SearchType.CursorForwards))
+						return true;
+
+				}
+			}
+
+			for(int i=0; i<Children.data.length; i++) {
+				if(Children.data[i].do_forward_search(ref found_last))
+					return true;
+			}
+
+			return false;
+		}
+
+		public bool do_backward_search(ref bool found_last) {
+			
+			for(int i=Children.data.length-1; i >= 0; i++) {
+					if(Children.data[i].do_backward_search(ref found_last))
+						return true;
+			}
+
+			if(found_last) {
+
+				if(search(SearchType.EndBackwards))
+					return true;
+
+			} else {
+
+				if(TitleBuffer.has_selection) {
+					
+					found_last = true;
+					if(search(SearchType.CursorBackwards))
+						return true;
+				}
+			}
+
+			return false;
 		}
 
 

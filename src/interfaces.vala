@@ -36,6 +36,8 @@ namespace Seaborg {
 		public abstract void zoom_font(double factor);
 		public abstract bool search(SearchType type);
 		public abstract void replace_all(string rep);
+		public abstract bool do_forward_search(ref bool last_found);
+		public abstract bool do_backward_search(ref bool last_found);
 
 		public bool untoggle_handler(EventButton event) {
 

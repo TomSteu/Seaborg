@@ -207,6 +207,25 @@ namespace Seaborg {
 			}
 		}
 
+		public bool do_forward_search(ref bool last_found) {
+			for(int i=0; i<Children.data.length; i++) {
+				if(Children.data[i].do_forward_search(ref last_found))
+					return true;
+			}
+
+			return false;
+		}
+
+		public bool do_backward_search(ref bool last_found) {
+			for(int i=Children.data.length-1; i>=0; i--) {
+				if(Children.data[i].do_backward_search(ref last_found))
+					return true;
+			}
+
+			return false;
+		} 
+
+
 		public GLib.Array<ICell> Children {get; set;}
 		public GLib.Array<AddButton> AddButtons {get; set;}
 		public ICellContainer* Parent {get; set;}
