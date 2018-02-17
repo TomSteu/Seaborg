@@ -47,6 +47,7 @@ namespace Seaborg {
 			tab_scroll = new Gtk.ScrolledWindow(null, null);
 			notebook_stack = new Gtk.Stack();
 			notebook_scroll = new Gtk.ScrolledWindow(null,null);
+			search_settings = new SourceSearchSettings();
 
 			//some initializations for the window
 			main_window.title = "Seaborg";
@@ -226,27 +227,79 @@ namespace Seaborg {
 
 			
 			// search bar
+			search_settings.wrap_around = false;
+			search_settings.notify["search-text"].connect((property, sender) => {
+				((Seaborg.Notebook) notebook_stack.get_visible_child()).search_settings.search_text = this.search_settings.search_text;
+			});
+
+			search_settings.notify["case-sensitive"].connect((property, sender) => {
+				((Seaborg.Notebook) notebook_stack.get_visible_child()).search_settings.case_sensitive = this.search_settings.case_sensitive;
+			});
+
+			search_settings.notify["at-word-boundaries"].connect((property, sender) => {
+				((Seaborg.Notebook) notebook_stack.get_visible_child()).search_settings.at_word_boundaries = this.search_settings.at_word_boundaries;
+			});
+
+			search_settings.notify["regex-enabled"].connect((property, sender) => {
+				((Seaborg.Notebook) notebook_stack.get_visible_child()).search_settings.regex_enabled = this.search_settings.regex_enabled;
+			});
+
+
 			search_entry = new Gtk.SearchEntry();
 			search_entry.hexpand = true;
 			search_entry.halign = Gtk.Align.FILL;
 			search_entry.set_width_chars(32);
 			search_entry.search_changed.connect(() => {
-
-				foreach (Gtk.Widget child  in notebook_stack.get_children()) {
-					((Seaborg.Notebook) child).search_settings.set_search_text((search_entry.text != "") ? search_entry.text : null);
-				}
-
-
+				if(search_entry.text != null && search_entry.text != "")
+					search_settings.search_text = search_entry.text;
 			});
+
+			search_case = new Gtk.ToggleButton.with_label("Aa");
+			search_case.has_tooltip = true;
+			search_case.tooltip_text = "match case";
+			search_case.active = search_settings.case_sensitive;
+			search_case.toggled.connect(() => { 
+				search_settings.case_sensitive = search_case.active;
+			});
+
+			search_word = new Gtk.ToggleButton.with_label("\"W\"");
+			search_word.has_tooltip = true;
+			search_word.tooltip_text = "match whole word";
+			search_word.active = search_settings.at_word_boundaries;
+			search_word.toggled.connect(() => { search_settings.at_word_boundaries = search_word.active; });
+
+			search_regex = new Gtk.ToggleButton.with_label(".*");
+			search_regex.has_tooltip = true;
+			search_regex.tooltip_text = "match regex";
+			search_regex.active = search_settings.regex_enabled;
+			search_regex.toggled.connect(() => { search_settings.regex_enabled = search_regex.active; });
+
+			Gtk.Box match_button_box = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 0);
+			match_button_box.pack_start(search_case);
+			match_button_box.pack_start(search_word);
+			match_button_box.pack_start(search_regex);
 			
-			search_box = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 0);
-			search_box.pack_start(search_entry);
+			search_box = new Gtk.FlowBox();
+			search_box.orientation = Gtk.Orientation.HORIZONTAL;
+			search_box.selection_mode = Gtk.SelectionMode.NONE;
+			search_box.homogeneous = false;
+			search_box.min_children_per_line = 2;
+			search_box.row_spacing = 0u;
+			search_box.column_spacing = 0u;
+			search_box.hexpand = true;
+			search_box.halign = Gtk.Align.CENTER;
+			search_box.add(match_button_box);
+			search_box.add(new Gtk.Grid());
+			search_box.add(search_entry);
+
 
 			search_bar = new Gtk.SearchBar();
 			search_bar.add(search_box);
 			search_bar.connect_entry(search_entry);
 			search_bar.show_close_button = true;
 			search_bar.search_mode_enabled = false;
+			search_bar.hexpand = true;
+			search_bar.halign = Gtk.Align.FILL;
 			search_bar.notify["search-mode-enabled"].connect((property, sender) => {search_button.active = search_bar.search_mode_enabled;});
 
 			search_button = new Gtk.ToggleButton();
@@ -332,8 +385,19 @@ namespace Seaborg {
 				zoom_factor = zoom_box.value;
 			});
 
+			zoom_box.icon_press.connect((icon, event) => {
+				if(icon == Gtk.EntryIconPosition.PRIMARY) {
+					zoom_box.value = 1.0;
+				}
+			});
+
 			notebook_stack.notify["visible-child"].connect((property, sender) => {
 				zoom_box.value = zoom_factor;
+				Gtk.SourceSearchSettings child_settings = ((Seaborg.Notebook) notebook_stack.get_visible_child()).search_settings;
+				child_settings.search_text = search_settings.search_text;
+				child_settings.case_sensitive = search_settings.case_sensitive;
+				child_settings.at_word_boundaries = search_settings.at_word_boundaries;
+				child_settings.regex_enabled = search_settings.regex_enabled;
 			});
 
 			
@@ -1512,6 +1576,9 @@ namespace Seaborg {
 			save_file.printf("	<code_highlighting>" + Parameter.code_highlighting.to_string() + "</code_highlighting>\n");
 			save_file.printf("	<dark_theme>" + Parameter.dark_theme.to_string() + "</dark_theme>\n");
 			save_file.printf("	<output>" + Parameter.output.to_string() + "</output>\n");
+			save_file.printf("	<search_match_case>" + search_settings.case_sensitive.to_string() + "</search_match_case>\n");
+			save_file.printf("	<search_match_word>" + search_settings.at_word_boundaries.to_string() + "</search_match_word>\n");
+			save_file.printf("	<search_match_regex>" + search_settings.regex_enabled.to_string() + "</search_match_regex>\n");
 			save_file.printf("	<window_width>" + w_width.to_string() + "</window_width>\n");
 			save_file.printf("	<window_height>" + w_height.to_string() + "</window_height>\n");
 			save_file.printf("	<open_notebooks>\n");
@@ -1624,6 +1691,21 @@ namespace Seaborg {
 									Parameter.output = Form.RENDERED;
 									break;
 							}
+							break;
+
+						case "search_match_case":
+
+							search_settings.case_sensitive = bool.parse(iter->get_content());
+							break;
+
+						case "search_match_word":
+
+							search_settings.at_word_boundaries = bool.parse(iter->get_content());
+							break;
+
+						case "search_match_regex":
+
+							search_settings.regex_enabled = bool.parse(iter->get_content());
 							break;
 
 						case "window_width":
@@ -1861,6 +1943,7 @@ namespace Seaborg {
 			}
 		}
 
+		
 
 		private Gtk.ApplicationWindow main_window;
 		private Gtk.HeaderBar main_headerbar;
@@ -1873,7 +1956,11 @@ namespace Seaborg {
 		private Gtk.SearchBar search_bar;
 		private Gtk.SearchEntry search_entry;
 		private Gtk.ToggleButton search_button;
-		private Gtk.Box search_box;
+		private Gtk.SourceSearchSettings search_settings;
+		private Gtk.FlowBox search_box;
+		private Gtk.ToggleButton search_case;
+		private Gtk.ToggleButton search_word;
+		private Gtk.ToggleButton search_regex;
 		private Gtk.SpinButton zoom_box;
 		private Gtk.ScrolledWindow notebook_scroll;
 		private Gtk.ShortcutsWindow shortcuts;
