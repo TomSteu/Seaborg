@@ -159,11 +159,11 @@ namespace Seaborg {
 
 				case SearchType.CursorForwards:
 
-					Gtk.TextIter origin, start, end;
+					Gtk.TextIter sel_start, sel_end, start, end;
 					bool has_wrapped_around, res;
 
-					CellBuffer.get_iter_at_mark(out origin, CellBuffer.get_insert());
-					res = search_context.forward2(origin, out start, out end, out has_wrapped_around);
+					CellBuffer.get_selection_bounds(out sel_start, out sel_end);
+					res = search_context.forward2(sel_end, out start, out end, out has_wrapped_around);
 					res = res && (!has_wrapped_around);
 
 					if(res) {
@@ -177,11 +177,11 @@ namespace Seaborg {
 
 				case SearchType.CursorBackwards:
 
-					Gtk.TextIter origin, start, end;
+					Gtk.TextIter sel_start, sel_end, start, end;
 					bool has_wrapped_around, res;
 
-					CellBuffer.get_iter_at_mark(out origin, CellBuffer.get_insert());
-					res = search_context.backward2(origin, out start, out end, out has_wrapped_around);
+					CellBuffer.get_selection_bounds(out sel_start, out sel_end);
+					res = search_context.backward2(sel_start, out start, out end, out has_wrapped_around);
 					res = res && (!has_wrapped_around);
 
 					if(res) {

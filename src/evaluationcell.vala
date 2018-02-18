@@ -443,13 +443,13 @@ namespace Seaborg {
 
 				case SearchType.CursorForwards:
 
-					Gtk.TextIter origin, start, end;
+					Gtk.TextIter origin, sel_start, sel_end, start, end;
 					bool has_wrapped_around, res = false;
 
-					if(! (isExpanded && OutputBuffer.has_selection)) {
+					if(InputBuffer.has_selection) {
 
-						InputBuffer.get_iter_at_mark(out origin, InputBuffer.get_insert());
-						res = input_search_context.forward2(origin, out start, out end, out has_wrapped_around);
+						InputBuffer.get_selection_bounds(out sel_start, out sel_end);
+						res = input_search_context.forward2(sel_end, out start, out end, out has_wrapped_around);
 						res = res && (!has_wrapped_around);
 
 						if(res) {
@@ -460,10 +460,7 @@ namespace Seaborg {
 							return res;
 						}
 
-					}
-
-					if(isExpanded) {
-						OutputBuffer.get_iter_at_mark(out origin, OutputBuffer.get_insert());
+						OutputBuffer.get_start_iter(out origin);
 						res = output_search_context.forward2(origin, out start, out end, out has_wrapped_around);
 						res = res && (!has_wrapped_around);
 
@@ -473,19 +470,48 @@ namespace Seaborg {
 							recursive_untoggle_all();
 							toggle_all();
 						}
+
+						return res;
+					}
+
+					if(isExpanded && OutputBuffer.has_selection) {
+						OutputBuffer.get_selection_bounds(out sel_start, out sel_end);
+						res = output_search_context.forward2(sel_end, out start, out end, out has_wrapped_around);
+						res = res && (!has_wrapped_around);
+
+						if(res) {
+							OutputBuffer.select_range(start, end);
+							focus_cell();
+							recursive_untoggle_all();
+							toggle_all();
+						}
+
+						return res;
 					}
 
 					return res;
 
 				case SearchType.CursorBackwards:
 
-					Gtk.TextIter origin, start, end;
-					bool has_wrapped_around, res;
+					Gtk.TextIter origin, sel_start, sel_end, start, end;
+					bool has_wrapped_around, res=false;
 
-					if(isExpanded  && (! InputBuffer.has_selection)) {
+					if(isExpanded && OutputBuffer.has_selection) {
 
-						OutputBuffer.get_iter_at_mark(out origin, OutputBuffer.get_insert());
-						res = output_search_context.backward2(origin, out start, out end, out has_wrapped_around);
+						OutputBuffer.get_selection_bounds(out sel_start, out sel_end);
+						res = output_search_context.backward2(sel_start, out start, out end, out has_wrapped_around);
+						res = res && (!has_wrapped_around);
+
+						if(res) {
+							OutputBuffer.select_range(start, end);
+							focus_cell();
+							recursive_untoggle_all();
+							toggle_all();
+							return res;
+						}
+
+						InputBuffer.get_end_iter(out origin);
+						res = input_search_context.backward2(origin, out start, out end, out has_wrapped_around);
 						res = res && (!has_wrapped_around);
 
 						if(res) {
@@ -493,19 +519,25 @@ namespace Seaborg {
 							focus_cell();
 							recursive_untoggle_all();
 							toggle_all();
-							return res;
 						}
+
+						return res;
 					}
 
-					InputBuffer.get_iter_at_mark(out origin, InputBuffer.get_insert());
-					res = input_search_context.backward2(origin, out start, out end, out has_wrapped_around);
-					res = res && (!has_wrapped_around);
+					if(InputBuffer.has_selection) {
 
-					if(res) {
-						InputBuffer.select_range(start, end);
-						focus_cell();
-						recursive_untoggle_all();
-						toggle_all();
+						InputBuffer.get_selection_bounds(out sel_start, out sel_end);
+						res = input_search_context.backward2(sel_start, out start, out end, out has_wrapped_around);
+						res = res && (!has_wrapped_around);
+
+						if(res) {
+							InputBuffer.select_range(start, end);
+							focus_cell();
+							recursive_untoggle_all();
+							toggle_all();
+						}
+
+						return res;
 					}
 
 					return res;

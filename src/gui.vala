@@ -281,12 +281,28 @@ namespace Seaborg {
 
 			search_next = new Gtk.Button.from_icon_name("go-down-symbolic");
 			search_next.clicked.connect(() => {
+				
+				bool found_last = false;
+				if(((Seaborg.Notebook)notebook_stack.get_visible_child()).do_forward_search(ref found_last))
+					return;
+				if(!found_last) {
+					found_last = true;
+					((Seaborg.Notebook)notebook_stack.get_visible_child()).do_forward_search(ref found_last);
+				}
 
 			});
 
 			search_prev = new Gtk.Button.from_icon_name("go-up-symbolic");
 			search_prev.clicked.connect(() => {
 				
+				bool found_last = false;
+				if(((Seaborg.Notebook)notebook_stack.get_visible_child()).do_backward_search(ref found_last))
+					return;
+				if(!found_last) {
+					found_last = true;
+					((Seaborg.Notebook)notebook_stack.get_visible_child()).do_backward_search(ref found_last);
+				}
+
 			});
 
 			Gtk.Box search_select_box = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 0);
