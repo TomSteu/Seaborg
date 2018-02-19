@@ -850,13 +850,13 @@ namespace Seaborg {
 			lock(eval_queue) {
 
 				// add evalutation cells to be evaluated
-				for(int i=0; i<container.Children.data.length; i++) {
+				for(int i=0; i<container.children_cells.data.length; i++) {
 					
-					if(container.Children.data[i] is ICellContainer)
-						schedule_evaluation((ICellContainer) container.Children.data[i]);
+					if(container.children_cells.data[i] is ICellContainer)
+						schedule_evaluation((ICellContainer) container.children_cells.data[i]);
 
-					if(container.Children.data[i].marker_selected() && (! container.Children.data[i].lock) && container.Children.data[i].get_level() == 0 && container.Children.data[i] is EvaluationCell) {
-						eva = (EvaluationCell) container.Children.data[i];
+					if(container.children_cells.data[i].marker_selected() && (! container.children_cells.data[i].lock) && container.children_cells.data[i].get_level() == 0 && container.children_cells.data[i] is EvaluationCell) {
+						eva = (EvaluationCell) container.children_cells.data[i];
 						last = i;
 						if(Seaborg.check_input_packet(eva.get_text())) {
 							eva.lock = true;
@@ -876,7 +876,7 @@ namespace Seaborg {
 				return;
 
 			// grab focus on next cell
-			if(last+1 >= container.Children.data.length) {
+			if(last+1 >= container.children_cells.data.length) {
 				EvaluationCell* newCell = new EvaluationCell(container);
 				container.add_before(-1, {newCell});
 				newCell->focus_cell();
@@ -886,9 +886,9 @@ namespace Seaborg {
 
 			}
 			
-			container.Children.data[last+1].focus_cell();
+			container.children_cells.data[last+1].focus_cell();
 			container.recursive_untoggle_all();
-			container.Children.data[last+1].toggle_all();
+			container.children_cells.data[last+1].toggle_all();
 
 		}
 			
@@ -1206,8 +1206,8 @@ namespace Seaborg {
 
 			string identation="	"; // this is a tab
 			save_file.printf("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n\n<notebook version=\"1.0\">\n");
-			for(int i = 0; i<((Seaborg.Notebook)notebook_stack.get_visible_child()).Children.data.length; i++) {
-				write_recursively(((Seaborg.Notebook)notebook_stack.get_visible_child()).Children.data[i], save_file, identation);
+			for(int i = 0; i<((Seaborg.Notebook)notebook_stack.get_visible_child()).children_cells.data.length; i++) {
+				write_recursively(((Seaborg.Notebook)notebook_stack.get_visible_child()).children_cells.data[i], save_file, identation);
 			}
 			save_file.printf("</notebook>");
 			save_file.flush();
@@ -1367,57 +1367,57 @@ namespace Seaborg {
 
 		private string list_cells_recursively(ICellContainer container) {
 			string str = "";
-			for(int i=0; i<container.Children.data.length; i++) {
-				if((container.Children.data[i]) is TextCell) {
+			for(int i=0; i<container.children_cells.data.length; i++) {
+				if((container.children_cells.data[i]) is TextCell) {
 					
 					if(str != "")
 						str += ", ";
 
-					str += "Cell[\"" + ((Seaborg.TextCell) container.Children.data[i]).get_text().replace("\"", "\\\"")  + "\", \"Text\"]";
+					str += "Cell[\"" + ((Seaborg.TextCell) container.children_cells.data[i]).get_text().replace("\"", "\\\"")  + "\", \"Text\"]";
 					continue;
 				}
 
-				if((container.Children.data[i]) is EvaluationCell) {
+				if((container.children_cells.data[i]) is EvaluationCell) {
 					
 					if(str != "")
 						str += ", ";
 
-					str += "Cell[\"" + ((Seaborg.EvaluationCell) container.Children.data[i]).get_text().replace("\n", "").replace("\"", "\\\"") + "\", \"Input\"],";
-					str += "Cell[\"" + ((Seaborg.EvaluationCell) container.Children.data[i]).get_output_text().replace("\"", "\\\"")  + "\", \"Output\"]";
+					str += "Cell[\"" + ((Seaborg.EvaluationCell) container.children_cells.data[i]).get_text().replace("\n", "").replace("\"", "\\\"") + "\", \"Input\"],";
+					str += "Cell[\"" + ((Seaborg.EvaluationCell) container.children_cells.data[i]).get_output_text().replace("\"", "\\\"")  + "\", \"Output\"]";
 					continue;
 				}
 
-				if((container.Children.data[i]) is CellContainer) {
+				if((container.children_cells.data[i]) is CellContainer) {
 					
 					if(str != "")
 						str += ", ";
 
-					switch(((Seaborg.CellContainer) container.Children.data[i]).get_level()) {
+					switch(((Seaborg.CellContainer) container.children_cells.data[i]).get_level()) {
 						case 1:
-							str += "Cell[\"" + ((Seaborg.CellContainer) container.Children.data[i]).get_text().replace("\n", "").replace("\"", "\\\"") + "\", \"Subsubsection\"]";
+							str += "Cell[\"" + ((Seaborg.CellContainer) container.children_cells.data[i]).get_text().replace("\n", "").replace("\"", "\\\"") + "\", \"Subsubsection\"]";
 							break;
 						case 2:
-							str += "Cell[\"" + ((Seaborg.CellContainer) container.Children.data[i]).get_text().replace("\n", "").replace("\"", "\\\"") + "\", \"Subsection\"]";
+							str += "Cell[\"" + ((Seaborg.CellContainer) container.children_cells.data[i]).get_text().replace("\n", "").replace("\"", "\\\"") + "\", \"Subsection\"]";
 							break;
 						case 3:
-							str += "Cell[\"" + ((Seaborg.CellContainer) container.Children.data[i]).get_text().replace("\n", "").replace("\"", "\\\"") + "\", \"Section\"]";
+							str += "Cell[\"" + ((Seaborg.CellContainer) container.children_cells.data[i]).get_text().replace("\n", "").replace("\"", "\\\"") + "\", \"Section\"]";
 							break;
 						case 4:
-							str += "Cell[\"" + ((Seaborg.CellContainer) container.Children.data[i]).get_text().replace("\n", "").replace("\"", "\\\"") + "\", \"Subchapter\"]";
+							str += "Cell[\"" + ((Seaborg.CellContainer) container.children_cells.data[i]).get_text().replace("\n", "").replace("\"", "\\\"") + "\", \"Subchapter\"]";
 							break;
 						case 5:
-							str += "Cell[\"" + ((Seaborg.CellContainer) container.Children.data[i]).get_text().replace("\n", "").replace("\"", "\\\"") + "\", \"Chapter\"]";
+							str += "Cell[\"" + ((Seaborg.CellContainer) container.children_cells.data[i]).get_text().replace("\n", "").replace("\"", "\\\"") + "\", \"Chapter\"]";
 							break;
 						case 6:
-							str += "Cell[\"" + ((Seaborg.CellContainer) container.Children.data[i]).get_text().replace("\n", "").replace("\"", "\\\"") + "\", \"Title\"]";
+							str += "Cell[\"" + ((Seaborg.CellContainer) container.children_cells.data[i]).get_text().replace("\n", "").replace("\"", "\\\"") + "\", \"Title\"]";
 							break;
 						default:
-							str += "Cell[\"" + ((Seaborg.CellContainer) container.Children.data[i]).get_text().replace("\n", "").replace("\"", "\\\"") + "\", \"Text\"]";
+							str += "Cell[\"" + ((Seaborg.CellContainer) container.children_cells.data[i]).get_text().replace("\n", "").replace("\"", "\\\"") + "\", \"Text\"]";
 							break;
 					}
 
-					if(((Seaborg.CellContainer) container.Children.data[i]).Children.data.length > 0) {
-						str += ", " + list_cells_recursively(((Seaborg.ICellContainer*) container.Children.data[i]));
+					if(((Seaborg.CellContainer) container.children_cells.data[i]).children_cells.data.length > 0) {
+						str += ", " + list_cells_recursively(((Seaborg.ICellContainer*) container.children_cells.data[i]));
 					}
 					
 					continue;
@@ -1535,8 +1535,8 @@ namespace Seaborg {
 				file.printf(identation + "	<results></results>\n");
 				file.printf(identation + "	<children>\n");
 
-				for(int i=0; i<cellcontainer.Children.data.length; i++)
-					write_recursively(cellcontainer.Children.data[i], file, identation + "		");
+				for(int i=0; i<cellcontainer.children_cells.data.length; i++)
+					write_recursively(cellcontainer.children_cells.data[i], file, identation + "		");
 
 
 				file.printf(identation + "	</children>\n");

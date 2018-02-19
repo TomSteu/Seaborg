@@ -6,7 +6,7 @@ namespace Seaborg {
 		
 		public PlotFrame(string file, EvaluationCell* _parent) {
 
-			Parent = _parent;
+			parent_cell = _parent;
 
 			try {
 
@@ -72,7 +72,7 @@ namespace Seaborg {
 
 			zoom_factor++;
 			draw_image();
-			Parent->cell_check_resize();
+			parent_cell->cell_check_resize();
 		
 		}
 
@@ -80,7 +80,7 @@ namespace Seaborg {
 
 			zoom_factor--;
 			draw_image();
-			Parent->cell_check_resize();
+			parent_cell->cell_check_resize();
 
 		}
 
@@ -120,7 +120,7 @@ namespace Seaborg {
 		private Gtk.Grid toolbar;
 		private int zoom_factor;
 		private CssProvider css;
-		private EvaluationCell* Parent;
+		private EvaluationCell* parent_cell;
 	}
 
 }

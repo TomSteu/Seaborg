@@ -7,7 +7,7 @@ namespace Seaborg {
 	public class TextCell : Gtk.Grid, ICell {
 		public TextCell(ICellContainer* par) {
 			this.name = IdGenerator.get_id();
-			Parent = par;
+			parent_cell = par;
 			column_spacing = 4;
 			CssProvider css = new CssProvider();
 			font_provider = new CssProvider();
@@ -15,7 +15,7 @@ namespace Seaborg {
 
 			try {
 
-				string font_string = "* { font-size: " + Parent->zoom_factor.to_string() + "em; } ";
+				string font_string = "* { font-size: " + parent_cell->zoom_factor.to_string() + "em; } ";
 				css.load_from_path("res/seaborg.css");
 				font_provider.load_from_data(font_string, font_string.length);
 
@@ -59,7 +59,7 @@ namespace Seaborg {
 				CellBuffer.style_scheme = sm.get_scheme("seaborg-light");
 			}
 
-			search_context = new Gtk.SourceSearchContext(CellBuffer, Parent->search_settings);
+			search_context = new Gtk.SourceSearchContext(CellBuffer, parent_cell->search_settings);
 
 			Marker = new Gtk.ToggleButton();
 			Marker.can_focus = false;
@@ -123,7 +123,7 @@ namespace Seaborg {
 		}
 		public void add_before(int pos, ICell[] list) {}
 		public void remove_from(int pos, int number, bool trash) {}
-		public ICellContainer* Parent {get; set;}
+		public ICellContainer* parent_cell {get; set;}
 
 		public bool search(SearchType type) {
 			

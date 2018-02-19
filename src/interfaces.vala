@@ -28,7 +28,7 @@ namespace Seaborg {
 		public abstract void add_before(int pos, ICell[] list);
 		public abstract void remove_from(int pos, int number, bool trash);
 		public abstract void focus_cell();
-		public abstract ICellContainer* Parent {get; set;}
+		public abstract ICellContainer* parent_cell {get; set;}
 		public abstract void set_text(string _text);
 		public abstract string get_text();
 		public abstract bool lock {get; set;}
@@ -53,14 +53,14 @@ namespace Seaborg {
 		}
 
 		public void recursive_untoggle_all() {
-			if(Parent == null) {
+			if(parent_cell == null) {
 				untoggle_all();
 			} else {
-				ICellContainer* par = Parent;
+				ICellContainer* par = parent_cell;
 				while(true) {
-					if(par->Parent == null)
+					if(par->parent_cell == null)
 						break;
-					par = par->Parent;
+					par = par->parent_cell;
 				}
 				par->untoggle_all();
 			}
@@ -91,22 +91,23 @@ namespace Seaborg {
 	}
 
 	public interface ICellContainer : ICell {
-		public abstract GLib.Array<ICell> Children {get; set;}
-		public abstract GLib.Array<AddButton> AddButtons {get; set;}
+		public abstract GLib.Array<ICell> children_cells {get; set;}
+		public abstract GLib.Array<AddButton> addbutton_list {get; set;}
 		public abstract double zoom_factor {get; set;}
 		public abstract Gtk.SourceSearchSettings search_settings {get; set;}
+		public abstract Gtk.TreeStore tree_model {get; set;}
 		public ICell* get_child_by_name(string child_name) {
 			ICell* child_cell = null;
-			for(int i=0; i<Children.data.length; i++) {
+			for(int i=0; i<children_cells.data.length; i++) {
 				
-				if((ICellContainer*) Children.data[i] != null) {
-					child_cell = ((ICellContainer*) Children.data[i])->get_child_by_name(child_name);
+				if((ICellContainer*) children_cells.data[i] != null) {
+					child_cell = ((ICellContainer*) children_cells.data[i])->get_child_by_name(child_name);
 					if(child_cell != null)
 						break;
 				}
 				
-				if(Children.data[i].name == child_name) {
-					child_cell = Children.data[i];
+				if(children_cells.data[i].name == child_name) {
+					child_cell = children_cells.data[i];
 					break;
 				}
 			}

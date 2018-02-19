@@ -8,7 +8,7 @@ namespace Seaborg {
 			this.name = IdGenerator.get_id();
 			this.can_focus = false;
 			this.focus_on_click = false;
-			Parent = par;
+			parent_cell = par;
 
 			CssProvider css = new CssProvider();
 			get_style_context().add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
@@ -32,19 +32,19 @@ namespace Seaborg {
 		public void insert_child() {
 			int pos;
 
-			for(pos=0; pos < Parent->AddButtons.data.length; pos++) {
-				if(this.name == Parent->AddButtons.data[pos].name)
+			for(pos=0; pos < parent_cell->addbutton_list.data.length; pos++) {
+				if(this.name == parent_cell->addbutton_list.data[pos].name)
 					break;
 			}
 				
-			if(pos < Parent->AddButtons.data.length) {
+			if(pos < parent_cell->addbutton_list.data.length) {
 					
 				// if this button is right after container create one with same level
 				if(pos > 0) {
-					uint lev = Parent->Children.data[pos-1].get_level();
+					uint lev = parent_cell->children_cells.data[pos-1].get_level();
 					if(lev > 0) {
-						CellContainer* newCell = new CellContainer(Parent, lev);
-						Parent->add_before(pos, {newCell});
+						CellContainer* newCell = new CellContainer(parent_cell, lev);
+						parent_cell->add_before(pos, {newCell});
 						newCell->eat_children();
 						newCell->focus_cell();
 						newCell->recursive_untoggle_all();
@@ -54,15 +54,15 @@ namespace Seaborg {
 				}
 					
 				// add evaluation cell as default behaviour
-				EvaluationCell* newCell = new EvaluationCell(Parent);
-				Parent->add_before(pos, {newCell});
+				EvaluationCell* newCell = new EvaluationCell(parent_cell);
+				parent_cell->add_before(pos, {newCell});
 				newCell->focus_cell();
 				newCell->recursive_untoggle_all();
 				newCell->toggle_all();
 			}
 		}
 
-		private ICellContainer* Parent;
+		private ICellContainer* parent_cell;
 
 	}
 

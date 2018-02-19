@@ -8,7 +8,7 @@ namespace Seaborg {
 		
 		public EvaluationCell(ICellContainer* par) {
 			this.name = IdGenerator.get_id();
-			Parent = par;
+			parent_cell = par;
 			column_spacing = 4;
 			css = new CssProvider();
 			font_provider = new CssProvider();
@@ -17,7 +17,7 @@ namespace Seaborg {
 
 			try {
 
-				string font_string = "* { font-size: " + Parent->zoom_factor.to_string() + "em; }";
+				string font_string = "* { font-size: " + parent_cell->zoom_factor.to_string() + "em; }";
 				font_provider.load_from_data(font_string, font_string.length);
 				css.load_from_path("res/seaborg.css");
 
@@ -60,7 +60,7 @@ namespace Seaborg {
 			InputBuffer.insert_text.connect(insert_handler);
 			InputBuffer.add_selection_clipboard(Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD));
 
-			input_search_context = new Gtk.SourceSearchContext(InputBuffer, Parent->search_settings);
+			input_search_context = new Gtk.SourceSearchContext(InputBuffer, parent_cell->search_settings);
 
 			
 
@@ -112,7 +112,7 @@ namespace Seaborg {
 
 			
 
-			output_search_context = new Gtk.SourceSearchContext(OutputBuffer, Parent->search_settings);
+			output_search_context = new Gtk.SourceSearchContext(OutputBuffer, parent_cell->search_settings);
 
 
 			Marker = new Gtk.ToggleButton();
@@ -581,7 +581,7 @@ namespace Seaborg {
 
 		}
 
-		public ICellContainer* Parent {get; set;}
+		public ICellContainer* parent_cell {get; set;}
 		private Gtk.SourceView InputCell;
 		private Gtk.SourceBuffer InputBuffer;
 		private Gtk.SourceView OutputCell;

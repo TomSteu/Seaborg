@@ -73,20 +73,20 @@ namespace Seaborg {
 
 
 			int pos;
-			ICellContainer* parent = Cell->Parent;
+			ICellContainer* parent = Cell->parent_cell;
 			if(parent == null) 
 				return;
 
 			if(Cell is TextCell) {
-				for(pos=0; pos < parent->Children.data.length; pos++) {
-					if(parent->Children.data[pos].name == Cell->name)
+				for(pos=0; pos < parent->children_cells.data.length; pos++) {
+					if(parent->children_cells.data[pos].name == Cell->name)
 						break;
 				}
 
-				if(pos >= parent->Children.data.length)
+				if(pos >= parent->children_cells.data.length)
 					return;
 
-				EvaluationCell* newCell = new EvaluationCell(Cell->Parent);
+				EvaluationCell* newCell = new EvaluationCell(Cell->parent_cell);
 				newCell->set_text(Cell->get_text());
 				parent->add_before(pos, { newCell });
 				newCell->focus_cell();
@@ -105,21 +105,21 @@ namespace Seaborg {
 					toggled_container(1);
 				}
 
-				parent = Cell->Parent;
+				parent = Cell->parent_cell;
 				if(parent == null)
 					return;
 
-				for(pos=0; pos < parent->Children.data.length; pos++) {
-					if(parent->Children.data[pos].name == Cell->name)
+				for(pos=0; pos < parent->children_cells.data.length; pos++) {
+					if(parent->children_cells.data[pos].name == Cell->name)
 						break;
 				}
 
-				if(pos >= parent->Children.data.length)
+				if(pos >= parent->children_cells.data.length)
 					return;
 
 				//add new cell
 				EvaluationCell* newCell = new EvaluationCell(parent);
-				var offspring = ((ICellContainer*)Cell)->Children.data;
+				var offspring = ((ICellContainer*)Cell)->children_cells.data;
 				((ICellContainer*)Cell)->remove_from(0, offspring.length, false); 
 				newCell->set_text(Cell->get_text());
 				parent->remove_from(pos, 1, true);
@@ -130,8 +130,8 @@ namespace Seaborg {
 				newCell->toggle_all();
 						
 				if(pos > 0) {
-					if(parent->Children.data[pos-1].get_level() >= 0 && parent->Children.data[pos-1] is CellContainer) {
-						((CellContainer)(parent->Children.data[pos-1])).eat_children();
+					if(parent->children_cells.data[pos-1].get_level() >= 0 && parent->children_cells.data[pos-1] is CellContainer) {
+						((CellContainer)(parent->children_cells.data[pos-1])).eat_children();
 					}
 				}
 						
@@ -146,17 +146,17 @@ namespace Seaborg {
 
 			int pos;
 			
-			ICellContainer* parent = Cell->Parent;
+			ICellContainer* parent = Cell->parent_cell;
 			if(parent == null)
 				return;
 
 			if(Cell is EvaluationCell) {
-				for(pos=0; pos < parent->Children.data.length; pos++) {
-					if(parent->Children.data[pos].name == Cell->name)
+				for(pos=0; pos < parent->children_cells.data.length; pos++) {
+					if(parent->children_cells.data[pos].name == Cell->name)
 						break;
 				}
 
-				if(pos >= parent->Children.data.length)
+				if(pos >= parent->children_cells.data.length)
 					return;
 
 				TextCell* newCell = new TextCell(parent);
@@ -178,21 +178,21 @@ namespace Seaborg {
 					toggled_container(1);
 				}
 
-				parent = Cell->Parent;
+				parent = Cell->parent_cell;
 				if(parent == null)
 					return;
 
-				for(pos=0; pos < parent->Children.data.length; pos++) {
-					if(parent->Children.data[pos].name == Cell->name)
+				for(pos=0; pos < parent->children_cells.data.length; pos++) {
+					if(parent->children_cells.data[pos].name == Cell->name)
 						break;
 				}
 
-				if(pos >= parent->Children.data.length)
+				if(pos >= parent->children_cells.data.length)
 					return;
 
 				//add new cell
 				EvaluationCell* newCell = new TextCell(parent);
-				var offspring = ((ICellContainer*)Cell)->Children.data;
+				var offspring = ((ICellContainer*)Cell)->children_cells.data;
 				((ICellContainer*)Cell)->remove_from(0, offspring.length, false); 
 				newCell->set_text(Cell->get_text());
 				parent->remove_from(pos, 1, true);
@@ -203,8 +203,8 @@ namespace Seaborg {
 				newCell->toggle_all();
 						
 				if(pos > 0) {
-					if(parent->Children.data[pos-1].get_level() >= 0 && parent->Children.data[pos-1] is CellContainer) {
-						((CellContainer)(parent->Children.data[pos-1])).eat_children();
+					if(parent->children_cells.data[pos-1].get_level() >= 0 && parent->children_cells.data[pos-1] is CellContainer) {
+						((CellContainer)(parent->children_cells.data[pos-1])).eat_children();
 					}
 				}
 
@@ -214,19 +214,19 @@ namespace Seaborg {
 		}
 
 		private void toggled_container(uint toggled_level) {
-			ICellContainer* parent = Cell->Parent;
+			ICellContainer* parent = Cell->parent_cell;
 			if(parent == null)
 				return;
 
 			int pos;
 			
 			if(Cell is EvaluationCell || Cell is TextCell) {
-				for(pos=0; pos < parent->Children.data.length; pos++) {
-					if(parent->Children.data[pos].name == Cell->name)
+				for(pos=0; pos < parent->children_cells.data.length; pos++) {
+					if(parent->children_cells.data[pos].name == Cell->name)
 						break;
 				}
 
-				if(pos >= parent->Children.data.length)
+				if(pos >= parent->children_cells.data.length)
 					return;
 
 
@@ -234,7 +234,7 @@ namespace Seaborg {
 				newCell->set_text(Cell->get_text());	
 				parent->remove_from(pos, 1, true);
 				parent->add_before(pos, { newCell });
-				((CellContainer)(parent->Children.data[pos])).eat_children();
+				((CellContainer)(parent->children_cells.data[pos])).eat_children();
 				newCell->focus_cell();
 				newCell->recursive_untoggle_all();
 				newCell->toggle_all();
@@ -260,17 +260,17 @@ namespace Seaborg {
 
 					// gradually lower level, so there is no need for nested eating silblings
 					((CellContainer*)Cell)->set_level(old_level-1);
-					parent = Cell->Parent;
+					parent = Cell->parent_cell;
 
 					// find cell within parent
-					for(pos=0; pos < parent->Children.data.length; pos++) {
-						if(parent->Children.data[pos].name == Cell->name)
+					for(pos=0; pos < parent->children_cells.data.length; pos++) {
+						if(parent->children_cells.data[pos].name == Cell->name)
 							break;
 					}
 
 					//find out first child to throw up
 					int internal_pos;
-					var offspring = ((CellContainer*)Cell)->Children.data;
+					var offspring = ((CellContainer*)Cell)->children_cells.data;
 					for(internal_pos=0; internal_pos<offspring.length; internal_pos++) {
 						if(offspring[internal_pos].get_level() >= toggled_level)
 							break;
@@ -285,16 +285,16 @@ namespace Seaborg {
 						parent->add_before(pos+1, offspring);
 
 						// let last released child eat former uncle
-						if(pos+offspring.length+1 < parent->Children.data.length) {
-							if(parent->Children.data[pos+offspring.length+1].get_level() < parent->Children.data[pos+offspring.length].get_level()) {
-								((CellContainer)parent->Children.data[pos+offspring.length]).eat_children();
+						if(pos+offspring.length+1 < parent->children_cells.data.length) {
+							if(parent->children_cells.data[pos+offspring.length+1].get_level() < parent->children_cells.data[pos+offspring.length].get_level()) {
+								((CellContainer)parent->children_cells.data[pos+offspring.length]).eat_children();
 							}
 						}
 
 						// let next oldest silbling of Cell eat children now
 						if(pos > 0) {
-							if(parent->Children.data[pos-1].get_level() > parent->Children.data[pos].get_level())
-								((CellContainer)parent->Children.data[pos-1]).eat_children();
+							if(parent->children_cells.data[pos-1].get_level() > parent->children_cells.data[pos].get_level())
+								((CellContainer)parent->children_cells.data[pos-1]).eat_children();
 						}
 					}
 
