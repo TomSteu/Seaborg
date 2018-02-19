@@ -250,7 +250,7 @@ namespace Seaborg {
 			search_entry.halign = Gtk.Align.FILL;
 			search_entry.set_width_chars(32);
 			search_entry.search_changed.connect(() => {
-				if(search_entry.text != null && search_entry.text != "")
+				if(search_entry.text != null)
 					search_settings.search_text = search_entry.text;
 			});
 
