@@ -6,7 +6,7 @@ namespace Seaborg {
 		public Notebook() {
 			this.name = IdGenerator.get_id();
 			parent_cell = null;
-			Level = 7;
+			level = 7;
 			zoom_factor = 1;
 			children_cells = new GLib.Array<ICell>();
 			addbutton_list = new GLib.Array<AddButton>();
@@ -28,29 +28,29 @@ namespace Seaborg {
 			search_settings = new Gtk.SourceSearchSettings();
 			search_settings.wrap_around = false;
 
-			Marker = new Gtk.ToggleButton();
-			Marker.can_focus = false;
-			var style_context = Marker.get_style_context();
+			marker = new Gtk.ToggleButton();
+			marker.can_focus = false;
+			var style_context = marker.get_style_context();
 			style_context.add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 			style_context.add_class("cell-marker");
 			get_style_context().add_class("view");
 			get_style_context().add_class("container-grid");
 
 			// final Addbutton to fill the bottom of the window
-			Footer = new AddButton(this);
-			Footer.name = IdGenerator.get_id();
-			Footer.can_focus = false;
-			Footer.focus_on_click = false;
-			Footer.get_style_context().add_class("add-button");
-			Footer.vexpand = true;
-			Footer.valign = Gtk.Align.FILL;
-			Footer.clicked.connect(() => { addbutton_list.data[addbutton_list.data.length-1].insert_child();});
+			footer = new AddButton(this);
+			footer.name = IdGenerator.get_id();
+			footer.can_focus = false;
+			footer.focus_on_click = false;
+			footer.get_style_context().add_class("add-button");
+			footer.vexpand = true;
+			footer.valign = Gtk.Align.FILL;
+			footer.clicked.connect(() => { addbutton_list.data[addbutton_list.data.length-1].insert_child();});
 
 			// assemble the container
-			attach(Marker, 0, 0, 1, 2);
+			attach(marker, 0, 0, 1, 2);
 			addbutton_list.append_val(new AddButton(this));
 			attach(addbutton_list.index(0), 1, 0, 1, 1);
-			attach(Footer, 0, 2, 2, 1);
+			attach(footer, 0, 2, 2, 1);
 
 			this.notify["children-cells"].connect((property, sender) => {
 				stderr.printf("chidren changed");
@@ -121,14 +121,14 @@ namespace Seaborg {
 		}
 
 		public void toggle_all() {
-			Marker.active = true;
+			marker.active = true;
 			for(int i=0; i<children_cells.data.length; i++) {
 				children_cells.data[i].toggle_all();
 			}
 		}
 
 		public void untoggle_all() {
-			Marker.active = false;
+			marker.active = false;
 			for(int i=0; i<children_cells.data.length; i++) {
 				children_cells.data[i].untoggle_all();
 			}
@@ -164,11 +164,11 @@ namespace Seaborg {
 		
 
 		public bool marker_selected() {
-			return Marker.sensitive ? Marker.active : false;
+			return marker.sensitive ? marker.active : false;
 		}
 
 		public uint get_level() {
-			return Level;
+			return level;
 		}
 
 		public void focus_cell() {
@@ -235,10 +235,10 @@ namespace Seaborg {
 		public ICellContainer* parent_cell {get; set;}
 		public double zoom_factor {get; set;}
 		public Gtk.SourceSearchSettings search_settings {get; set;}
-		private uint Level;
-		private Gtk.ToggleButton Marker;
+		private uint level;
+		private Gtk.ToggleButton marker;
 		private CssProvider css;
-		private Gtk.Button Footer;
+		private Gtk.Button footer;
 	}
 
 

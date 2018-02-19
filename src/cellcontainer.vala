@@ -28,60 +28,60 @@ namespace Seaborg {
 				css = CssProvider.get_default();
 			}
 
-			TitleBuffer = new Gtk.SourceBuffer(null);
-			TitleBuffer.highlight_matching_brackets = true;
-			Title = new Gtk.SourceView.with_buffer(TitleBuffer);
-			Title.show_line_numbers = false;
-			Title.highlight_current_line = false;
-			Title.auto_indent = true;
-			Title.indent_on_tab = true;
-			Title.tab_width = 3;
-			Title.insert_spaces_instead_of_tabs = false;
-			Title.smart_backspace = true;
-			Title.show_line_marks = false;
-			Title.wrap_mode = Gtk.WrapMode.WORD_CHAR;
-			Title.monospace = false;
-			Title.editable = true;
-			Title.hexpand = true;
-			Title.halign = Gtk.Align.FILL;
-			Title.left_margin = 0;
-			Title.right_margin = 0;
-			Title.top_margin = 0;
-			Title.bottom_margin = 0;
-			Title.button_press_event.connect(untoggle_handler);
-			Title.key_press_event.connect(insert_ellipsis);
-			Title.get_style_context().add_provider(font_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
-			TitleBuffer.insert_text.connect(insert_handler);
-			TitleBuffer.add_selection_clipboard(Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD));
+			title_buffer = new Gtk.SourceBuffer(null);
+			title_buffer.highlight_matching_brackets = true;
+			title = new Gtk.SourceView.with_buffer(title_buffer);
+			title.show_line_numbers = false;
+			title.highlight_current_line = false;
+			title.auto_indent = true;
+			title.indent_on_tab = true;
+			title.tab_width = 3;
+			title.insert_spaces_instead_of_tabs = false;
+			title.smart_backspace = true;
+			title.show_line_marks = false;
+			title.wrap_mode = Gtk.WrapMode.WORD_CHAR;
+			title.monospace = false;
+			title.editable = true;
+			title.hexpand = true;
+			title.halign = Gtk.Align.FILL;
+			title.left_margin = 0;
+			title.right_margin = 0;
+			title.top_margin = 0;
+			title.bottom_margin = 0;
+			title.button_press_event.connect(untoggle_handler);
+			title.key_press_event.connect(insert_ellipsis);
+			title.get_style_context().add_provider(font_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
+			title_buffer.insert_text.connect(insert_handler);
+			title_buffer.add_selection_clipboard(Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD));
 
 			Gtk.SourceStyleSchemeManager sm = new Gtk.SourceStyleSchemeManager();
  			sm.search_path = new string[] {"res/sourceview/"};
 
 			if(Parameter.dark_theme) {
-				TitleBuffer.style_scheme = sm.get_scheme("seaborg-dark");
+				title_buffer.style_scheme = sm.get_scheme("seaborg-dark");
 			} else {
-				TitleBuffer.style_scheme = sm.get_scheme("seaborg-light");
+				title_buffer.style_scheme = sm.get_scheme("seaborg-light");
 			}
 
-			search_context = new Gtk.SourceSearchContext(TitleBuffer, parent_cell->search_settings);
+			search_context = new Gtk.SourceSearchContext(title_buffer, parent_cell->search_settings);
 
 			set_level(level);
 
-			Marker = new Gtk.ToggleButton();
-			Marker.can_focus = false;
-			var style_context = Marker.get_style_context();
+			marker = new Gtk.ToggleButton();
+			marker.can_focus = false;
+			var style_context = marker.get_style_context();
 			style_context.add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 			style_context.add_class("cell-marker");
 			get_style_context().add_class("view");
 			get_style_context().add_class("container-grid");
 
 			// assemble the container
-			attach(Marker, 0, 0, 1, 2);
-			attach(Title, 1, 0, 1, 1);
+			attach(marker, 0, 0, 1, 2);
+			attach(title, 1, 0, 1, 1);
 			addbutton_list.append_val(new AddButton(this));
 			attach(addbutton_list.index(0), 1, 1, 1);
 
-			Marker.button_press_event.connect(press_handler);
+			marker.button_press_event.connect(press_handler);
 			isExpanded = true;
 
 			this.notify["children-cells"].connect((property, sender) => {
@@ -210,7 +210,7 @@ namespace Seaborg {
 			if(pos == old_len) {
 				remove_column(0);
 				insert_column(0);
-				attach(Marker, 0, 0, 1, 2*((int)(children_cells.length)+1));
+				attach(marker, 0, 0, 1, 2*((int)(children_cells.length)+1));
 			}
 
 			show_all();
@@ -243,14 +243,14 @@ namespace Seaborg {
 		}
 
 		public void toggle_all() {
-			Marker.active = true;
+			marker.active = true;
 			for(int i=0; i<children_cells.data.length; i++) {
 				children_cells.data[i].toggle_all();
 			}
 		}
 
 		public void untoggle_all() {
-			Marker.active = false;
+			marker.active = false;
 			for(int i=0; i<children_cells.data.length; i++) {
 				children_cells.data[i].untoggle_all();
 			}
@@ -265,7 +265,7 @@ namespace Seaborg {
 					attach(addbutton_list.data[1+i], 0, 3+2*i, 1, 1);
 				}
 				insert_column(0);
-				attach(Marker, 0, 0, 1, 2*(children_cells.data.length+1));
+				attach(marker, 0, 0, 1, 2*(children_cells.data.length+1));
 				isExpanded = true;
 				show_all();
 			}
@@ -298,15 +298,15 @@ namespace Seaborg {
 		}
 
 		public bool marker_selected() {
-			return Marker.sensitive ? Marker.active : false;
+			return marker.sensitive ? marker.active : false;
 		}
 
 		public void set_text(string _text) {
-			Title.buffer.text = _text;
+			title.buffer.text = _text;
 		}
 
 		public string get_text() {
-			return Title.buffer.text;
+			return title.buffer.text;
 		}
 
 		public uint get_level() {
@@ -347,12 +347,12 @@ namespace Seaborg {
 		}
 
 		public void focus_cell() {
-			Title.grab_focus();
+			title.grab_focus();
 		}
 
 		public void cell_check_resize() {
 
-			Title.check_resize();
+			title.check_resize();
 
 			for(int i=0; i<children_cells.data.length; i++) {
 				children_cells.data[i].cell_check_resize();
@@ -369,7 +369,7 @@ namespace Seaborg {
 
 			if(event.type == Gdk.EventType.BUTTON_PRESS && event.button == 3) {
 				ContextMenu context = new ContextMenu(this);
-				context.popup_at_widget(Marker, Gdk.Gravity.CENTER, Gdk.Gravity.WEST, null);
+				context.popup_at_widget(marker, Gdk.Gravity.CENTER, Gdk.Gravity.WEST, null);
 			}
 
 			return false;
@@ -378,12 +378,12 @@ namespace Seaborg {
 		private bool insert_ellipsis(EventKey key) {
 
 			if(key.type == Gdk.EventType.KEY_PRESS && key.keyval == Gdk.Key.Escape) {
-				Title.buffer.insert_at_cursor("⋮", "⋮".length);
+				title.buffer.insert_at_cursor("⋮", "⋮".length);
 				TextIter iter;
-				int pos = Title.buffer.get_char_count() -  Title.buffer.cursor_position;
+				int pos = title.buffer.get_char_count() -  title.buffer.cursor_position;
 				set_text(replace_characters(get_text()));
-				Title.buffer.get_iter_at_offset(out iter, Title.buffer.get_char_count() - pos);
-				Title.buffer.place_cursor(iter);
+				title.buffer.get_iter_at_offset(out iter, title.buffer.get_char_count() - pos);
+				title.buffer.place_cursor(iter);
 
 			}
 
@@ -401,12 +401,12 @@ namespace Seaborg {
 					Gtk.TextIter origin, start, end;
 					bool has_wrapped_around;
 
-					TitleBuffer.get_start_iter(out origin);
+					title_buffer.get_start_iter(out origin);
 					res = search_context.forward2(origin, out start, out end, out has_wrapped_around);
 					res = res && (!has_wrapped_around);
 
 					if(res) {
-						TitleBuffer.select_range(start, end);
+						title_buffer.select_range(start, end);
 						focus_cell();
 						recursive_untoggle_all();
 						toggle_all();
@@ -420,12 +420,12 @@ namespace Seaborg {
 					Gtk.TextIter origin, start, end;
 					bool has_wrapped_around;
 
-					TitleBuffer.get_end_iter(out origin);
+					title_buffer.get_end_iter(out origin);
 					res = search_context.backward2(origin, out start, out end, out has_wrapped_around);
 					res = res && (!has_wrapped_around);
 
 					if(res) {
-						TitleBuffer.select_range(start, end);
+						title_buffer.select_range(start, end);
 						focus_cell();
 						recursive_untoggle_all();
 						toggle_all();
@@ -439,12 +439,12 @@ namespace Seaborg {
 					Gtk.TextIter sel_start, sel_end, start, end;
 					bool has_wrapped_around;
 
-					TitleBuffer.get_selection_bounds(out sel_start, out sel_end);
+					title_buffer.get_selection_bounds(out sel_start, out sel_end);
 					res = search_context.forward2(sel_end, out start, out end, out has_wrapped_around);
 					res = res && (!has_wrapped_around);
 
 					if(res) {
-						TitleBuffer.select_range(start, end);
+						title_buffer.select_range(start, end);
 						focus_cell();
 						recursive_untoggle_all();
 						toggle_all();
@@ -460,12 +460,12 @@ namespace Seaborg {
 					Gtk.TextIter sel_start, sel_end, start, end;
 					bool has_wrapped_around;
 
-					TitleBuffer.get_selection_bounds(out sel_start, out sel_end);
+					title_buffer.get_selection_bounds(out sel_start, out sel_end);
 					res = search_context.backward2(sel_start, out start, out end, out has_wrapped_around);
 					res = res && (!has_wrapped_around);
 
 					if(res) {
-						TitleBuffer.select_range(start, end);
+						title_buffer.select_range(start, end);
 						focus_cell();
 						recursive_untoggle_all();
 						toggle_all();
@@ -505,7 +505,7 @@ namespace Seaborg {
 
 			} else {
 
-				if(TitleBuffer.has_selection) {
+				if(title_buffer.has_selection) {
 					
 					found_last = true;
 					if(search(SearchType.CursorForwards))
@@ -536,7 +536,7 @@ namespace Seaborg {
 
 			} else {
 
-				if(TitleBuffer.has_selection) {
+				if(title_buffer.has_selection) {
 					
 					found_last = true;
 					if(search(SearchType.CursorBackwards))
@@ -555,9 +555,9 @@ namespace Seaborg {
 		public Gtk.SourceSearchSettings search_settings {get; set;}
 		private Gtk.SourceSearchContext search_context;
 		private uint Level;
-		private SourceView Title;
-		private SourceBuffer TitleBuffer;
-		private Gtk.ToggleButton Marker;
+		private SourceView title;
+		private SourceBuffer title_buffer;
+		private Gtk.ToggleButton marker;
 		private CssProvider css;
 		private CssProvider font_provider;
 		private bool isExpanded;

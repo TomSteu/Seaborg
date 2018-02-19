@@ -4,63 +4,63 @@ namespace Seaborg {
 
 	// popup context menu
 	public class ContextMenu : Gtk.Menu {
-		public ContextMenu(ICell* cell) {
-			Cell = cell;
+		public ContextMenu(ICell* _cell) {
+			cell = _cell;
 			
-			EvaluationCellType = new RadioMenuItem.with_label(null, "Evaluation Cell");
-			TextCellType = new RadioMenuItem.with_label_from_widget(EvaluationCellType, "Text Cell");
-			TitleType = new RadioMenuItem.with_label_from_widget(EvaluationCellType, "Title");
-			ChapterType = new RadioMenuItem.with_label_from_widget(EvaluationCellType, "Chapter");
-			SubChapterType = new RadioMenuItem.with_label_from_widget(EvaluationCellType, "Subchapter");
-			SectionType = new RadioMenuItem.with_label_from_widget(EvaluationCellType, "Section");
-			SubSectionType = new RadioMenuItem.with_label_from_widget(EvaluationCellType, "Subsection");
-			SubSubSectionType = new RadioMenuItem.with_label_from_widget(EvaluationCellType, "Subsubsection");
+			evaluation_cell_type = new RadioMenuItem.with_label(null, "Evaluation cell");
+			text_cell_type = new RadioMenuItem.with_label_from_widget(evaluation_cell_type, "Text cell");
+			title_type = new RadioMenuItem.with_label_from_widget(evaluation_cell_type, "Title");
+			chapter_type = new RadioMenuItem.with_label_from_widget(evaluation_cell_type, "Chapter");
+			subchapter_type = new RadioMenuItem.with_label_from_widget(evaluation_cell_type, "Subchapter");
+			section_type = new RadioMenuItem.with_label_from_widget(evaluation_cell_type, "Section");
+			subsection_type = new RadioMenuItem.with_label_from_widget(evaluation_cell_type, "Subsection");
+			subsubsection_type = new RadioMenuItem.with_label_from_widget(evaluation_cell_type, "Subsubsection");
 
-			if(Cell is EvaluationCell)
-				EvaluationCellType.active = true;
-			if(Cell is TextCell)
-				TextCellType.active = true;
-			if(Cell is CellContainer) {
-				switch(((CellContainer*)Cell)->get_level()) {
+			if(cell is EvaluationCell)
+				evaluation_cell_type.active = true;
+			if(cell is TextCell)
+				text_cell_type.active = true;
+			if(cell is CellContainer) {
+				switch(((CellContainer*)cell)->get_level()) {
 					case 1:
-						SubSubSectionType.active = true;
+						subsubsection_type.active = true;
 						break;
 					case 2:
-						SubSectionType.active = true;
+						subsection_type.active = true;
 						break;
 					case 3:
-						SectionType.active = true;
+						section_type.active = true;
 						break;
 					case 4:
-						SubChapterType.active = true;
+						subchapter_type.active = true;
 						break;
 					case 5:
-						ChapterType.active = true;
+						chapter_type.active = true;
 						break;
 					case 6:
-						TitleType.active = true;
+						title_type.active = true;
 						break;
 				}
 			}
 
-			EvaluationCellType.toggled.connect(() => {toggled_evaluation_cell();});
-			TextCellType.toggled.connect(() => {toggled_text_cell();});
-			TitleType.toggled.connect(() => { toggled_container(6); });
-			ChapterType.toggled.connect(() => { toggled_container(5); });
-			SubChapterType.toggled.connect(() => { toggled_container(4); });
-			SectionType.toggled.connect(() => { toggled_container(3); });
-			SubSectionType.toggled.connect(() => { toggled_container(2); });
-			SubSubSectionType.toggled.connect(() => { toggled_container(1); });
+			evaluation_cell_type.toggled.connect(() => {toggled_evaluation_cell();});
+			text_cell_type.toggled.connect(() => {toggled_text_cell();});
+			title_type.toggled.connect(() => { toggled_container(6); });
+			chapter_type.toggled.connect(() => { toggled_container(5); });
+			subchapter_type.toggled.connect(() => { toggled_container(4); });
+			section_type.toggled.connect(() => { toggled_container(3); });
+			subsection_type.toggled.connect(() => { toggled_container(2); });
+			subsubsection_type.toggled.connect(() => { toggled_container(1); });
 
-			this.add(EvaluationCellType);
-			this.add(TextCellType);
+			this.add(evaluation_cell_type);
+			this.add(text_cell_type);
 			this.add(new Gtk.SeparatorMenuItem());
-			this.add(TitleType);
-			this.add(ChapterType);
-			this.add(SubChapterType);
-			this.add(SectionType);
-			this.add(SubSectionType);
-			this.add(SubSubSectionType);
+			this.add(title_type);
+			this.add(chapter_type);
+			this.add(subchapter_type);
+			this.add(section_type);
+			this.add(subsection_type);
+			this.add(subsubsection_type);
 
 			show_all();
 
@@ -68,26 +68,26 @@ namespace Seaborg {
 
 		private void toggled_evaluation_cell() {
 
-			if(Cell is EvaluationCell) 
+			if(cell is EvaluationCell) 
 				return;
 
 
 			int pos;
-			ICellContainer* parent = Cell->parent_cell;
+			ICellContainer* parent = cell->parent_cell;
 			if(parent == null) 
 				return;
 
-			if(Cell is TextCell) {
+			if(cell is TextCell) {
 				for(pos=0; pos < parent->children_cells.data.length; pos++) {
-					if(parent->children_cells.data[pos].name == Cell->name)
+					if(parent->children_cells.data[pos].name == cell->name)
 						break;
 				}
 
 				if(pos >= parent->children_cells.data.length)
 					return;
 
-				EvaluationCell* newCell = new EvaluationCell(Cell->parent_cell);
-				newCell->set_text(Cell->get_text());
+				EvaluationCell* newCell = new EvaluationCell(cell->parent_cell);
+				newCell->set_text(cell->get_text());
 				parent->add_before(pos, { newCell });
 				newCell->focus_cell();
 				newCell->recursive_untoggle_all();
@@ -96,21 +96,21 @@ namespace Seaborg {
 
 				return;
 			}
-			if(Cell is CellContainer) {
+			if(cell is CellContainer) {
 
-				uint level = Cell->get_level();
+				uint level = cell->get_level();
 				if(level<=0)
 					return;
 				if(level > 1) {
 					toggled_container(1);
 				}
 
-				parent = Cell->parent_cell;
+				parent = cell->parent_cell;
 				if(parent == null)
 					return;
 
 				for(pos=0; pos < parent->children_cells.data.length; pos++) {
-					if(parent->children_cells.data[pos].name == Cell->name)
+					if(parent->children_cells.data[pos].name == cell->name)
 						break;
 				}
 
@@ -119,9 +119,9 @@ namespace Seaborg {
 
 				//add new cell
 				EvaluationCell* newCell = new EvaluationCell(parent);
-				var offspring = ((ICellContainer*)Cell)->children_cells.data;
-				((ICellContainer*)Cell)->remove_from(0, offspring.length, false); 
-				newCell->set_text(Cell->get_text());
+				var offspring = ((ICellContainer*)cell)->children_cells.data;
+				((ICellContainer*)cell)->remove_from(0, offspring.length, false); 
+				newCell->set_text(cell->get_text());
 				parent->remove_from(pos, 1, true);
 				parent->add_before(pos, { newCell });
 				parent->add_before(pos+1, offspring);
@@ -141,18 +141,18 @@ namespace Seaborg {
 		}
 
 		private void toggled_text_cell() {
-			if(Cell is TextCell)
+			if(cell is TextCell)
 				return;
 
 			int pos;
 			
-			ICellContainer* parent = Cell->parent_cell;
+			ICellContainer* parent = cell->parent_cell;
 			if(parent == null)
 				return;
 
-			if(Cell is EvaluationCell) {
+			if(cell is EvaluationCell) {
 				for(pos=0; pos < parent->children_cells.data.length; pos++) {
-					if(parent->children_cells.data[pos].name == Cell->name)
+					if(parent->children_cells.data[pos].name == cell->name)
 						break;
 				}
 
@@ -160,7 +160,7 @@ namespace Seaborg {
 					return;
 
 				TextCell* newCell = new TextCell(parent);
-				newCell->set_text(Cell->get_text());
+				newCell->set_text(cell->get_text());
 				parent->add_before(pos, { newCell });
 				newCell->focus_cell();
 				newCell->recursive_untoggle_all();
@@ -169,21 +169,21 @@ namespace Seaborg {
 
 				return;
 			}
-			if(Cell is CellContainer) {
+			if(cell is CellContainer) {
 
-				uint level = Cell->get_level();
+				uint level = cell->get_level();
 				if(level<=0)
 					return;
 				if(level > 1) {
 					toggled_container(1);
 				}
 
-				parent = Cell->parent_cell;
+				parent = cell->parent_cell;
 				if(parent == null)
 					return;
 
 				for(pos=0; pos < parent->children_cells.data.length; pos++) {
-					if(parent->children_cells.data[pos].name == Cell->name)
+					if(parent->children_cells.data[pos].name == cell->name)
 						break;
 				}
 
@@ -192,9 +192,9 @@ namespace Seaborg {
 
 				//add new cell
 				EvaluationCell* newCell = new TextCell(parent);
-				var offspring = ((ICellContainer*)Cell)->children_cells.data;
-				((ICellContainer*)Cell)->remove_from(0, offspring.length, false); 
-				newCell->set_text(Cell->get_text());
+				var offspring = ((ICellContainer*)cell)->children_cells.data;
+				((ICellContainer*)cell)->remove_from(0, offspring.length, false); 
+				newCell->set_text(cell->get_text());
 				parent->remove_from(pos, 1, true);
 				parent->add_before(pos, { newCell });
 				parent->add_before(pos+1, offspring);
@@ -214,15 +214,15 @@ namespace Seaborg {
 		}
 
 		private void toggled_container(uint toggled_level) {
-			ICellContainer* parent = Cell->parent_cell;
+			ICellContainer* parent = cell->parent_cell;
 			if(parent == null)
 				return;
 
 			int pos;
 			
-			if(Cell is EvaluationCell || Cell is TextCell) {
+			if(cell is EvaluationCell || cell is TextCell) {
 				for(pos=0; pos < parent->children_cells.data.length; pos++) {
-					if(parent->children_cells.data[pos].name == Cell->name)
+					if(parent->children_cells.data[pos].name == cell->name)
 						break;
 				}
 
@@ -231,7 +231,7 @@ namespace Seaborg {
 
 
 				CellContainer* newCell = new CellContainer(parent, toggled_level);	
-				newCell->set_text(Cell->get_text());	
+				newCell->set_text(cell->get_text());	
 				parent->remove_from(pos, 1, true);
 				parent->add_before(pos, { newCell });
 				((CellContainer)(parent->children_cells.data[pos])).eat_children();
@@ -241,17 +241,17 @@ namespace Seaborg {
 
 				return;
 			}
-			if(Cell is CellContainer) {
+			if(cell is CellContainer) {
 
-				uint old_level = Cell->get_level();
+				uint old_level = cell->get_level();
 				
 				if(old_level == toggled_level)
 					return;
 
 				// this is an level-up -- just eat a couple of more children
 				if(old_level<toggled_level) {
-					((CellContainer*)Cell)->set_level(toggled_level);
-					((CellContainer*)Cell)->eat_children();
+					((CellContainer*)cell)->set_level(toggled_level);
+					((CellContainer*)cell)->eat_children();
 					return;
 				}
 
@@ -259,18 +259,18 @@ namespace Seaborg {
 				if(old_level > toggled_level) {
 
 					// gradually lower level, so there is no need for nested eating silblings
-					((CellContainer*)Cell)->set_level(old_level-1);
-					parent = Cell->parent_cell;
+					((CellContainer*)cell)->set_level(old_level-1);
+					parent = cell->parent_cell;
 
 					// find cell within parent
 					for(pos=0; pos < parent->children_cells.data.length; pos++) {
-						if(parent->children_cells.data[pos].name == Cell->name)
+						if(parent->children_cells.data[pos].name == cell->name)
 							break;
 					}
 
 					//find out first child to throw up
 					int internal_pos;
-					var offspring = ((CellContainer*)Cell)->children_cells.data;
+					var offspring = ((CellContainer*)cell)->children_cells.data;
 					for(internal_pos=0; internal_pos<offspring.length; internal_pos++) {
 						if(offspring[internal_pos].get_level() >= toggled_level)
 							break;
@@ -281,7 +281,7 @@ namespace Seaborg {
 
 						// transfer to parent
 						offspring = offspring[internal_pos : offspring.length];
-						((CellContainer*)Cell)->remove_from(internal_pos, offspring.length, false);
+						((CellContainer*)cell)->remove_from(internal_pos, offspring.length, false);
 						parent->add_before(pos+1, offspring);
 
 						// let last released child eat former uncle
@@ -291,7 +291,7 @@ namespace Seaborg {
 							}
 						}
 
-						// let next oldest silbling of Cell eat children now
+						// let next oldest silbling of cell eat children now
 						if(pos > 0) {
 							if(parent->children_cells.data[pos-1].get_level() > parent->children_cells.data[pos].get_level())
 								((CellContainer)parent->children_cells.data[pos-1]).eat_children();
@@ -307,15 +307,15 @@ namespace Seaborg {
 			}
 		}
 
-		private ICell* Cell;
-		private RadioMenuItem EvaluationCellType;
-		private RadioMenuItem TextCellType;
-		private RadioMenuItem TitleType;
-		private RadioMenuItem ChapterType;
-		private RadioMenuItem SubChapterType;
-		private RadioMenuItem SectionType;
-		private RadioMenuItem SubSectionType;
-		private RadioMenuItem SubSubSectionType;
+		private ICell* cell;
+		private RadioMenuItem evaluation_cell_type;
+		private RadioMenuItem text_cell_type;
+		private RadioMenuItem title_type;
+		private RadioMenuItem chapter_type;
+		private RadioMenuItem subchapter_type;
+		private RadioMenuItem section_type;
+		private RadioMenuItem subsection_type;
+		private RadioMenuItem subsubsection_type;
 	}
 
 }
