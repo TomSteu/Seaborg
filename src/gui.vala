@@ -855,7 +855,7 @@ namespace Seaborg {
 					if(container.Children.data[i] is ICellContainer)
 						schedule_evaluation((ICellContainer) container.Children.data[i]);
 
-					if(container.Children.data[i].marker_selected() && (! container.Children.data[i].lock) && container.Children.data[i] is EvaluationCell) {
+					if(container.Children.data[i].marker_selected() && (! container.Children.data[i].lock) && container.Children.data[i].get_level() == 0 && container.Children.data[i] is EvaluationCell) {
 						eva = (EvaluationCell) container.Children.data[i];
 						last = i;
 						if(Seaborg.check_input_packet(eva.get_text())) {

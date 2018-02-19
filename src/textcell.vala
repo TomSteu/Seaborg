@@ -50,6 +50,15 @@ namespace Seaborg {
 			CellBuffer.insert_text.connect(insert_handler);
 			CellBuffer.add_selection_clipboard(Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD));
 
+			Gtk.SourceStyleSchemeManager sm = new Gtk.SourceStyleSchemeManager();
+ 			sm.search_path = new string[] {"res/sourceview/"};
+
+			if(Parameter.dark_theme) {
+				CellBuffer.style_scheme = sm.get_scheme("seaborg-dark");
+			} else {
+				CellBuffer.style_scheme = sm.get_scheme("seaborg-light");
+			}
+
 			search_context = new Gtk.SourceSearchContext(CellBuffer, Parent->search_settings);
 
 			Marker = new Gtk.ToggleButton();
