@@ -420,7 +420,7 @@ namespace Seaborg {
 						res = res && (!has_wrapped_around);
 
 						if(res) {
-							InputBuffer.select_range(start, end);
+							OutputBuffer.select_range(start, end);
 							focus_cell();
 							recursive_untoggle_all();
 							toggle_all();
