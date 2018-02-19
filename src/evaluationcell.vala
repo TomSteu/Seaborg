@@ -183,6 +183,8 @@ namespace Seaborg {
 
 		public void focus_cell() {
 			input_cell.grab_focus();
+			recursive_untoggle_all();
+			toggle_all();
 		}
 
 		public void remove_recursively() {}
@@ -388,8 +390,6 @@ namespace Seaborg {
 					if(res) {
 						input_buffer.select_range(start, end);
 						focus_cell();
-						recursive_untoggle_all();
-						toggle_all();
 						return res;
 					}
 
@@ -401,8 +401,6 @@ namespace Seaborg {
 						if(res) {
 							output_buffer.select_range(start, end);
 							focus_cell();
-							recursive_untoggle_all();
-							toggle_all();
 						}
 					}
 
@@ -422,8 +420,6 @@ namespace Seaborg {
 						if(res) {
 							output_buffer.select_range(start, end);
 							focus_cell();
-							recursive_untoggle_all();
-							toggle_all();
 							return res;
 						}
 					}
@@ -435,8 +431,6 @@ namespace Seaborg {
 					if(res) {
 						input_buffer.select_range(start, end);
 						focus_cell();
-						recursive_untoggle_all();
-						toggle_all();
 					}
 
 					return res;
@@ -455,8 +449,6 @@ namespace Seaborg {
 						if(res) {
 							input_buffer.select_range(start, end);
 							focus_cell();
-							recursive_untoggle_all();
-							toggle_all();
 							return res;
 						}
 
@@ -467,8 +459,6 @@ namespace Seaborg {
 						if(res) {
 							output_buffer.select_range(start, end);
 							focus_cell();
-							recursive_untoggle_all();
-							toggle_all();
 						}
 
 						return res;
@@ -482,8 +472,6 @@ namespace Seaborg {
 						if(res) {
 							output_buffer.select_range(start, end);
 							focus_cell();
-							recursive_untoggle_all();
-							toggle_all();
 						}
 
 						return res;
@@ -505,8 +493,6 @@ namespace Seaborg {
 						if(res) {
 							output_buffer.select_range(start, end);
 							focus_cell();
-							recursive_untoggle_all();
-							toggle_all();
 							return res;
 						}
 
@@ -517,8 +503,6 @@ namespace Seaborg {
 						if(res) {
 							input_buffer.select_range(start, end);
 							focus_cell();
-							recursive_untoggle_all();
-							toggle_all();
 						}
 
 						return res;
@@ -533,8 +517,6 @@ namespace Seaborg {
 						if(res) {
 							input_buffer.select_range(start, end);
 							focus_cell();
-							recursive_untoggle_all();
-							toggle_all();
 						}
 
 						return res;

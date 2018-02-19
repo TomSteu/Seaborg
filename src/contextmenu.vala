@@ -90,8 +90,6 @@ namespace Seaborg {
 				newCell->set_text(cell->get_text());
 				parent->add_before(pos, { newCell });
 				newCell->focus_cell();
-				newCell->recursive_untoggle_all();
-				newCell->toggle_all();
 				parent->remove_from(pos+1, 1, true);
 
 				return;
@@ -126,8 +124,6 @@ namespace Seaborg {
 				parent->add_before(pos, { newCell });
 				parent->add_before(pos+1, offspring);
 				newCell->focus_cell();
-				newCell->recursive_untoggle_all();
-				newCell->toggle_all();
 						
 				if(pos > 0) {
 					if(parent->children_cells.data[pos-1].get_level() >= 0 && parent->children_cells.data[pos-1] is CellContainer) {
@@ -163,8 +159,6 @@ namespace Seaborg {
 				newCell->set_text(cell->get_text());
 				parent->add_before(pos, { newCell });
 				newCell->focus_cell();
-				newCell->recursive_untoggle_all();
-				newCell->toggle_all();
 				parent->remove_from(pos+1, 1, true);
 
 				return;
@@ -199,8 +193,6 @@ namespace Seaborg {
 				parent->add_before(pos, { newCell });
 				parent->add_before(pos+1, offspring);
 				newCell->focus_cell();
-				newCell->recursive_untoggle_all();
-				newCell->toggle_all();
 						
 				if(pos > 0) {
 					if(parent->children_cells.data[pos-1].get_level() >= 0 && parent->children_cells.data[pos-1] is CellContainer) {
@@ -236,8 +228,6 @@ namespace Seaborg {
 				parent->add_before(pos, { newCell });
 				((CellContainer)(parent->children_cells.data[pos])).eat_children();
 				newCell->focus_cell();
-				newCell->recursive_untoggle_all();
-				newCell->toggle_all();
 
 				return;
 			}

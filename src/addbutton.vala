@@ -47,8 +47,6 @@ namespace Seaborg {
 						parent_cell->add_before(pos, {newCell});
 						newCell->eat_children();
 						newCell->focus_cell();
-						newCell->recursive_untoggle_all();
-						newCell->toggle_all();
 						return;
 					}
 				}
@@ -57,8 +55,6 @@ namespace Seaborg {
 				EvaluationCell* newCell = new EvaluationCell(parent_cell);
 				parent_cell->add_before(pos, {newCell});
 				newCell->focus_cell();
-				newCell->recursive_untoggle_all();
-				newCell->toggle_all();
 			}
 		}
 

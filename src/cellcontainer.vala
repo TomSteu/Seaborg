@@ -84,10 +84,7 @@ namespace Seaborg {
 			marker.button_press_event.connect(press_handler);
 			isExpanded = true;
 
-			this.notify["children-cells"].connect((property, sender) => {
-				stderr.printf("chidren changed");
-			});
-
+			_tree_model = new Gtk.TreeStore(3, typeof(string), typeof(uint), typeof(string));
 			show_all();
 
 		}
@@ -195,12 +192,14 @@ namespace Seaborg {
 			for(int l=0; l<list.length; l++) list[l].parent_cell = this;
 			children_cells.insert_vals(pos, list, list.length);
 			addbutton_list.set_size(addbutton_list.data.length + list.length);
+			for(int k=0; k<list.length; k++) addbutton_list.insert_val(pos+1, new AddButton(this));
+
+			update_tree();
 			
 			if(! isExpanded) return;
 			if(pos < old_len) {
 					for(int j=1; j<=2*list.length; j++) insert_row(2*pos+2);;
 			}
-			for(int k=0; k<list.length; k++) addbutton_list.insert_val(pos+1, new AddButton(this));
 			for(int i=0; i<(int)(list.length); i++) {
 					attach(children_cells.data[pos+i], 1, 2*(pos+i)+2, 1, 1);
 					attach(addbutton_list.data[pos+1+i], 1, 2*(pos+i)+3, 1, 1);
@@ -240,6 +239,8 @@ namespace Seaborg {
 			children_cells.remove_range(pos, number);
 			addbutton_list.remove_range(pos+1, number);
 			for(int i=1; i <= 2*number; i++) remove_row(2*pos+2);
+
+			update_tree();
 		}
 
 		public void toggle_all() {
@@ -348,6 +349,8 @@ namespace Seaborg {
 
 		public void focus_cell() {
 			title.grab_focus();
+			recursive_untoggle_all();
+			toggle_all();
 		}
 
 		public void cell_check_resize() {
@@ -408,8 +411,6 @@ namespace Seaborg {
 					if(res) {
 						title_buffer.select_range(start, end);
 						focus_cell();
-						recursive_untoggle_all();
-						toggle_all();
 						return res;
 					}
 
@@ -427,8 +428,6 @@ namespace Seaborg {
 					if(res) {
 						title_buffer.select_range(start, end);
 						focus_cell();
-						recursive_untoggle_all();
-						toggle_all();
 						return res;
 					}
 
@@ -446,8 +445,6 @@ namespace Seaborg {
 					if(res) {
 						title_buffer.select_range(start, end);
 						focus_cell();
-						recursive_untoggle_all();
-						toggle_all();
 						return res;
 					}
 
@@ -467,8 +464,6 @@ namespace Seaborg {
 					if(res) {
 						title_buffer.select_range(start, end);
 						focus_cell();
-						recursive_untoggle_all();
-						toggle_all();
 						return res;
 					}
 
@@ -547,7 +542,13 @@ namespace Seaborg {
 			return false;
 		}
 
-		public Gtk.TreeStore tree_model {get; set;} 
+		public void update_tree() {
+
+		}
+
+		public Gtk.TreeStore tree_model {
+			get { return _tree_model; }
+		}
 		public GLib.Array<ICell> children_cells {get; set;}
 		public GLib.Array<AddButton> addbutton_list {get; set;}
 		public ICellContainer* parent_cell {get; set;}
@@ -561,6 +562,7 @@ namespace Seaborg {
 		private CssProvider css;
 		private CssProvider font_provider;
 		private bool isExpanded;
+		private Gtk.TreeStore _tree_model;
 	}
 
 }

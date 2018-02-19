@@ -52,9 +52,8 @@ namespace Seaborg {
 			attach(addbutton_list.index(0), 1, 0, 1, 1);
 			attach(footer, 0, 2, 2, 1);
 
-			this.notify["children-cells"].connect((property, sender) => {
-				stderr.printf("chidren changed");
-			});
+			_tree_model = new Gtk.TreeStore(3, typeof(string), typeof(uint), typeof(string));
+
 		}
 
 		public void remove_recursively() {
@@ -89,6 +88,7 @@ namespace Seaborg {
 					attach(addbutton_list.data[pos+1+i], 1,  2*(pos+i)+2, 1, 1);
 			}
 
+			update_tree();
 			this.show_all();
 
 		}
@@ -117,6 +117,8 @@ namespace Seaborg {
 			children_cells.remove_range(pos, number);
 			addbutton_list.remove_range(pos+1, number);
 			for(int i=1; i <= 2*number; i++) remove_row(2*pos+1);
+
+			update_tree();
 
 		}
 
@@ -172,8 +174,9 @@ namespace Seaborg {
 		}
 
 		public void focus_cell() {
-			if(children_cells.length > 0)
+			if(children_cells.length > 0){
 				children_cells.data[0].focus_cell();
+			}
 		}
 
 		public void set_text(string _text) {}
@@ -229,7 +232,13 @@ namespace Seaborg {
 			return false;
 		} 
 
-		public Gtk.TreeStore tree_model {get; set;}
+		public void update_tree() {
+			
+		}
+
+		public Gtk.TreeStore tree_model {
+			get { return _tree_model; }
+		}
 		public GLib.Array<ICell> children_cells {get; set;}
 		public GLib.Array<AddButton> addbutton_list {get; set;}
 		public ICellContainer* parent_cell {get; set;}
@@ -239,6 +248,7 @@ namespace Seaborg {
 		private Gtk.ToggleButton marker;
 		private CssProvider css;
 		private Gtk.Button footer;
+		private Gtk.TreeStore _tree_model;
 	}
 
 

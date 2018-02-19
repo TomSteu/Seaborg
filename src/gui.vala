@@ -880,15 +880,11 @@ namespace Seaborg {
 				EvaluationCell* newCell = new EvaluationCell(container);
 				container.add_before(-1, {newCell});
 				newCell->focus_cell();
-				container.recursive_untoggle_all();
-				newCell->toggle_all();
 				return;
 
 			}
 			
 			container.children_cells.data[last+1].focus_cell();
-			container.recursive_untoggle_all();
-			container.children_cells.data[last+1].toggle_all();
 
 		}
 			
@@ -1193,8 +1189,6 @@ namespace Seaborg {
 			notebook_stack.add_titled(notebook, "", "New Notebook");
 			notebook_stack.set_visible_child(notebook);
 			cell->focus_cell();
-			cell->toggle_all();
-
 		}
 
 		public void save_notebook(string fn) {

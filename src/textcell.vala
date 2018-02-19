@@ -93,6 +93,8 @@ namespace Seaborg {
 
 		public void focus_cell() {
 			cell.grab_focus();
+			recursive_untoggle_all();
+			toggle_all();
 		}
 
 		public void set_text(string _text) {
@@ -142,8 +144,6 @@ namespace Seaborg {
 					if(res) {
 						cell_buffer.select_range(start, end);
 						focus_cell();
-						recursive_untoggle_all();
-						toggle_all();
 					}
 
 					return res;
@@ -160,8 +160,6 @@ namespace Seaborg {
 					if(res) {
 						cell_buffer.select_range(start, end);
 						focus_cell();
-						recursive_untoggle_all();
-						toggle_all();
 					}
 
 					return res;
@@ -178,8 +176,6 @@ namespace Seaborg {
 					if(res) {
 						cell_buffer.select_range(start, end);
 						focus_cell();
-						recursive_untoggle_all();
-						toggle_all();
 					}
 
 					return res;
@@ -196,8 +192,6 @@ namespace Seaborg {
 					if(res) {
 						cell_buffer.select_range(start, end);
 						focus_cell();
-						recursive_untoggle_all();
-						toggle_all();
 					}
 
 					return res;
