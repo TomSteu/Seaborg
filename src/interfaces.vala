@@ -95,8 +95,6 @@ namespace Seaborg {
 		public abstract GLib.Array<AddButton> addbutton_list {get; set;}
 		public abstract double zoom_factor {get; set;}
 		public abstract Gtk.SourceSearchSettings search_settings {get; set;}
-		public abstract Gtk.TreeStore tree_model {get;}
-		public abstract void update_tree();
 		public ICell* get_child_by_name(string child_name) {
 			ICell* child_cell = null;
 			for(int i=0; i<children_cells.data.length; i++) {

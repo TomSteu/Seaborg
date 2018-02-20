@@ -84,7 +84,6 @@ namespace Seaborg {
 			marker.button_press_event.connect(press_handler);
 			isExpanded = true;
 
-			_tree_model = new Gtk.TreeStore(3, typeof(string), typeof(uint), typeof(string));
 			show_all();
 
 		}
@@ -193,8 +192,6 @@ namespace Seaborg {
 			children_cells.insert_vals(pos, list, list.length);
 			addbutton_list.set_size(addbutton_list.data.length + list.length);
 			for(int k=0; k<list.length; k++) addbutton_list.insert_val(pos+1, new AddButton(this));
-
-			update_tree();
 			
 			if(! isExpanded) return;
 			if(pos < old_len) {
@@ -239,8 +236,6 @@ namespace Seaborg {
 			children_cells.remove_range(pos, number);
 			addbutton_list.remove_range(pos+1, number);
 			for(int i=1; i <= 2*number; i++) remove_row(2*pos+2);
-
-			update_tree();
 		}
 
 		public void toggle_all() {
@@ -542,13 +537,6 @@ namespace Seaborg {
 			return false;
 		}
 
-		public void update_tree() {
-
-		}
-
-		public Gtk.TreeStore tree_model {
-			get { return _tree_model; }
-		}
 		public GLib.Array<ICell> children_cells {get; set;}
 		public GLib.Array<AddButton> addbutton_list {get; set;}
 		public ICellContainer* parent_cell {get; set;}
@@ -562,7 +550,6 @@ namespace Seaborg {
 		private CssProvider css;
 		private CssProvider font_provider;
 		private bool isExpanded;
-		private Gtk.TreeStore _tree_model;
 	}
 
 }
