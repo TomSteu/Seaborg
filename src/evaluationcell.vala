@@ -563,6 +563,10 @@ namespace Seaborg {
 
 		}
 
+		public string get_tree_title() {
+			return "Evaluation Cell";
+		}
+
 		public ICellContainer* parent_cell {get; set;}
 		private Gtk.SourceView input_cell;
 		private Gtk.SourceBuffer input_buffer;

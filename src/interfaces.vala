@@ -38,6 +38,7 @@ namespace Seaborg {
 		public abstract void replace_all(string rep);
 		public abstract bool do_forward_search(ref bool last_found);
 		public abstract bool do_backward_search(ref bool last_found);
+		public abstract string get_tree_title();
 
 		public bool untoggle_handler(EventButton event) {
 
@@ -112,6 +113,218 @@ namespace Seaborg {
 			}
 			return child_cell;
 		}
+
+		// implement TreeModel
+		// TreeIter:
+		// 	int stamp 			- copy of stamp_iter
+		// 	void* user_data 	- GLib.List<int> as the path
+		// 	void* user_data2	- ICell cell with iterator
+		
+		public int get_n_columns() { return 3; }
+
+		public Type get_column_type (int index_) {
+			switch (index_) {
+				// name
+				case 0:
+					return typeof(string);
+				// level
+				case 1:
+					return typeof(uint);
+				// title
+				case 2:
+					return typeof(string);
+				default:
+					return Type.INVALID;
+			}			
+		}
+
+		public Gtk.TreeModelFlags get_flags () {
+			return 0;
+		}
+
+		public bool get_iter (out Gtk.TreeIter iter, Gtk.TreePath path) {
+			
+			GLib.List<int> user_data = new GLib.List<int>();
+			iter = Gtk.TreeIter();
+
+			// check index structure
+			int[] indices = path.get_indices();
+			ICell child = this;
+			for(int index=0; index < indices.length; index++) {
+				if(((ICellContainer) child) != null) {
+					if(((ICellContainer) child).children_cells.data.length < indices[index]) {
+						child = ((ICellContainer) child).children_cells.data[indices[index]];
+						user_data.append(indices[index]);
+						continue;
+					}
+				}
+
+				// the index structure is not correct
+				
+				iter.stamp = -1;
+				return false;
+			}
+
+			iter.stamp = iter_stamp;
+			iter.user_data = (void*) user_data;
+			iter.user_data2 = (void*) child;
+			return true;
+			
+		}
+
+		public void get_value(Gtk.TreeIter iter, int column, out Value val) {
+			if(iter.stamp == iter_stamp) {
+				switch (column) {
+
+					case 0:
+						val = Value(typeof(string));
+						val.set_string(((ICell)iter.user_data2).name);
+						break;
+					case 1:
+						val = Value(typeof(uint));
+						val.set_uint(((ICell)iter.user_data2).get_level());
+						break;
+					case 2:
+						val = Value(typeof(string));
+						val.set_string(((ICell)iter.user_data2).get_tree_title());
+						break;
+					default:
+						val = Value (Type.INVALID);
+						break;
+				}
+			} else {
+				val = Value (Type.INVALID);
+			} 
+
+			return;
+		}
+
+		public Gtk.TreePath? get_path(Gtk.TreeIter iter) {
+			
+			if(iter.stamp == iter_stamp) {
+
+				Gtk.TreePath path = new Gtk.TreePath();
+				foreach (int index in ((GLib.List<int>)iter.user_data)) {
+					path.append_index(index);
+				}
+
+				return path;
+			}
+
+			return null;
+		}
+
+		public bool iter_has_child(Gtk.TreeIter iter) {
+			return (iter_n_children(iter) > 0);
+		}
+
+		public int iter_n_children(Gtk.TreeIter? iter) {
+			if(iter == null || iter.stamp != iter_stamp)
+				return -1;
+
+			if(((ICellContainer) iter.user_data2) == null)
+				return 0;
+
+			return ((ICellContainer) iter.user_data2).children_cells.data.length;
+
+		}
+
+		public bool iter_next(ref Gtk.TreeIter iter) {
+			if(iter.stamp == iter_stamp) {
+
+				GLib.List<int> list = ((GLib.List<int>)iter.user_data).copy();
+				int pos = list.last().data + 1;
+				
+				if(pos >= ((ICell)iter.user_data2).parent_cell->children_cells.data.length)
+					return false;
+
+				list.remove_link(list.last());
+				list.append(pos); 
+				iter.user_data = (void*) list;
+				iter.user_data2 = (void*) ((ICell)iter.user_data2).parent_cell->children_cells.data[pos];
+				return true;
+
+			}
+
+			return false;
+		}
+
+		public bool iter_previous(ref Gtk.TreeIter iter) {
+			if(iter.stamp == iter_stamp) {
+
+				GLib.List<int> list = ((GLib.List<int>)iter.user_data).copy();
+				int pos = list.last().data - 1;
+				
+				if(pos < 0)
+					return false;
+
+				list.remove_link(list.last());
+				list.append(pos); 
+				iter.user_data = (void*) list;
+				iter.user_data2 = (void*) ((ICell)iter.user_data2).parent_cell->children_cells.data[pos];
+				return true;
+
+			}
+
+			return false;
+		}
+
+		public bool iter_nth_child(out Gtk.TreeIter iter, Gtk.TreeIter? parent, int n) {
+			iter = Gtk.TreeIter();
+			
+			if(parent != null &&  parent.stamp == iter_stamp && n < iter_n_children(parent)) {
+				
+				iter.stamp = iter_stamp;
+				
+				GLib.List<int> user_data = ((GLib.List<int>)iter.user_data).copy();
+				user_data.append(n);
+				iter.user_data = (void*) user_data;
+				iter.user_data2 = ((void*) (((ICellContainer) parent.user_data2).children_cells.data[n]));
+
+				return true;
+
+			}
+
+			iter.stamp = -1;
+			return false;
+		}
+
+		public bool iter_children(out Gtk.TreeIter iter, Gtk.TreeIter? parent) {
+			return iter_nth_child(out iter, parent, 0);
+		}
+
+		public bool iter_parent(out Gtk.TreeIter iter, Gtk.TreeIter child) {
+			
+			iter = Gtk.TreeIter();
+
+			if(child.stamp == iter_stamp) {
+				
+				ICell cell = ((ICell) child.user_data2);
+				
+				if(cell.parent_cell != null) {
+
+					GLib.List<int> list = ((GLib.List<int>)iter.user_data).copy();
+					list.remove_link(list.last());
+
+					iter.stamp = iter_stamp;
+					iter.user_data = (void*) list;
+					iter.user_data2 = (void*) cell.parent_cell;
+					
+					return true;
+
+				}
+			}
+
+			iter.stamp = -1;
+			return false;
+		}
+
+		protected void update_tree() {
+			iter_stamp++;
+		}
+
+		protected abstract int iter_stamp {get; set;}
+
 	}
 
 }

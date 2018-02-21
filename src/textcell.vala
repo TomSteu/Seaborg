@@ -260,6 +260,10 @@ namespace Seaborg {
 
 		}
 
+		public string get_tree_title() {
+			return "Text Cell";
+		}
+
 		private Gtk.SourceView cell;
 		private Gtk.SourceBuffer cell_buffer;
 		private Gtk.SourceSearchContext search_context;
