@@ -42,12 +42,14 @@ namespace Seaborg {
 			main_window = new Gtk.ApplicationWindow(this);
 			main_headerbar = new Gtk.HeaderBar();
 			main_layout = new Gtk.Grid();
+			main_pane = new Gtk.Paned(Gtk.Orientation.HORIZONTAL);
 			message_bar = new Gtk.InfoBar();
 			tab_switcher = new Gtk.StackSwitcher();
 			tab_scroll = new Gtk.ScrolledWindow(null, null);
 			notebook_stack = new Gtk.Stack();
 			notebook_scroll = new Gtk.ScrolledWindow(null,null);
 			search_settings = new SourceSearchSettings();
+			sidebar_revealer = new Gtk.Revealer();
 
 			//some initializations for the window
 			main_window.title = "Seaborg";
@@ -550,6 +552,21 @@ namespace Seaborg {
 			preferences_window.add(pref_scroll);
 
 
+			// revealer for tree sidebar
+			sidebar_revealer.add(new Gtk.Label("Test"));
+			sidebar_revealer.transition_type = Gtk.RevealerTransitionType.SLIDE_RIGHT;
+			sidebar_revealer.reveal_child = false;
+			sidebar_revealer.hexpand = false;
+
+
+			// sidebar revealer button
+			sidebar_button = new Gtk.ToggleButton();
+			sidebar_button.always_show_image = true;
+			sidebar_button.set_image(new Gtk.Image.from_icon_name("pane-hide-symbolic", IconSize.BUTTON));
+			sidebar_button.active = sidebar_revealer.reveal_child;
+			sidebar_button.toggled.connect(() => {
+				sidebar_revealer.reveal_child = sidebar_button.active;
+			});
 
 			// notebook switcher
 			tab_switcher.stack = notebook_stack;
@@ -566,12 +583,13 @@ namespace Seaborg {
 			// header
 			main_headerbar.show_close_button = true;
 			main_headerbar.custom_title = tab_scroll;
+			main_headerbar.pack_start(sidebar_button);
 			main_headerbar.pack_start(quick_option_button);
 			main_headerbar.pack_start(search_button);
 			main_headerbar.pack_end(zoom_box);
 
 
-			// main layout
+			// scroll for notebooks
 			notebook_scroll.add(notebook_stack);
 			// block scrolling on zoom
 			notebook_scroll.scroll_event.connect((scroll) => {
@@ -583,9 +601,11 @@ namespace Seaborg {
 			});
 
 
-			main_layout.attach(message_bar, 0, 0, 1, 1);
-			main_layout.attach(search_bar, 0, 1, 1, 1);
-			main_layout.attach(notebook_scroll, 0, 2, 1, 1);
+			// main layout
+			main_layout.attach(message_bar, 0, 0, 2, 1);
+			main_layout.attach(search_bar, 0, 1, 2, 1);
+			main_layout.attach(sidebar_revealer, 0, 2, 1, 1);
+			main_layout.attach(notebook_scroll, 1, 2, 1, 1);
 			
 			// main window
 			main_window.add(main_layout);
@@ -2004,8 +2024,10 @@ namespace Seaborg {
 		private Gtk.StackSwitcher tab_switcher;
 		private Gtk.ScrolledWindow tab_scroll;
 		private Gtk.Stack notebook_stack;
+		private Gtk.Paned main_pane;
 		private GLib.Menu main_menu;
 		private Gtk.Grid main_layout;
+		private Gtk.Revealer sidebar_revealer;
 		private Gtk.InfoBar message_bar;
 		private Gtk.SearchBar search_bar;
 		private Gtk.SearchEntry search_entry;
@@ -2034,6 +2056,7 @@ namespace Seaborg {
 		private Gtk.RadioButton highlight_none_button;
 		private Gtk.RadioButton highlight_nostdlib_button;
 		private Gtk.RadioButton highlight_full_button;
+		private Gtk.ToggleButton sidebar_button;
 		private void* kernel_connection;
 		private GLib.Queue<EvaluationData?> eval_queue;
 		private GLib.Thread<void*> listener_thread;

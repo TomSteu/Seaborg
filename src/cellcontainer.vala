@@ -552,7 +552,7 @@ namespace Seaborg {
 		public Gtk.TreeModelFlags get_flags() { return get_flags(); }	
 		public bool get_iter (out Gtk.TreeIter iter, Gtk.TreePath path) { return  get_iter(out iter, path); }
 		public void get_value(Gtk.TreeIter iter, int column, out Value val) { get_value(iter, column, out val); }
-		public Gtk.TreePath? get_path(Gtk.TreeIter iter) { return get_path(iter); }
+		public new  Gtk.TreePath? get_path(Gtk.TreeIter iter) { return (this as ICellContainer).get_path(iter); }
 		public bool iter_has_child(Gtk.TreeIter iter) { return iter_has_child(iter); }
 		public int iter_n_children(Gtk.TreeIter? iter) { return iter_n_children(iter); }
 		public bool iter_next(ref Gtk.TreeIter iter) { return iter_next(ref iter); }
