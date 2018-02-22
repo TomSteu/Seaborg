@@ -547,19 +547,19 @@ namespace Seaborg {
 
 
 		// implement TreeModel
-		public int get_n_columns() { return get_n_columns(); }
-		public Type get_column_type (int index_) { return get_column_type(index_); }		
-		public Gtk.TreeModelFlags get_flags() { return get_flags(); }	
-		public bool get_iter (out Gtk.TreeIter iter, Gtk.TreePath path) { return  get_iter(out iter, path); }
-		public void get_value(Gtk.TreeIter iter, int column, out Value val) { get_value(iter, column, out val); }
-		public new  Gtk.TreePath? get_path(Gtk.TreeIter iter) { return (this as ICellContainer).get_path(iter); }
-		public bool iter_has_child(Gtk.TreeIter iter) { return iter_has_child(iter); }
-		public int iter_n_children(Gtk.TreeIter? iter) { return iter_n_children(iter); }
-		public bool iter_next(ref Gtk.TreeIter iter) { return iter_next(ref iter); }
-		public bool iter_previous(ref Gtk.TreeIter iter) { return iter_previous(ref iter); }
-		public bool iter_nth_child(out Gtk.TreeIter iter, Gtk.TreeIter? parent, int n) { return iter_nth_child(out iter, parent, n); }
-		public bool iter_children(out Gtk.TreeIter iter, Gtk.TreeIter? parent) { return iter_children(out iter, parent); }
-		public bool iter_parent(out Gtk.TreeIter iter, Gtk.TreeIter child) { return iter_parent(out iter, child);}
+		public int get_n_columns() { return seaborg_get_n_columns(); }
+		public Type get_column_type (int index_) { return seaborg_get_column_type(index_); }		
+		public Gtk.TreeModelFlags get_flags() { return seaborg_get_flags(); }	
+		public bool get_iter (out Gtk.TreeIter iter, Gtk.TreePath path) { return  seaborg_get_iter(out iter, path); }
+		public void get_value(Gtk.TreeIter iter, int column, out Value val) { seaborg_get_value(iter, column, out val); }
+		public new  Gtk.TreePath? get_path(Gtk.TreeIter iter) { return seaborg_get_path(iter); }
+		public bool iter_has_child(Gtk.TreeIter iter) { return seaborg_iter_has_child(iter); }
+		public int iter_n_children(Gtk.TreeIter? iter) { return seaborg_iter_n_children(iter); }
+		public bool iter_next(ref Gtk.TreeIter iter) { return seaborg_iter_next(ref iter); }
+		public bool iter_previous(ref Gtk.TreeIter iter) { return seaborg_iter_previous(ref iter); }
+		public bool iter_nth_child(out Gtk.TreeIter iter, Gtk.TreeIter? parent, int n) { return seaborg_iter_nth_child(out iter, parent, n); }
+		public bool iter_children(out Gtk.TreeIter iter, Gtk.TreeIter? parent) { return seaborg_iter_children(out iter, parent); }
+		public bool iter_parent(out Gtk.TreeIter iter, Gtk.TreeIter child) { return seaborg_iter_parent(out iter, child);}
 
 		public GLib.Array<ICell> children_cells {get; set;}
 		public GLib.Array<AddButton> addbutton_list {get; set;}

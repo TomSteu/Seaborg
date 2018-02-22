@@ -1,7 +1,7 @@
 ### MODIFY ###
 
 CC=gcc
-CCFLAGS= #-O3 -w 
+CCFLAGS= -g #-O3 -w 
 WSTPDIR=/usr/local/Wolfram/Mathematica/11.2/SystemFiles/Links/WSTP/DeveloperKit/Linux-x86-64/CompilerAdditions/
 WSTPLIB=WSTP64i4
 
@@ -10,7 +10,7 @@ WSTPLIB=WSTP64i4
 VALADEP=gtk+-3.0 gtksourceview-3.0 gdk-3.0 glib-2.0 libxml-2.0 librsvg-2.0 cairo
 
 .PHONY: all
-all: wstp_connection.o ./build/gui.o ./build/interfaces.o ./build/idgenerator.o ./build/notebook.o ./build/cellcontainer.o ./build/evaluationcell.o ./build/textcell.o ./build/addbutton.o ./build/contextmenu.o ./build/plotframe.o ./build/parameter.o ./build/string.o
+all: ./build/wstp_connection.o ./build/gui.o ./build/interfaces.o ./build/idgenerator.o ./build/notebook.o ./build/cellcontainer.o ./build/evaluationcell.o ./build/textcell.o ./build/addbutton.o ./build/contextmenu.o ./build/plotframe.o ./build/parameter.o ./build/string.o
 	$(CC) $(CCFLAGS) -L$(WSTPDIR)  ./build/gui.o ./build/interfaces.o ./build/idgenerator.o ./build/notebook.o ./build/cellcontainer.o ./build/evaluationcell.o ./build/textcell.o ./build/addbutton.o ./build/contextmenu.o ./build/plotframe.o ./build/parameter.o ./build/string.o ./build/wstp_connection.o -o ./bin/seaborg `pkg-config --libs $(VALADEP)` -l$(WSTPLIB)
 
 ./build/gui.o: vala
@@ -46,19 +46,20 @@ all: wstp_connection.o ./build/gui.o ./build/interfaces.o ./build/idgenerator.o 
 ./build/parameter.o: vala
 	$(CC) $(CCFLAGS) `pkg-config --cflags $(VALADEP)` -c ./build/src/parameter.c -o ./build/parameter.o `pkg-config --libs $(VALADEP)`
 
-./build/string.o: vala
+./build/string.o: vala 
 	$(CC) $(CCFLAGS) `pkg-config --cflags $(VALADEP)` -c ./build/src/string.c -o ./build/string.o `pkg-config --libs $(VALADEP)`
 	
-.PHONY: vala
-vala:
-	valac --thread ./src/gui.vala ./src/interfaces.vala ./src/notebook.vala ./src/cellcontainer.vala  ./src/evaluationcell.vala  ./src/textcell.vala  ./src/addbutton.vala ./src/contextmenu.vala  ./src/plotframe.vala  ./src/idgenerator.vala  ./src/string.vala ./src/parameter.vala -d ./build/ -C --pkg gtk+-3.0 --pkg gtksourceview-3.0 --pkg gdk-3.0 --pkg glib-2.0 --pkg libxml-2.0 --pkg librsvg-2.0 --pkg cairo
+./build/wstp_connection.o: ./src/wstp_connection.c
+	$(CC) $(CCFLAGS) -c ./src/wstp_connection.c -o ./build/wstp_connection.o -I./include/ -I$(WSTPDIR)
 
-wstp_connection.o: 
-	$(CC) $(CCFLAGS) -c ./src/wstp_connection.c -o ./build/wstp_connection.o -I./include/ -I$(WSTPDIR) 
+.PHONY: vala
+vala: ./src/gui.vala ./src/interfaces.vala ./src/notebook.vala ./src/cellcontainer.vala  ./src/evaluationcell.vala  ./src/textcell.vala  ./src/addbutton.vala ./src/contextmenu.vala  ./src/plotframe.vala  ./src/idgenerator.vala  ./src/string.vala ./src/parameter.vala
+	valac --thread ./src/gui.vala ./src/interfaces.vala ./src/notebook.vala ./src/cellcontainer.vala  ./src/evaluationcell.vala  ./src/textcell.vala  ./src/addbutton.vala ./src/contextmenu.vala  ./src/plotframe.vala  ./src/idgenerator.vala  ./src/string.vala ./src/parameter.vala -d ./build/ -C --pkg gtk+-3.0 --pkg gtksourceview-3.0 --pkg gdk-3.0 --pkg glib-2.0 --pkg libxml-2.0 --pkg librsvg-2.0 --pkg cairo
 
 .PHONY: clean
 clean:
 	rm ./build/*.o
+	rm ./build/src/*.c
 
 .PHONY: run
 run:
