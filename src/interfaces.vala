@@ -117,7 +117,7 @@ namespace Seaborg {
 		// implement TreeModel
 		// TreeIter:
 		// 	int stamp 			- copy of stamp_iter
-		// 	void* user_data 	- GLib.List<int> as the path
+		// 	void* user_data 	- Gtk.TreePath
 		// 	void* user_data2	- ICell cell with iterator
 		
 		public int seaborg_get_n_columns() { return 3; }
@@ -144,17 +144,15 @@ namespace Seaborg {
 
 		public bool seaborg_get_iter (out Gtk.TreeIter iter, Gtk.TreePath path) {
 			
-			GLib.List<int> user_data = new GLib.List<int>();
 			iter = Gtk.TreeIter();
 
 			// check index structure
 			int[] indices = path.get_indices();
 			ICell child = this;
 			for(int index=0; index < indices.length; index++) {
-				if(((ICellContainer) child) != null) {
+				if(child.get_level() > 0) {
 					if(((ICellContainer) child).children_cells.data.length < indices[index]) {
 						child = ((ICellContainer) child).children_cells.data[indices[index]];
-						user_data.append(indices[index]);
 						continue;
 					}
 				}
@@ -166,8 +164,8 @@ namespace Seaborg {
 			}
 
 			iter.stamp = iter_stamp;
-			iter.user_data = (void*) user_data;
-			iter.user_data2 = (void*) child;
+			iter.user_data = path;
+			iter.user_data2 = child;
 			return true;
 			
 		}
@@ -203,12 +201,7 @@ namespace Seaborg {
 			
 			if(iter.stamp == iter_stamp) {
 
-				Gtk.TreePath path = new Gtk.TreePath();
-				foreach (int index in ((GLib.List<int>)iter.user_data)) {
-					path.append_index(index);
-				}
-
-				return path;
+				return ((Gtk.TreePath) iter.user_data);
 			}
 
 			return null;
@@ -225,7 +218,7 @@ namespace Seaborg {
 			if(iter == null)
 				return children_cells.data.length;
 
-			if(((ICellContainer) iter.user_data2) == null)
+			if(((ICell)iter.user_data2).get_level() <= 0)
 				return 0;
 
 			return ((ICellContainer) iter.user_data2).children_cells.data.length;
@@ -235,16 +228,15 @@ namespace Seaborg {
 		public bool seaborg_iter_next(ref Gtk.TreeIter iter) {
 			if(iter.stamp == iter_stamp) {
 
-				GLib.List<int> list = ((GLib.List<int>)iter.user_data).copy();
-				int pos = list.last().data + 1;
+				int pos = (((Gtk.TreePath)iter.user_data).get_indices()[((Gtk.TreePath)iter.user_data).get_indices().length -1]) + 1;
 				
-				if(pos >= ((ICell)iter.user_data2).parent_cell->children_cells.data.length)
+				if(pos >= ((ICell)iter.user_data2).parent_cell->children_cells.data.length) {
 					return false;
+				}
 
-				list.remove_link(list.last());
-				list.append(pos); 
-				iter.user_data = (void*) list;
+				((Gtk.TreePath)iter.user_data).next();
 				iter.user_data2 = (void*) ((ICell)iter.user_data2).parent_cell->children_cells.data[pos];
+
 				return true;
 
 			}
@@ -255,16 +247,14 @@ namespace Seaborg {
 		public bool seaborg_iter_previous(ref Gtk.TreeIter iter) {
 			if(iter.stamp == iter_stamp) {
 
-				GLib.List<int> list = ((GLib.List<int>)iter.user_data).copy();
-				int pos = list.last().data - 1;
+				int pos = (((Gtk.TreePath)iter.user_data).get_indices()[((Gtk.TreePath)iter.user_data).get_indices().length -1]) - 1;
 				
 				if(pos < 0)
 					return false;
 
-				list.remove_link(list.last());
-				list.append(pos); 
-				iter.user_data = (void*) list;
+				((Gtk.TreePath)iter.user_data).prev();
 				iter.user_data2 = (void*) ((ICell)iter.user_data2).parent_cell->children_cells.data[pos];
+
 				return true;
 
 			}
@@ -272,32 +262,27 @@ namespace Seaborg {
 			return false;
 		}
 
-		public bool seaborg_iter_nth_child(out Gtk.TreeIter iter, Gtk.TreeIter? parent, int n) {
+		public bool seaborg_iter_nth_child(out Gtk.TreeIter iter, Gtk.TreeIter? par, int n) {
 			
 			iter = Gtk.TreeIter();
 			
-			if(n < seaborg_iter_n_children(parent)) {
+			if(n < seaborg_iter_n_children(par)) {
 
-				if(parent == null) {
+				if(par == null) {
 
 					iter.stamp = iter_stamp;
-
-					GLib.List<int> user_data = new GLib.List<int>();
-					user_data.append(n);
-					iter.user_data = (void*) user_data;
+					iter.user_data = new Gtk.TreePath.from_indices(n, -1);
 					iter.user_data2 = ((void*) (children_cells.data[n]));
 
 					return true;
 				}
 				
-				if(parent != null &&  parent.stamp == iter_stamp) {
+				if(par != null &&  par.stamp == iter_stamp) {
 					
 					iter.stamp = iter_stamp;
-					
-					GLib.List<int> user_data = ((GLib.List<int>)parent.user_data).copy();
-					user_data.append(n);
-					iter.user_data = (void*) user_data;
-					iter.user_data2 = ((void*) (((ICellContainer) parent.user_data2).children_cells.data[n]));
+					iter.user_data = ((Gtk.TreePath) par.user_data).copy();
+					((Gtk.TreePath) iter.user_data).append_index(n);
+					iter.user_data2 = ((void*) (((ICellContainer) par.user_data2).children_cells.data[n]));
 
 					return true;
 
@@ -322,11 +307,9 @@ namespace Seaborg {
 				
 				if(cell.parent_cell != null) {
 
-					GLib.List<int> list = ((GLib.List<int>)iter.user_data).copy();
-					list.remove_link(list.last());
-
 					iter.stamp = iter_stamp;
-					iter.user_data = (void*) list;
+					iter.user_data = ((Gtk.TreePath) child.user_data).copy();
+					((Gtk.TreePath) iter.user_data).up();
 					iter.user_data2 = (void*) cell.parent_cell;
 					
 					return true;
