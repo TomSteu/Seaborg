@@ -42,7 +42,6 @@ namespace Seaborg {
 			main_window = new Gtk.ApplicationWindow(this);
 			main_headerbar = new Gtk.HeaderBar();
 			main_layout = new Gtk.Grid();
-			main_pane = new Gtk.Paned(Gtk.Orientation.HORIZONTAL);
 			message_bar = new Gtk.InfoBar();
 			tab_switcher = new Gtk.StackSwitcher();
 			tab_scroll = new Gtk.ScrolledWindow(null, null);
@@ -458,6 +457,8 @@ namespace Seaborg {
 				child_settings.case_sensitive = search_settings.case_sensitive;
 				child_settings.at_word_boundaries = search_settings.at_word_boundaries;
 				child_settings.regex_enabled = search_settings.regex_enabled;
+				notebook_tree.model = ((Seaborg.Notebook) notebook_stack.get_visible_child()).tree_model;
+				notebook_tree.expand_all();
 			});
 
 			
@@ -552,11 +553,40 @@ namespace Seaborg {
 			preferences_window.add(pref_scroll);
 
 
+			// treeview of notebook
+			notebook_tree = new Gtk.TreeView();
+			notebook_tree.activate_on_single_click = true;
+			notebook_tree.enable_grid_lines = TreeViewGridLines.NONE;
+			notebook_tree.enable_search = false;
+			notebook_tree.enable_tree_lines = true;
+			notebook_tree.headers_visible = false;
+			notebook_tree.headers_clickable = false;
+			notebook_tree.hover_expand = false;
+			notebook_tree.hover_selection = false;
+			notebook_tree.reorderable = false;
+			notebook_tree.rubber_banding = true;
+			notebook_tree.rules_hint = false;
+			notebook_tree.show_expanders = true;
+			notebook_tree.hexpand = true;
+			notebook_tree.halign = Gtk.Align.FILL;
+			notebook_tree.resize_mode = Gtk.ResizeMode.PARENT;
+
+
+			Gtk.CellRendererText renderer = new Gtk.CellRendererText();
+			notebook_tree.insert_column_with_attributes(-1, "Title", renderer, "text", 2, null);
+
+
 			// revealer for tree sidebar
-			sidebar_revealer.add(new Gtk.Label("Test"));
+			tree_scroll = new Gtk.ScrolledWindow(null, null);
+			tree_scroll.add(notebook_tree);
+			tree_scroll.vscrollbar_policy = Gtk.PolicyType.AUTOMATIC;
+			tree_scroll.hscrollbar_policy = Gtk.PolicyType.NEVER;
+			sidebar_revealer.add(tree_scroll);
 			sidebar_revealer.transition_type = Gtk.RevealerTransitionType.SLIDE_RIGHT;
 			sidebar_revealer.reveal_child = false;
 			sidebar_revealer.hexpand = false;
+			sidebar_revealer.halign = Gtk.Align.FILL;
+			sidebar_revealer.resize_mode = Gtk.ResizeMode.PARENT;
 
 
 			// sidebar revealer button
@@ -566,6 +596,8 @@ namespace Seaborg {
 			sidebar_button.active = sidebar_revealer.reveal_child;
 			sidebar_button.toggled.connect(() => {
 				sidebar_revealer.reveal_child = sidebar_button.active;
+				main_layout.check_resize();
+
 			});
 
 			// notebook switcher
@@ -606,6 +638,8 @@ namespace Seaborg {
 			main_layout.attach(search_bar, 0, 1, 2, 1);
 			main_layout.attach(sidebar_revealer, 0, 2, 1, 1);
 			main_layout.attach(notebook_scroll, 1, 2, 1, 1);
+			main_layout.column_homogeneous = false;
+			main_layout.row_homogeneous = false;
 			
 			// main window
 			main_window.add(main_layout);
@@ -665,6 +699,11 @@ namespace Seaborg {
 
 			main_window.show_all();
 			replace_expand.active = false;
+
+			notebook_tree.model = ((Seaborg.Notebook) notebook_stack.get_visible_child()).tree_model;
+			notebook_tree.expand_all();
+			notebook_tree.show_all();
+
 
 
 
@@ -2024,7 +2063,6 @@ namespace Seaborg {
 		private Gtk.StackSwitcher tab_switcher;
 		private Gtk.ScrolledWindow tab_scroll;
 		private Gtk.Stack notebook_stack;
-		private Gtk.Paned main_pane;
 		private GLib.Menu main_menu;
 		private Gtk.Grid main_layout;
 		private Gtk.Revealer sidebar_revealer;
@@ -2057,6 +2095,8 @@ namespace Seaborg {
 		private Gtk.RadioButton highlight_nostdlib_button;
 		private Gtk.RadioButton highlight_full_button;
 		private Gtk.ToggleButton sidebar_button;
+		private Gtk.TreeView notebook_tree;
+		private Gtk.ScrolledWindow tree_scroll;
 		private void* kernel_connection;
 		private GLib.Queue<EvaluationData?> eval_queue;
 		private GLib.Thread<void*> listener_thread;

@@ -96,6 +96,7 @@ namespace Seaborg {
 		public abstract GLib.Array<AddButton> addbutton_list {get; set;}
 		public abstract double zoom_factor {get; set;}
 		public abstract Gtk.SourceSearchSettings search_settings {get; set;}
+		public abstract  Gtk.TreeStore tree_model {get; set;}
 		public ICell* get_child_by_name(string child_name) {
 			ICell* child_cell = null;
 			for(int i=0; i<children_cells.data.length; i++) {
@@ -114,218 +115,32 @@ namespace Seaborg {
 			return child_cell;
 		}
 
-		// implement TreeModel
-		// TreeIter:
-		// 	int stamp 			- copy of stamp_iter
-		// 	void* user_data 	- Gtk.TreePath
-		// 	void* user_data2	- ICell cell with iterator
-		
-		public int seaborg_get_n_columns() { return 3; }
-
-		public Type seaborg_get_column_type (int index_) {
-			switch (index_) {
-				// name
-				case 0:
-					return typeof(string);
-				// level
-				case 1:
-					return typeof(uint);
-				// title
-				case 2:
-					return typeof(string);
-				default:
-					return Type.INVALID;
-			}			
-		}
-
-		public Gtk.TreeModelFlags seaborg_get_flags () {
-			return 0;
-		}
-
-		public bool seaborg_get_iter (out Gtk.TreeIter iter, Gtk.TreePath path) {
+		protected void update_tree(Gtk.TreeIter? iter = null, ICellContainer container = this) {
 			
-			iter = Gtk.TreeIter();
-
-			// check index structure
-			int[] indices = path.get_indices();
-			ICell child = this;
-			for(int index=0; index < indices.length; index++) {
-				if(child.get_level() > 0) {
-					if(((ICellContainer) child).children_cells.data.length < indices[index]) {
-						child = ((ICellContainer) child).children_cells.data[indices[index]];
-						continue;
-					}
-				}
-
-				// the index structure is not correct
+			Gtk.TreeIter child_iter;
+			
+			// root node
+			if(iter == null) {
 				
-				iter.stamp = -1;
-				return false;
+				// wipe tree store first
+				tree_model = new Gtk.TreeStore(3, typeof(string), typeof(uint), typeof(string));
+				
 			}
 
-			iter.stamp = iter_stamp;
-			iter.user_data = path;
-			iter.user_data2 = child;
-			return true;
-			
-		}
+			for(int i=0; i<container.children_cells.data.length; i++) {
 
-		public void seaborg_get_value(Gtk.TreeIter iter, int column, out Value val) {
-			if(iter.stamp == iter_stamp) {
-				switch (column) {
+				tree_model.append(out child_iter, iter);
+				tree_model.set(child_iter, 0, container.children_cells.data[i].name, 1, container.children_cells.data[i].get_level(), 2, container.children_cells.data[i].get_tree_title(), -1);
 
-					case 0:
-						val = Value(typeof(string));
-						val.set_string(((ICell)iter.user_data2).name);
-						break;
-					case 1:
-						val = Value(typeof(uint));
-						val.set_uint(((ICell)iter.user_data2).get_level());
-						break;
-					case 2:
-						val = Value(typeof(string));
-						val.set_string(((ICell)iter.user_data2).get_tree_title());
-						break;
-					default:
-						val = Value (Type.INVALID);
-						break;
+				if(container.children_cells.data[i].get_level() > 0) {
+					update_tree(child_iter, (ICellContainer) container.children_cells.data[i]);
 				}
-			} else {
-				val = Value (Type.INVALID);
-			} 
+			}
 
 			return;
-		}
-
-		public Gtk.TreePath? seaborg_get_path(Gtk.TreeIter iter) {
-			
-			if(iter.stamp == iter_stamp) {
-
-				return ((Gtk.TreePath) iter.user_data);
-			}
-
-			return null;
-		}
-
-		public bool seaborg_iter_has_child(Gtk.TreeIter iter) {
-			return (seaborg_iter_n_children(iter) > 0);
-		}
-
-		public int seaborg_iter_n_children(Gtk.TreeIter? iter) {
-			if(iter != null && iter.stamp != iter_stamp)
-				return -1;
-
-			if(iter == null)
-				return children_cells.data.length;
-
-			if(((ICell)iter.user_data2).get_level() <= 0)
-				return 0;
-
-			return ((ICellContainer) iter.user_data2).children_cells.data.length;
 
 		}
 
-		public bool seaborg_iter_next(ref Gtk.TreeIter iter) {
-			if(iter.stamp == iter_stamp) {
-
-				int pos = (((Gtk.TreePath)iter.user_data).get_indices()[((Gtk.TreePath)iter.user_data).get_indices().length -1]) + 1;
-				
-				if(pos >= ((ICell)iter.user_data2).parent_cell->children_cells.data.length) {
-					return false;
-				}
-
-				((Gtk.TreePath)iter.user_data).next();
-				iter.user_data2 = (void*) ((ICell)iter.user_data2).parent_cell->children_cells.data[pos];
-
-				return true;
-
-			}
-
-			return false;
-		}
-
-		public bool seaborg_iter_previous(ref Gtk.TreeIter iter) {
-			if(iter.stamp == iter_stamp) {
-
-				int pos = (((Gtk.TreePath)iter.user_data).get_indices()[((Gtk.TreePath)iter.user_data).get_indices().length -1]) - 1;
-				
-				if(pos < 0)
-					return false;
-
-				((Gtk.TreePath)iter.user_data).prev();
-				iter.user_data2 = (void*) ((ICell)iter.user_data2).parent_cell->children_cells.data[pos];
-
-				return true;
-
-			}
-
-			return false;
-		}
-
-		public bool seaborg_iter_nth_child(out Gtk.TreeIter iter, Gtk.TreeIter? par, int n) {
-			
-			iter = Gtk.TreeIter();
-			
-			if(n < seaborg_iter_n_children(par)) {
-
-				if(par == null) {
-
-					iter.stamp = iter_stamp;
-					iter.user_data = new Gtk.TreePath.from_indices(n, -1);
-					iter.user_data2 = ((void*) (children_cells.data[n]));
-
-					return true;
-				}
-				
-				if(par != null &&  par.stamp == iter_stamp) {
-					
-					iter.stamp = iter_stamp;
-					iter.user_data = ((Gtk.TreePath) par.user_data).copy();
-					((Gtk.TreePath) iter.user_data).append_index(n);
-					iter.user_data2 = ((void*) (((ICellContainer) par.user_data2).children_cells.data[n]));
-
-					return true;
-
-				}
-			}
-
-			iter.stamp = -1;
-			return false;
-		}
-
-		public bool seaborg_iter_children(out Gtk.TreeIter iter, Gtk.TreeIter? parent) {
-			return seaborg_iter_nth_child(out iter, parent, 0);
-		}
-
-		public bool seaborg_iter_parent(out Gtk.TreeIter iter, Gtk.TreeIter child) {
-			
-			iter = Gtk.TreeIter();
-
-			if(child.stamp == iter_stamp) {
-				
-				ICell cell = ((ICell) child.user_data2);
-				
-				if(cell.parent_cell != null) {
-
-					iter.stamp = iter_stamp;
-					iter.user_data = ((Gtk.TreePath) child.user_data).copy();
-					((Gtk.TreePath) iter.user_data).up();
-					iter.user_data2 = (void*) cell.parent_cell;
-					
-					return true;
-
-				}
-			}
-
-			iter.stamp = -1;
-			return false;
-		}
-
-		protected void update_tree() {
-			iter_stamp++;
-		}
-
-		protected abstract int iter_stamp {get; set;}
 
 	}
 
