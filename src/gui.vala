@@ -567,6 +567,7 @@ namespace Seaborg {
 			notebook_tree.rubber_banding = true;
 			notebook_tree.rules_hint = false;
 			notebook_tree.show_expanders = true;
+			notebook_tree.get_selection().mode = Gtk.SelectionMode.MULTIPLE;
 			notebook_tree.hexpand = true;
 			notebook_tree.halign = Gtk.Align.FILL;
 			notebook_tree.resize_mode = Gtk.ResizeMode.PARENT;

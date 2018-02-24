@@ -62,13 +62,13 @@
 			<keyword>[0-9a-zA-Z]*(?=[\[][^\[])</keyword>
 		</context>
 		<context id="postfix" style-ref="keyword">
-			<keyword>[ ]*//[ ]*[0-9a-zA-Z]*</keyword>
+			<match>//[ ]*[0-9a-zA-Z]*</match>
 		</context>
 		<context id="prefix" style-ref="keyword">
-			<keyword>[ ]*[0-9a-zA-Z]*[ ]*[@][ ]*</keyword>
-			<keyword>[ ]*[0-9a-zA-Z]*[ ]*[@][@][ ]*</keyword>
-			<keyword>[ ]*[0-9a-zA-Z]*[ ]*[@][@][@][ ]*</keyword>
-			<keyword>[ ]*[0-9a-zA-Z]*[ ]*[/][@][ ]*</keyword>
+			<match>[0-9a-zA-Z]*[ ]*@{1,3}(?!@)</match>
+		</context>
+		<context id="apply" style-ref="keyword">
+			<match>[0-9a-zA-Z]*[ ]*/@(?!@)</match>
 		</context>
 		<context id="infix" style-ref="keyword" end-at-line-end="false">
 			<start>[\~]</start>
@@ -85,6 +85,7 @@
 				<context ref="functions"/>
 				<context ref="postfix"/>
 				<context ref="prefix"/>
+				<context ref="apply"/>
 				<context ref="infix"/>
 			</include>
 		</context>
