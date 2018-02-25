@@ -173,7 +173,7 @@ namespace Seaborg {
 		public void remove_recursively() {
 			int i;
 			for(i=(int)(children_cells.length)-1; i >= 0; i--) {
-				if(children_cells.index(i).marker_selected() && (! children_cells.index(i).lock)) {
+				if(children_cells.index(i).marker_selected && (! children_cells.index(i).lock)) {
 					remove_from(i,1,true);
 				}
 			}
@@ -297,8 +297,9 @@ namespace Seaborg {
 			}
 		}
 
-		public bool marker_selected() {
-			return marker.sensitive ? marker.active : false;
+		public bool marker_selected {
+			get {return marker.sensitive ? marker.active : false; }
+			set { if(marker.sensitive) { marker.active = value; } }
 		}
 
 		public void set_text(string _text) {

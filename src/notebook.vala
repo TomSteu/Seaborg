@@ -57,7 +57,7 @@ namespace Seaborg {
 		public void remove_recursively() {
 			int i;
 			for(i=(int)(children_cells.length)-1; i >= 0; i--) {
-				if(children_cells.data[i].marker_selected() && (! children_cells.data[i].lock)) {
+				if(children_cells.data[i].marker_selected && (! children_cells.data[i].lock)) {
 					remove_from(i,1,true);
 				}
 			}
@@ -161,9 +161,9 @@ namespace Seaborg {
 			}
 		}
 		
-
-		public bool marker_selected() {
-			return marker.sensitive ? marker.active : false;
+		public bool marker_selected {
+			get {return marker.sensitive ? marker.active : false; }
+			set { if(marker.sensitive) { marker.active = value; } }
 		}
 
 		public uint get_level() {

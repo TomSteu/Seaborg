@@ -22,7 +22,7 @@ namespace Seaborg {
 		public abstract void untoggle_all();
 		public abstract void expand_all();
 		public abstract void collapse_all();
-		public abstract bool marker_selected();
+		public abstract bool marker_selected {get; set;}
 		public abstract uint get_level();
 		public abstract void remove_recursively();
 		public abstract void add_before(int pos, ICell[] list);
@@ -123,14 +123,14 @@ namespace Seaborg {
 			if(iter == null) {
 				
 				// wipe tree store first
-				tree_model = new Gtk.TreeStore(3, typeof(string), typeof(uint), typeof(string));
+				tree_model = new Gtk.TreeStore(4, typeof(string), typeof(uint), typeof(string), typeof(ICell));
 				
 			}
 
 			for(int i=0; i<container.children_cells.data.length; i++) {
 
 				tree_model.append(out child_iter, iter);
-				tree_model.set(child_iter, 0, container.children_cells.data[i].name, 1, container.children_cells.data[i].get_level(), 2, container.children_cells.data[i].get_tree_title(), -1);
+				tree_model.set(child_iter, 0, container.children_cells.data[i].name, 1, container.children_cells.data[i].get_level(), 2, container.children_cells.data[i].get_tree_title(), 3, container.children_cells.data[i], -1);
 
 				if(container.children_cells.data[i].get_level() > 0) {
 					update_tree(child_iter, (ICellContainer) container.children_cells.data[i]);

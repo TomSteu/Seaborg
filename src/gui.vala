@@ -568,6 +568,30 @@ namespace Seaborg {
 			notebook_tree.rules_hint = false;
 			notebook_tree.show_expanders = true;
 			notebook_tree.get_selection().mode = Gtk.SelectionMode.MULTIPLE;
+			notebook_tree.row_activated.connect((path, column) => {
+
+				Gtk.TreeIter iter;
+				GLib.Value val;
+
+				notebook_tree.model.get_iter(out iter, path);
+				notebook_tree.model.get_value(iter, 3, out val);
+				((ICell) val.get_object()).focus_cell();
+
+			});
+			notebook_tree.get_selection().set_select_function((selection, model, path, selected) => {
+				
+				Gtk.TreeIter iter;
+				GLib.Value val;
+				
+				model.get_iter(out iter, path);
+				model.get_value(iter, 3, out val);
+
+
+				((ICell) val.get_object()).marker_selected = !selected;
+
+				return true;
+
+			});
 			notebook_tree.hexpand = true;
 			notebook_tree.halign = Gtk.Align.FILL;
 			notebook_tree.resize_mode = Gtk.ResizeMode.PARENT;
@@ -915,7 +939,7 @@ namespace Seaborg {
 					if(container.children_cells.data[i] is ICellContainer)
 						schedule_evaluation((ICellContainer) container.children_cells.data[i]);
 
-					if(container.children_cells.data[i].marker_selected() && (! container.children_cells.data[i].lock) && container.children_cells.data[i].get_level() == 0 && container.children_cells.data[i] is EvaluationCell) {
+					if(container.children_cells.data[i].marker_selected && (! container.children_cells.data[i].lock) && container.children_cells.data[i].get_level() == 0 && container.children_cells.data[i] is EvaluationCell) {
 						eva = (EvaluationCell) container.children_cells.data[i];
 						last = i;
 						if(Seaborg.check_input_packet(eva.get_text())) {

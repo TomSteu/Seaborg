@@ -177,8 +177,9 @@ namespace Seaborg {
 			}
 		}
 
-		public bool marker_selected() {
-			return marker.sensitive ? marker.active : false;
+		public bool marker_selected {
+			get {return marker.sensitive ? marker.active : false; }
+			set { if(marker.sensitive) { marker.active = value; } }
 		}
 
 		public void focus_cell() {
