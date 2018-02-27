@@ -454,6 +454,7 @@ namespace Seaborg {
 			});
 
 			notebook_stack.notify["visible-child"].connect((property, sender) => {
+				
 				zoom_box.value = zoom_factor;
 				Gtk.SourceSearchSettings child_settings = (notebook_stack.get_visible_child() != null) ? ((Seaborg.Notebook) notebook_stack.get_visible_child()).search_settings : new Gtk.SourceSearchSettings();
 				child_settings.search_text = search_settings.search_text;
@@ -462,6 +463,11 @@ namespace Seaborg {
 				child_settings.regex_enabled = search_settings.regex_enabled;
 				notebook_tree.model = (notebook_stack.get_visible_child() != null) ? ((Seaborg.Notebook) notebook_stack.get_visible_child()).tree_model : new Gtk.TreeStore(4, typeof(string), typeof(uint), typeof(string), typeof(ICell));
 				notebook_tree.expand_all();
+
+				if(notebook_stack.get_visible_child() == null) {
+					sidebar_revealer.reveal_child = false;
+					sidebar_button.active = false;
+				}
 			});
 
 			
@@ -623,8 +629,15 @@ namespace Seaborg {
 			sidebar_button.set_image(new Gtk.Image.from_icon_name("pane-hide-symbolic", IconSize.BUTTON));
 			sidebar_button.active = sidebar_revealer.reveal_child;
 			sidebar_button.toggled.connect(() => {
-				sidebar_revealer.reveal_child = sidebar_button.active;
-				main_layout.check_resize();
+
+				if(notebook_stack.get_visible_child() != null) {
+					sidebar_revealer.reveal_child = sidebar_button.active;
+					main_layout.check_resize();
+				} else {
+					sidebar_button.active = false;
+					sidebar_revealer.reveal_child = false;
+
+				}
 
 			});
 
