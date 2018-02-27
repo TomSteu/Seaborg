@@ -229,19 +229,23 @@ namespace Seaborg {
 			// search bar
 			search_settings.wrap_around = false;
 			search_settings.notify["search-text"].connect((property, sender) => {
-				((Seaborg.Notebook) notebook_stack.get_visible_child()).search_settings.search_text = this.search_settings.search_text;
+				if(notebook_stack.get_visible_child() != null)
+					((Seaborg.Notebook) notebook_stack.get_visible_child()).search_settings.search_text = this.search_settings.search_text;
 			});
 
 			search_settings.notify["case-sensitive"].connect((property, sender) => {
-				((Seaborg.Notebook) notebook_stack.get_visible_child()).search_settings.case_sensitive = this.search_settings.case_sensitive;
+				if(notebook_stack.get_visible_child() != null)
+					((Seaborg.Notebook) notebook_stack.get_visible_child()).search_settings.case_sensitive = this.search_settings.case_sensitive;
 			});
 
 			search_settings.notify["at-word-boundaries"].connect((property, sender) => {
-				((Seaborg.Notebook) notebook_stack.get_visible_child()).search_settings.at_word_boundaries = this.search_settings.at_word_boundaries;
+				if(notebook_stack.get_visible_child() != null)
+					((Seaborg.Notebook) notebook_stack.get_visible_child()).search_settings.at_word_boundaries = this.search_settings.at_word_boundaries;
 			});
 
 			search_settings.notify["regex-enabled"].connect((property, sender) => {
-				((Seaborg.Notebook) notebook_stack.get_visible_child()).search_settings.regex_enabled = this.search_settings.regex_enabled;
+				if(notebook_stack.get_visible_child() != null)
+					((Seaborg.Notebook) notebook_stack.get_visible_child()).search_settings.regex_enabled = this.search_settings.regex_enabled;
 			});
 
 
@@ -451,12 +455,12 @@ namespace Seaborg {
 
 			notebook_stack.notify["visible-child"].connect((property, sender) => {
 				zoom_box.value = zoom_factor;
-				Gtk.SourceSearchSettings child_settings = ((Seaborg.Notebook) notebook_stack.get_visible_child()).search_settings;
+				Gtk.SourceSearchSettings child_settings = (notebook_stack.get_visible_child() != null) ? ((Seaborg.Notebook) notebook_stack.get_visible_child()).search_settings : new Gtk.SourceSearchSettings();
 				child_settings.search_text = search_settings.search_text;
 				child_settings.case_sensitive = search_settings.case_sensitive;
 				child_settings.at_word_boundaries = search_settings.at_word_boundaries;
 				child_settings.regex_enabled = search_settings.regex_enabled;
-				notebook_tree.model = ((Seaborg.Notebook) notebook_stack.get_visible_child()).tree_model;
+				notebook_tree.model = (notebook_stack.get_visible_child() != null) ? ((Seaborg.Notebook) notebook_stack.get_visible_child()).tree_model : new Gtk.TreeStore(4, typeof(string), typeof(uint), typeof(string), typeof(ICell));
 				notebook_tree.expand_all();
 			});
 
@@ -2048,7 +2052,7 @@ namespace Seaborg {
 
 		private double zoom_factor {
 			get {
-				return ((Seaborg.Notebook)notebook_stack.get_visible_child()).zoom_factor;
+				return (notebook_stack.get_visible_child()) != null ? ((Seaborg.Notebook)notebook_stack.get_visible_child()).zoom_factor : 1.0;
 			}
 
 			set {
