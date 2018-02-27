@@ -1305,6 +1305,16 @@ namespace Seaborg {
 
 		public void load_notebook(string fn) {
 
+			// check if already open
+
+			Gtk.Widget? child = notebook_stack.get_child_by_name(fn);
+			
+			if(child != null) {
+				notebook_stack.visible_child = child;
+				return;
+			}
+
+
 			string? version;
 
 			// parse file 
@@ -1348,6 +1358,15 @@ namespace Seaborg {
 		}
 
 		public void import_notebook(string xml, string fn) {
+
+			// check if already imported
+
+			Gtk.Widget? child = notebook_stack.get_child_by_name(fn + ".xml");
+			
+			if(child != null) {
+				notebook_stack.visible_child = child;
+				return;
+			}
 
 			// parse xml string 
 			Xml.Doc* doc = Xml.Parser.parse_memory(xml, xml.length);
