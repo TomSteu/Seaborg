@@ -804,12 +804,13 @@ namespace Seaborg {
 			});
 
 			close_action.activate.connect(() => {
-				Seaborg.Notebook* nb = (Seaborg.Notebook*)notebook_stack.get_visible_child();
-				nb->toggle_all();
-				nb->remove_recursively();
-				notebook_stack.remove_by_name(notebook_stack.get_visible_child_name());
 
-				delete nb;
+				Gtk.Widget? child = notebook_stack.get_visible_child();
+
+				if(child != null) {
+					notebook_stack.remove_by_name(notebook_stack.get_visible_child_name());
+				}
+				
 			});
 
 			remove_action.activate.connect(() => {
@@ -1334,6 +1335,10 @@ namespace Seaborg {
 				return;
 			}
 
+			// check if file exists
+			GLib.FileStream? file = GLib.FileStream.open(fn, "r");
+			if(file == null)
+				return;
 
 			string? version;
 
@@ -2112,7 +2117,8 @@ namespace Seaborg {
 				if(value > 3.0 || value < 0.1)
 					return;
 
-				((Seaborg.Notebook)notebook_stack.get_visible_child()).zoom_font(value);
+				if(notebook_stack.get_visible_child() != null)
+					((Seaborg.Notebook)notebook_stack.get_visible_child()).zoom_font(value);
 				if(zoom_box != null)
 					zoom_box.value = zoom_factor;
 
