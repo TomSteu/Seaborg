@@ -43,9 +43,8 @@ namespace Seaborg {
 			main_headerbar = new Gtk.HeaderBar();
 			main_layout = new Gtk.Grid();
 			message_bar = new Gtk.InfoBar();
-			tab_switcher = new Gtk.StackSwitcher();
-			tab_scroll = new Gtk.ScrolledWindow(null, null);
-			notebook_stack = new Gtk.Stack();
+			notebook_stack = new Seaborg.Stack();
+			tab_switcher = new Seaborg.TabSwitcher(notebook_stack);
 			notebook_scroll = new Gtk.ScrolledWindow(null,null);
 			search_settings = new SourceSearchSettings();
 			sidebar_revealer = new Gtk.Revealer();
@@ -625,21 +624,9 @@ namespace Seaborg {
 
 			});
 
-			// notebook switcher
-			tab_switcher.stack = notebook_stack;
-			tab_switcher.hexpand = true;
-			tab_switcher.halign = Gtk.Align.CENTER;
-
-			tab_scroll.hexpand = true;
-			tab_scroll.halign = Gtk.Align.FILL;
-			tab_scroll.vscrollbar_policy = Gtk.PolicyType.NEVER;
-			tab_scroll.hscrollbar_policy = Gtk.PolicyType.EXTERNAL;
-			tab_scroll.add_with_viewport(tab_switcher);
-			
-
 			// header
 			main_headerbar.show_close_button = true;
-			main_headerbar.custom_title = tab_scroll;
+			main_headerbar.custom_title = tab_switcher;
 			main_headerbar.pack_start(sidebar_button);
 			main_headerbar.pack_start(quick_option_button);
 			main_headerbar.pack_start(search_button);
@@ -803,7 +790,7 @@ namespace Seaborg {
 				Seaborg.Notebook* nb = (Seaborg.Notebook*)notebook_stack.get_visible_child();
 				nb->toggle_all();
 				nb->remove_recursively();
-				notebook_stack.remove(notebook_stack.get_visible_child());
+				notebook_stack.remove_by_name(notebook_stack.get_visible_child_name());
 
 				delete nb;
 			});
@@ -1271,7 +1258,6 @@ namespace Seaborg {
 			notebook.add_before(0, {cell});
 
 			notebook_stack.add_titled(notebook, "", "New Notebook");
-			notebook_stack.set_visible_child(notebook);
 			cell->focus_cell();
 		}
 
@@ -1292,9 +1278,7 @@ namespace Seaborg {
 
 			if(notebook_stack.get_visible_child_name() != fn) {
 				
-				notebook_stack.child_set_property(notebook_stack.get_visible_child(), "name", fn);
-				notebook_stack.child_set_property(notebook_stack.get_visible_child(), "title", make_file_name(fn));
-
+				notebook_stack.child_amend_name_title(notebook_stack.get_visible_child_name(), fn, make_file_name(fn));
 			}
 
 			kernel_msg("File saved successfully");
@@ -1340,7 +1324,6 @@ namespace Seaborg {
 			Seaborg.Notebook* notebook = new Seaborg.Notebook();
 			assemble_recursively(root, (ICellContainer*)notebook);
 			notebook_stack.add_titled(notebook, fn, make_file_name(fn));
-			notebook_stack.set_visible_child(notebook);
 			main_window.show_all();
 
 			delete doc;
@@ -1373,7 +1356,6 @@ namespace Seaborg {
 			Seaborg.Notebook* notebook = new Seaborg.Notebook();
 			assemble_recursively(root, (ICellContainer*)notebook);
 			notebook_stack.add_titled(notebook, fn + ".xml", make_file_name(fn));
-			notebook_stack.set_visible_child(notebook);
 			main_window.show_all();
 
 			delete doc;
@@ -2085,9 +2067,8 @@ namespace Seaborg {
 
 		private Gtk.ApplicationWindow main_window;
 		private Gtk.HeaderBar main_headerbar;
-		private Gtk.StackSwitcher tab_switcher;
-		private Gtk.ScrolledWindow tab_scroll;
-		private Gtk.Stack notebook_stack;
+		private Seaborg.TabSwitcher tab_switcher;
+		private Seaborg.Stack notebook_stack;
 		private GLib.Menu main_menu;
 		private Gtk.Grid main_layout;
 		private Gtk.Revealer sidebar_revealer;
