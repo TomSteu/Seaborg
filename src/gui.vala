@@ -376,7 +376,7 @@ namespace Seaborg {
 
 			Gtk.Box quick_option_box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
 			
-			Gtk.Button eval_button = new Gtk.Button.with_label("Evaluate selection");
+			Gtk.Button eval_button = new Gtk.Button.with_label("Add to evaluation queue");
 			eval_button.get_style_context().add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 			eval_button.get_style_context().add_class("popmenu-button");
 			eval_button.set_alignment(0.0f, 0.5f);
@@ -386,7 +386,17 @@ namespace Seaborg {
 			});
 			quick_option_box.add(eval_button);
 
-			Gtk.Button cancel_button = new Gtk.Button.with_label("Cancel all evaluations");
+			Gtk.Button uneval_button = new Gtk.Button.with_label("Remove from evaluation queue");
+			uneval_button.get_style_context().add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
+			uneval_button.get_style_context().add_class("popmenu-button");
+			uneval_button.set_alignment(0.0f, 0.5f);
+			uneval_button.clicked.connect(() => { 
+				unschedule_evaluation((Seaborg.Notebook)notebook_stack.get_visible_child());
+				quick_option_button.popover.popdown();
+			});
+			quick_option_box.add(uneval_button);
+
+			Gtk.Button cancel_button = new Gtk.Button.with_label("Cancel evaluation");
 			cancel_button.get_style_context().add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 			cancel_button.get_style_context().add_class("popmenu-button");
 			cancel_button.set_alignment(0.0f, 0.5f);
@@ -932,7 +942,11 @@ namespace Seaborg {
 			this.quit();
 		}
 
-		public void schedule_evaluation(ICellContainer container) {
+		public void schedule_evaluation(ICellContainer? container) {
+
+			if(container == null)
+				return;
+			
 			EvaluationCell eva;
 			int last=-1;
 
@@ -975,6 +989,40 @@ namespace Seaborg {
 			
 			container.children_cells.data[last+1].focus_cell();
 
+		}
+
+		public void unschedule_evaluation(ICellContainer? container) {
+
+			if(container == null)
+				return;
+
+			EvaluationCell eva;
+			EvaluationData edata;
+
+			lock(eval_queue) {
+
+				// add evalutation cells to be evaluated
+				for(int i=0; i<container.children_cells.data.length; i++) {
+					
+					if(container.children_cells.data[i] is ICellContainer)
+						unschedule_evaluation((ICellContainer) container.children_cells.data[i]);
+
+					if(container.children_cells.data[i].marker_selected && ( container.children_cells.data[i].lock) && container.children_cells.data[i].get_level() == 0 && container.children_cells.data[i] is EvaluationCell) {
+						
+						eva = (EvaluationCell) container.children_cells.data[i];
+
+						for(uint index=0; index < eval_queue.length; index++) {
+							edata = eval_queue.peek_nth(index);
+							if((EvaluationCell) edata.cell != null && ((EvaluationCell) edata.cell).name == eva.name) {
+								eval_queue.pop_nth(index);
+							} 
+						}
+
+						eva.lock = false;
+						
+					}
+				}
+			}
 		}
 			
 		// start evaluation thread, if not already running
