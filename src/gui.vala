@@ -1274,8 +1274,28 @@ namespace Seaborg {
 			EvaluationCell* cell = new EvaluationCell(notebook);
 			notebook.add_before(0, {cell});
 
-			notebook_stack.add_titled(notebook, "", "New Notebook");
-			cell->focus_cell();
+			// check available name
+			string base_name = "~/New Notebook";
+			Gtk.Widget? child;
+
+			child = notebook_stack.get_child_by_name(base_name + ".xml");
+			if(child == null) {
+				notebook_stack.add_titled(notebook, base_name + ".xml", make_file_name(base_name + ".xml"));
+				cell->focus_cell();
+				return;
+			} 
+
+			for(int i=2; i>0; i++) {
+				child = notebook_stack.get_child_by_name(base_name + "(" + i.to_string() + ").xml");
+				if(child == null) {
+					notebook_stack.add_titled(notebook, base_name + "(" + i.to_string() + ").xml", make_file_name(base_name + "(" + i.to_string() + ").xml"));
+					cell->focus_cell();
+					return;
+				} 
+			}
+
+			kernel_msg("Failed to create new notebook");
+			
 		}
 
 		public void save_notebook(string fn) {
