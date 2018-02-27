@@ -133,12 +133,14 @@ namespace Seaborg {
 		}
 
 		public void toggle_all() {
-			marker.active = true;
+			if(marker.sensitive)
+				marker.active = true;
 
 		}
 
 		public void untoggle_all() {
-			marker.active = false;
+			if(marker.sensitive)
+				marker.active = false;
 		}
 
 		public void collapse_all() {
@@ -173,6 +175,8 @@ namespace Seaborg {
 
 				input_cell.editable = !value;
 				marker.sensitive = !value;
+				if(value)
+					marker.active = false;
 				_lock = value;
 			}
 		}

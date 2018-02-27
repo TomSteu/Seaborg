@@ -977,7 +977,7 @@ namespace Seaborg {
 
 		}
 			
-			// start evaluation thread, if not already running
+		// start evaluation thread, if not already running
 		public void start_evalutation_thread() {
 
 			if(listener_thread != null && (!listener_thread_is_running))
