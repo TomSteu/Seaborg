@@ -133,13 +133,12 @@ namespace Seaborg {
 		}
 
 		public void toggle_all() {
-			if(marker.sensitive)
-				marker.active = true;
 
+				marker.active = true;
 		}
 
 		public void untoggle_all() {
-			if(marker.sensitive)
+
 				marker.active = false;
 		}
 
@@ -174,16 +173,22 @@ namespace Seaborg {
 					return;
 
 				input_cell.editable = !value;
-				marker.sensitive = !value;
-				if(value)
-					marker.active = false;
+				if(value) {
+					marker.get_style_context().add_class("locked-cell-marker");
+					marker.get_style_context().remove_class("cell-marker");
+				} else {
+					marker.get_style_context().add_class("cell-marker");
+					marker.get_style_context().remove_class("locked-cell-marker");
+				} 
+					
 				_lock = value;
 			}
 		}
 
 		public bool marker_selected {
-			get {return marker.sensitive ? marker.active : false; }
-			set { if(marker.sensitive) { marker.active = value; } }
+
+			get { return marker.active; }
+			set { marker.active = value; } 
 		}
 
 		public void focus_cell() {

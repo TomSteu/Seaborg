@@ -23,13 +23,31 @@
 }
 
 /* computation running */
-.cell-marker:disabled {
+.locked-cell-marker {
+	background-image: none;
+	padding-left: 0px;
+	padding-right: 0px;
+	padding-top: 0px;
+	padding-bottom: 0px;
+	border-top-width: 0px;
+	border-bottom-width: 0px;
+	border-right-width: 0px; 
+	border-left-width: 0px;
+	/* marker width */
+	min-width: .3em;
+	/* marker background color */
 	background-color: @warning_color;
+
 }
 
-/* marker selected */
+/* unlocked marker selected */
 .cell-marker:checked {
 	background-color: @theme_selected_bg_color;
+}
+
+/* locked marker selected */
+.locked-cell-marker:checked {
+	background-color: mix(@theme_selected_bg_color, @warning_color, 0.7);
 }
 
 /* background of depicted plots */
