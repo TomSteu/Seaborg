@@ -196,11 +196,6 @@ namespace Seaborg {
 
 		public bool search(SearchType type) {
 
-			for(int i=0; i<children_cells.data.length; i++) {
-				if(children_cells.data[i].search(type))
-					return true;
-			}
-
 			return false;
 		}
 
