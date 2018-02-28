@@ -233,6 +233,46 @@ namespace Seaborg {
 			return "Notebook";
 		}
 
+		public void next_cell(string _name) {
+
+			int i;
+			for(i=0; i<children_cells.data.length; i++) {
+				if(children_cells.data[i].name == _name)
+					break;
+			}
+
+			if(i+1 < children_cells.data.length) {
+				children_cells.data[i+1].focus_cell();
+				return;
+			}
+
+			if(parent_cell != null) {
+				parent_cell->next_cell(this.name);
+			}
+
+			return;
+		}
+
+		public void prev_cell(string _name) {
+
+			int i;
+			for(i=0; i<children_cells.data.length; i++) {
+				if(children_cells.data[i].name == _name)
+					break;
+			}
+
+			if(i-1 >= 0) {
+				children_cells.data[i-1].focus_cell();
+				return;
+			}
+
+			if(parent_cell != null) {
+				parent_cell->prev_cell(this.name);
+			}
+
+			return;
+		}
+
 		public GLib.Array<ICell> children_cells {get; set;}
 		public GLib.Array<AddButton> addbutton_list {get; set;}
 		public ICellContainer* parent_cell {get; set;}

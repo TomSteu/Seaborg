@@ -45,7 +45,7 @@ namespace Seaborg {
 			cell.top_margin = 0;
 			cell.bottom_margin = 0;
 			cell.button_press_event.connect(untoggle_handler);
-			cell.key_press_event.connect(insert_ellipsis);
+			cell.key_press_event.connect(key_handler);
 			cell.get_style_context().add_provider(font_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 			cell_buffer.insert_text.connect(insert_handler);
 			cell_buffer.add_selection_clipboard(Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD));
@@ -238,7 +238,7 @@ namespace Seaborg {
 			return false;
 		}
 
-		private bool insert_ellipsis(EventKey key) {
+		private bool key_handler(EventKey key) {
 
 			if(key.type == Gdk.EventType.KEY_PRESS && key.keyval == Gdk.Key.Escape) {
 				cell.buffer.insert_at_cursor("⋮", "⋮".length);
@@ -248,6 +248,21 @@ namespace Seaborg {
 				cell.buffer.get_iter_at_offset(out iter, cell.buffer.get_char_count() - pos);
 				cell.buffer.place_cursor(iter);
 
+			}
+
+			if(key.type == Gdk.EventType.KEY_PRESS && (bool)(key.state & Gdk.ModifierType.CONTROL_MASK)) {
+				
+				switch (key.keyval) {
+					case Gdk.Key.Up:
+						if(parent != null)
+							parent_cell->prev_cell(this.name);
+						break;
+					case Gdk.Key.Down:
+						if(parent != null)
+							parent_cell->next_cell(this.name);
+						break;
+					
+				}				
 			}
 
 			return false;

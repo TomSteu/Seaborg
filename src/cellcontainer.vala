@@ -49,7 +49,7 @@ namespace Seaborg {
 			title.top_margin = 0;
 			title.bottom_margin = 0;
 			title.button_press_event.connect(untoggle_handler);
-			title.key_press_event.connect(insert_ellipsis);
+			title.key_press_event.connect(key_handler);
 			title.get_style_context().add_provider(font_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 			title_buffer.insert_text.connect(insert_handler);
 			title_buffer.add_selection_clipboard(Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD));
@@ -378,7 +378,7 @@ namespace Seaborg {
 			return false;
 		}
 
-		private bool insert_ellipsis(EventKey key) {
+		private bool key_handler(EventKey key) {
 
 			if(key.type == Gdk.EventType.KEY_PRESS && key.keyval == Gdk.Key.Escape) {
 				title.buffer.insert_at_cursor("⋮", "⋮".length);
@@ -388,6 +388,28 @@ namespace Seaborg {
 				title.buffer.get_iter_at_offset(out iter, title.buffer.get_char_count() - pos);
 				title.buffer.place_cursor(iter);
 
+			}
+
+			if(key.type == Gdk.EventType.KEY_PRESS && (bool)(key.state & Gdk.ModifierType.CONTROL_MASK)) {
+				
+				switch (key.keyval) {
+					case Gdk.Key.Up:
+						if(parent != null)
+							parent_cell->prev_cell(this.name);
+						break;
+					case Gdk.Key.Down:
+						if(children_cells.data.length > 0) {
+
+							children_cells.data[0].focus_cell();
+						
+						} else {
+			
+							if(parent != null)
+								parent_cell->next_cell(this.name);
+						}
+						break;
+					
+				}
 			}
 
 			return false;
@@ -544,6 +566,44 @@ namespace Seaborg {
 
 		public string get_tree_title() {
 			return title_buffer.text;
+		}
+
+		public void next_cell(string _name) {
+
+			int i;
+			for(i=0; i<children_cells.data.length; i++) {
+				if(children_cells.data[i].name == _name)
+					break;
+			}
+
+			if(i+1 < children_cells.data.length) {
+				children_cells.data[i+1].focus_cell();
+				return;
+			}
+
+			if(parent_cell != null) {
+				parent_cell->next_cell(this.name);
+			}
+
+			return;
+		}
+
+		public void prev_cell(string _name) {
+
+			int i;
+			for(i=0; i<children_cells.data.length; i++) {
+				if(children_cells.data[i].name == _name)
+					break;
+			}
+
+			if(i-1 >= 0) {
+				children_cells.data[i-1].focus_cell();
+				return;
+			}
+
+			this.focus_cell();
+
+			return;
 		}
 
 

@@ -79,48 +79,6 @@ namespace Seaborg {
 				            "<child>"+
 				              "<object class=\"GtkShortcutsShortcut\">"+
 				                "<property name=\"visible\">1</property>"+
-				                "<property name=\"accelerator\">&lt;ctrl&gt;N</property>"+
-				                "<property name=\"title\" translatable=\"yes\">Create new notebook</property>"+
-				              "</object>"+
-				            "</child>"+
-				            "<child>"+
-				              "<object class=\"GtkShortcutsShortcut\">"+
-				                "<property name=\"visible\">1</property>"+
-				                "<property name=\"accelerator\">&lt;ctrl&gt;O</property>"+
-				                "<property name=\"title\" translatable=\"yes\">Open a notebook</property>"+
-				              "</object>"+
-				            "</child>"+
-				            "<child>"+
-				              "<object class=\"GtkShortcutsShortcut\">"+
-				                "<property name=\"visible\">1</property>"+
-				                "<property name=\"accelerator\">&lt;ctrl&gt;S</property>"+
-				                "<property name=\"title\" translatable=\"yes\">Quicksave the notebook</property>"+
-				              "</object>"+
-				            "</child>"+
-				            "<child>"+
-				              "<object class=\"GtkShortcutsShortcut\">"+
-				                "<property name=\"visible\">1</property>"+
-				                "<property name=\"accelerator\">&lt;ctrl&gt;&lt;alt&gt;S</property>"+
-				                "<property name=\"title\" translatable=\"yes\">Save the notebook</property>"+
-				              "</object>"+
-				            "</child>"+
-				  			"<child>"+
-				              "<object class=\"GtkShortcutsShortcut\">"+
-				                "<property name=\"visible\">1</property>"+
-				                "<property name=\"accelerator\">&lt;ctrl&gt;I</property>"+
-				                "<property name=\"title\" translatable=\"yes\">Import Mathematica notebook</property>"+
-				              "</object>"+
-				            "</child>"+
-				            "<child>"+
-				              "<object class=\"GtkShortcutsShortcut\">"+
-				                "<property name=\"visible\">1</property>"+
-				                "<property name=\"accelerator\">&lt;ctrl&gt;E</property>"+
-				                "<property name=\"title\" translatable=\"yes\">Export Mathematica notebook</property>"+
-				              "</object>"+
-				            "</child>"+
-				            "<child>"+
-				              "<object class=\"GtkShortcutsShortcut\">"+
-				                "<property name=\"visible\">1</property>"+
 				                "<property name=\"accelerator\">&lt;ctrl&gt;Tab</property>"+
 				                "<property name=\"title\" translatable=\"yes\">Cycle Tabs</property>"+
 				              "</object>"+
@@ -163,21 +121,69 @@ namespace Seaborg {
 				            "<child>"+
 				              "<object class=\"GtkShortcutsShortcut\">"+
 				                "<property name=\"visible\">1</property>"+
-				                "<property name=\"accelerator\">&lt;ctrl&gt;W</property>"+
-				                "<property name=\"title\" translatable=\"yes\">Close Notebook</property>"+
+				                "<property name=\"accelerator\">&lt;ctrl&gt;Q</property>"+
+				                "<property name=\"title\" translatable=\"yes\">Quit App</property>"+
+				              "</object>"+
+				            "</child>"+
+				          "</object>"+
+				        "</child>"+
+				        "<child>"+
+				          "<object class=\"GtkShortcutsGroup\">"+
+				            "<property name=\"visible\">1</property>"+
+				            "<property name=\"title\" translatable=\"yes\">Notebooks</property>"+
+				            "<child>"+
+				              "<object class=\"GtkShortcutsShortcut\">"+
+				                "<property name=\"visible\">1</property>"+
+				                "<property name=\"accelerator\">&lt;ctrl&gt;N</property>"+
+				                "<property name=\"title\" translatable=\"yes\">Create new notebook</property>"+
 				              "</object>"+
 				            "</child>"+
 				            "<child>"+
 				              "<object class=\"GtkShortcutsShortcut\">"+
 				                "<property name=\"visible\">1</property>"+
-				                "<property name=\"accelerator\">&lt;ctrl&gt;Q</property>"+
-				                "<property name=\"title\" translatable=\"yes\">Quit App</property>"+
+				                "<property name=\"accelerator\">&lt;ctrl&gt;O</property>"+
+				                "<property name=\"title\" translatable=\"yes\">Open a notebook</property>"+
 				              "</object>"+
 				            "</child>"+
-				    	  "</object>"+
-				    	"</child>"+
-				    	"<child>"+
-				    	  "<object class=\"GtkShortcutsGroup\">"+
+				            "<child>"+
+				              "<object class=\"GtkShortcutsShortcut\">"+
+				                "<property name=\"visible\">1</property>"+
+				                "<property name=\"accelerator\">&lt;ctrl&gt;S</property>"+
+				                "<property name=\"title\" translatable=\"yes\">Quicksave the notebook</property>"+
+				              "</object>"+
+				            "</child>"+
+				            "<child>"+
+				              "<object class=\"GtkShortcutsShortcut\">"+
+				                "<property name=\"visible\">1</property>"+
+				                "<property name=\"accelerator\">&lt;ctrl&gt;&lt;alt&gt;S</property>"+
+				                "<property name=\"title\" translatable=\"yes\">Save the notebook</property>"+
+				              "</object>"+
+				            "</child>"+
+				            "<child>"+
+				              "<object class=\"GtkShortcutsShortcut\">"+
+				                "<property name=\"visible\">1</property>"+
+				                "<property name=\"accelerator\">&lt;ctrl&gt;I</property>"+
+				                "<property name=\"title\" translatable=\"yes\">Import Mathematica notebook</property>"+
+				              "</object>"+
+				            "</child>"+
+				            "<child>"+
+				              "<object class=\"GtkShortcutsShortcut\">"+
+				                "<property name=\"visible\">1</property>"+
+				                "<property name=\"accelerator\">&lt;ctrl&gt;E</property>"+
+				                "<property name=\"title\" translatable=\"yes\">Export Mathematica notebook</property>"+
+				              "</object>"+
+				            "</child>"+
+				            "<child>"+
+				              "<object class=\"GtkShortcutsShortcut\">"+
+				                "<property name=\"visible\">1</property>"+
+				                "<property name=\"accelerator\">&lt;ctrl&gt;W</property>"+
+				                "<property name=\"title\" translatable=\"yes\">Close Notebook</property>"+
+				              "</object>"+
+				            "</child>"+
+				           "</object>"+
+				        "</child>"+
+				        "<child>"+
+				           "<object class=\"GtkShortcutsGroup\">"+
 				            "<property name=\"visible\">1</property>"+
 				            "<property name=\"title\" translatable=\"yes\">Cells</property>"+
 				            "<child>"+
@@ -206,6 +212,20 @@ namespace Seaborg {
 				                "<property name=\"visible\">1</property>"+
 				                "<property name=\"accelerator\">&lt;ctrl&gt;y</property>"+
 				                "<property name=\"title\" translatable=\"yes\">(Un)comment selected input</property>"+
+				              "</object>"+
+				            "</child>"+
+				            "<child>"+
+				              "<object class=\"GtkShortcutsShortcut\">"+
+				                "<property name=\"visible\">1</property>"+
+				                "<property name=\"accelerator\">&lt;ctrl&gt;Up</property>"+
+				                "<property name=\"title\" translatable=\"yes\">Previous cell</property>"+
+				              "</object>"+
+				            "</child>"+
+				            "<child>"+
+				              "<object class=\"GtkShortcutsShortcut\">"+
+				                "<property name=\"visible\">1</property>"+
+				                "<property name=\"accelerator\">&lt;ctrl&gt;Down</property>"+
+				                "<property name=\"title\" translatable=\"yes\">Next cell</property>"+
 				              "</object>"+
 				            "</child>"+
 				          "</object>"+

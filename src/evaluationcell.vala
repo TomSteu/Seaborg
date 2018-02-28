@@ -242,6 +242,21 @@ namespace Seaborg {
 				}
 			}
 
+			if(key.type == Gdk.EventType.KEY_PRESS && (bool)(key.state & Gdk.ModifierType.CONTROL_MASK)) {
+				
+				switch (key.keyval) {
+					case Gdk.Key.Up:
+						if(parent != null)
+							parent_cell->prev_cell(this.name);
+						break;
+					case Gdk.Key.Down:
+						if(parent != null)
+							parent_cell->next_cell(this.name);
+						break;
+					
+				}
+			}
+
 			return false;
 		}
 
@@ -576,6 +591,7 @@ namespace Seaborg {
 		public string get_tree_title() {
 			return "Evaluation Cell";
 		}
+
 
 		public ICellContainer* parent_cell {get; set;}
 		private Gtk.SourceView input_cell;
