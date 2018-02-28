@@ -883,8 +883,16 @@ namespace Seaborg {
 				
 				if(sel != null) {
 					search_entry.set_text(sel);
+					
+					bool found_last = false;
+					if(!((Seaborg.Notebook)notebook_stack.get_visible_child()).do_forward_search(ref found_last)) {
+						if(!found_last) {
+							found_last = true;
+							((Seaborg.Notebook)notebook_stack.get_visible_child()).do_forward_search(ref found_last);
+						}
+					}
 				}
-	
+				
 				search_bar.search_mode_enabled = true;
 			});
 
