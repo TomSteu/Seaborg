@@ -988,20 +988,23 @@ namespace Seaborg {
 			EvaluationCell eva;
 			int last=-1;
 
-			lock(eval_queue) {
+			
 
-				// add evalutation cells to be evaluated
-				for(int i=0; i<container.children_cells.data.length; i++) {
+			// add evalutation cells to be evaluated
+			for(int i=0; i<container.children_cells.data.length; i++) {
 					
-					if(container.children_cells.data[i] is ICellContainer)
-						schedule_evaluation((ICellContainer) container.children_cells.data[i]);
+				if(container.children_cells.data[i] is ICellContainer) {
+					schedule_evaluation((ICellContainer) container.children_cells.data[i]);
+					continue;
+				}
 
-					if(container.children_cells.data[i].marker_selected && (! container.children_cells.data[i].lock) && container.children_cells.data[i].get_level() == 0 && container.children_cells.data[i] is EvaluationCell) {
-						eva = (EvaluationCell) container.children_cells.data[i];
-						last = i;
-						if(Seaborg.check_input_packet(eva.get_text())) {
-							eva.lock = true;
-							eva.remove_text();
+				if(container.children_cells.data[i].marker_selected && (! container.children_cells.data[i].lock) && container.children_cells.data[i].get_level() == 0 && container.children_cells.data[i] is EvaluationCell) {
+					eva = (EvaluationCell) container.children_cells.data[i];
+					last = i;
+					if(Seaborg.check_input_packet(eva.get_text())) {
+						eva.lock = true;
+						eva.remove_text();
+						lock(eval_queue) {
 							eval_queue.push_tail( EvaluationData() { 
 								cell = (void*) eva,
 								input = replace_form(replace_characters(eva.get_text()))
@@ -1037,17 +1040,19 @@ namespace Seaborg {
 			EvaluationCell eva;
 			EvaluationData edata;
 
-			lock(eval_queue) {
+			
 
-				// add evalutation cells to be evaluated
-				for(int i=0; i<container.children_cells.data.length; i++) {
+			// add evalutation cells to be evaluated
+			for(int i=0; i<container.children_cells.data.length; i++) {
 					
-					if(container.children_cells.data[i] is ICellContainer)
-						unschedule_evaluation((ICellContainer) container.children_cells.data[i]);
+				if(container.children_cells.data[i] is ICellContainer)
+					unschedule_evaluation((ICellContainer) container.children_cells.data[i]);
 
-					if(container.children_cells.data[i].marker_selected && ( container.children_cells.data[i].lock) && container.children_cells.data[i].get_level() == 0 && container.children_cells.data[i] is EvaluationCell) {
+				if(container.children_cells.data[i].marker_selected && ( container.children_cells.data[i].lock) && container.children_cells.data[i].get_level() == 0 && container.children_cells.data[i] is EvaluationCell) {
 						
-						eva = (EvaluationCell) container.children_cells.data[i];
+					eva = (EvaluationCell) container.children_cells.data[i];
+
+					lock(eval_queue) {
 
 						for(uint index=0; index < eval_queue.length; index++) {
 							edata = eval_queue.peek_nth(index);
@@ -1055,12 +1060,13 @@ namespace Seaborg {
 								eval_queue.pop_nth(index);
 							} 
 						}
-
-						eva.lock = false;
-						
 					}
+					
+					eva.lock = false;
+						
 				}
 			}
+			
 		}
 			
 		// start evaluation thread, if not already running

@@ -147,6 +147,10 @@ namespace Seaborg {
 				return;
 
 			if(cell is EvaluationCell) {
+
+				if(((EvaluationCell*) cell)->lock)
+					return;
+
 				for(pos=0; pos < parent->children_cells.data.length; pos++) {
 					if(parent->children_cells.data[pos].name == cell->name)
 						break;
@@ -213,6 +217,10 @@ namespace Seaborg {
 			int pos;
 			
 			if(cell is EvaluationCell || cell is TextCell) {
+
+				if(cell is EvaluationCell && ((EvaluationCell*) cell)->lock)
+					return;
+
 				for(pos=0; pos < parent->children_cells.data.length; pos++) {
 					if(parent->children_cells.data[pos].name == cell->name)
 						break;
