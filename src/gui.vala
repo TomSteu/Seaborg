@@ -237,6 +237,12 @@ namespace Seaborg {
 			Gtk.Builder shortcut_builder = new Gtk.Builder.from_string(shortcut_builder_string, shortcut_builder_string.length);
 			shortcuts = shortcut_builder.get_object("shortcuts") as Gtk.ShortcutsWindow;
 
+			// application icon
+			try {
+				main_icon_handle = new Rsvg.Handle.from_file(Parameter.dark_theme ? "res/seaborg-dark.svg" : "res/seaborg-light.svg");
+			} catch (GLib.Error err) {
+				main_icon_handle = null;
+			}
 
 			// message bar
 			message_bar.set_default_response(0);
@@ -521,7 +527,7 @@ namespace Seaborg {
 
 			Gtk.Grid pref_body_grid = new Gtk.Grid();
 			pref_body_grid.column_spacing = 32;
-			pref_body_grid.row_spacing = 10;
+			pref_body_grid.row_spacing = 8;
 			pref_body_grid.row_homogeneous = true;
 			pref_body_grid.halign = Gtk.Align.CENTER;
 			pref_body_grid.valign = Gtk.Align.START;
@@ -590,6 +596,8 @@ namespace Seaborg {
 			preferences_window.set_titlebar(preferences_header);
 			preferences_window.set_default_size(800, 600);
 			preferences_window.add(pref_scroll);
+			if(main_icon_handle != null)
+				preferences_window.icon = main_icon_handle.get_pixbuf();
 
 
 			// treeview of notebook
@@ -705,6 +713,8 @@ namespace Seaborg {
 			main_window.set_help_overlay(shortcuts);
 			main_window.destroy.connect(quit_app);
 			main_window.window_position = Gtk.WindowPosition.MOUSE;
+			if(main_icon_handle != null)
+				main_window.icon = main_icon_handle.get_pixbuf();
 
 			// cycle open notebooks
 			main_window.key_press_event.connect( (key) => {
@@ -2238,6 +2248,7 @@ namespace Seaborg {
 		private GLib.Thread<void*> listener_thread;
 		private bool listener_thread_is_running=false;
 		private CssProvider css_provider;
+		private Rsvg.Handle? main_icon_handle;
 	}
 
 
