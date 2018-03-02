@@ -1014,6 +1014,9 @@ namespace Seaborg {
 				}
 			}
 
+			if(container.get_level() < 7)
+				return;
+
 			start_evalutation_thread();
 			
 			if(last < 0)
