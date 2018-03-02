@@ -980,60 +980,70 @@ namespace Seaborg {
 			this.quit();
 		}
 
+
 		public void schedule_evaluation(ICellContainer? container) {
 
 			if(container == null)
 				return;
 			
-			EvaluationCell eva;
-			int last=-1;
-
 			
+			ICellContainer? last_container = null;
+			int last_pos = -1;
 
-			// add evalutation cells to be evaluated
-			for(int i=0; i<container.children_cells.data.length; i++) {
-					
-				if(container.children_cells.data[i] is ICellContainer) {
-					schedule_evaluation((ICellContainer) container.children_cells.data[i]);
-					continue;
-				}
-
-				if(container.children_cells.data[i].marker_selected && (! container.children_cells.data[i].lock) && container.children_cells.data[i].get_level() == 0 && container.children_cells.data[i] is EvaluationCell) {
-					eva = (EvaluationCell) container.children_cells.data[i];
-					last = i;
-					if(Seaborg.check_input_packet(eva.get_text())) {
-						eva.lock = true;
-						eva.remove_text();
-						lock(eval_queue) {
-							eval_queue.push_tail( EvaluationData() { 
-								cell = (void*) eva,
-								input = replace_form(replace_characters(eva.get_text()))
-							});
-						}
-					}
-				}
-			}
-
-			if(container.get_level() < 7)
-				return;
+			schedule_evaluation_recursively(container, ref last_container, ref last_pos);
 
 			start_evalutation_thread();
 			
-			if(last < 0)
+			if(last_pos < 0 || last_container == null)
 				return;
 
 			// grab focus on next cell
-			if(last+1 >= container.children_cells.data.length) {
+			if(last_pos+1 >= last_container.children_cells.data.length) {
 				EvaluationCell* newCell = new EvaluationCell(container);
-				container.add_before(-1, {newCell});
+				last_container.add_before(-1, {newCell});
 				newCell->focus_cell();
 				return;
 
 			}
 			
-			container.children_cells.data[last+1].focus_cell();
+			last_container.children_cells.data[last_pos+1].focus_cell();
 
 		}
+
+
+		private void schedule_evaluation_recursively(ICellContainer container, ref ICellContainer? last_container, ref int last_pos) {
+			
+			EvaluationCell eva;
+
+			// add evalutation cells to be evaluated
+			for(int i=0; i<container.children_cells.data.length; i++) {
+					
+				if(container.children_cells.data[i] is ICellContainer) {
+					schedule_evaluation_recursively((ICellContainer) container.children_cells.data[i], ref last_container, ref last_pos);
+					continue;
+				}
+
+				if(container.children_cells.data[i].marker_selected && container.children_cells.data[i].get_level() == 0 ) {
+					last_container = container;
+					last_pos = i;
+
+					if((! container.children_cells.data[i].lock) && container.children_cells.data[i] is EvaluationCell) {
+						eva = (EvaluationCell) container.children_cells.data[i];
+						if(Seaborg.check_input_packet(eva.get_text())) {
+							eva.lock = true;
+							eva.remove_text();
+							lock(eval_queue) {
+								eval_queue.push_tail( EvaluationData() { 
+									cell = (void*) eva,
+									input = replace_form(replace_characters(eva.get_text()))
+								});
+							}
+						}
+					}
+				}
+			}
+		}
+
 
 		public void unschedule_evaluation(ICellContainer? container) {
 
