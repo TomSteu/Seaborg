@@ -1308,7 +1308,9 @@ namespace Seaborg {
 				Gtk.ResponseType.ACCEPT
 			);
 			loader.select_multiple = true;
-			loader.set_filename(notebook_stack.get_visible_child_name());
+			
+			if(notebook_stack.get_visible_child != null)
+				loader.set_filename(notebook_stack.get_visible_child_name());
 			
 
 			
@@ -1332,15 +1334,22 @@ namespace Seaborg {
 				"_Load",
 				Gtk.ResponseType.ACCEPT
 			);
+
 			loader.select_multiple = false;
-			loader.set_filename(notebook_stack.get_visible_child_name());
+			if(notebook_stack.get_visible_child != null)
+				loader.set_filename(notebook_stack.get_visible_child_name());
 			
 
 			
 			if(loader.run() == Gtk.ResponseType.ACCEPT ) {
 				GLib.SList<string> filenames = loader.get_filenames();
 				foreach (string fn in filenames) {
-					process_for_import(fn);	
+					
+					if(fn.substring(fn.length-3) == ".nb") {
+						process_for_import(fn);
+					} else {
+						import_plaintext(fn);
+					}
 				}
 			}
 
@@ -1364,12 +1373,25 @@ namespace Seaborg {
 				saver.set_filename(notebook_stack.get_visible_child_name() + ".nb");
 			}
 			
+			Gtk.FileFilter nbFilter = new Gtk.FileFilter();
+			nbFilter.set_name("Mathematica Notebook *.nb");
+			nbFilter.add_pattern("*.nb");
+
+			Gtk.FileFilter mFilter = new Gtk.FileFilter();
+			mFilter.set_name("Plain Text Script *.m");
+			mFilter.add_pattern("*.m");
+
+			saver.add_filter(nbFilter);
+			saver.add_filter(mFilter);
 
 			
 			if(saver.run() == Gtk.ResponseType.ACCEPT ) {
 				GLib.SList<string> filenames = saver.get_filenames();
 				foreach (string fn in filenames) {
-					export_notebook(fn);	
+					if(saver.filter == nbFilter)
+						export_notebook(fn);
+					if(saver.filter == mFilter)
+						export_plaintext(fn);
 				}
 			}
 
@@ -1621,7 +1643,7 @@ namespace Seaborg {
 				line = fs.read_line();
 				if(line == null)
 					break;
-				content = content + line;
+				content = content + "\n" + line;
 			}
 
 			Seaborg.Notebook* notebook = new Seaborg.Notebook();
