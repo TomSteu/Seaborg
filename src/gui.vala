@@ -850,6 +850,8 @@ namespace Seaborg {
 				if(child != null) {
 					notebook_stack.remove_by_name(notebook_stack.get_visible_child_name());
 				}
+
+				delete ((Seaborg.Notebook*) child);
 				
 			});
 
@@ -1376,9 +1378,9 @@ namespace Seaborg {
 
 		public void new_notebook() {
 
-			Seaborg.Notebook notebook = new Seaborg.Notebook();
+			Seaborg.Notebook* notebook = new Seaborg.Notebook();
 			EvaluationCell* cell = new EvaluationCell(notebook);
-			notebook.add_before(0, {cell});
+			notebook->add_before(0, {cell});
 
 			// check available name
 			string base_name = "~/New Notebook";
@@ -1442,8 +1444,10 @@ namespace Seaborg {
 
 			// check if file exists
 			GLib.FileStream? file = GLib.FileStream.open(fn, "r");
-			if(file == null)
+			if(file == null){
+				kernel_msg("Error opening file: " + fn);
 				return;
+			}
 
 			string? version;
 
@@ -1589,6 +1593,93 @@ namespace Seaborg {
 				return null;
 
 			});
+		}
+
+		public void import_plaintext(string fn) {
+
+			// check if already open
+
+			Gtk.Widget? child = notebook_stack.get_child_by_name(fn + ".xml");
+			
+			if(child != null) {
+				notebook_stack.visible_child = child;
+				return;
+			}
+
+			// check if file exists
+			GLib.FileStream? fs = GLib.FileStream.open(fn, "r");
+			if(fs == null){
+				kernel_msg("Error opening file: " + fn);
+				return;
+			}
+
+			string content = "";
+			string? line = null;
+
+			while(! fs.eof()) {
+				
+				line = fs.read_line();
+				if(line == null)
+					break;
+				content = content + line;
+			}
+
+			Seaborg.Notebook* notebook = new Seaborg.Notebook();
+			Seaborg.EvaluationCell* cell = new Seaborg.EvaluationCell(notebook);
+			cell->set_text(content);
+			notebook->add_before(0, {cell});
+			
+			notebook_stack.add_titled(notebook, fn + ".xml", make_file_name(fn));
+			main_window.show_all();
+
+		}
+
+		public void export_plaintext(string fn) {
+
+			GLib.FileStream? fs = GLib.FileStream.open(fn, "w");
+			if(fs == null) {
+				kernel_msg("Could not open file: " + fn);
+				return;
+			}
+			
+			if((ICellContainer) notebook_stack.get_visible_child() != null)
+				write_plaintext_receursively(fs, (ICellContainer) notebook_stack.get_visible_child());
+
+			fs.flush();
+
+			kernel_msg("File exported successfully: " + fn);
+		}
+
+		private void write_plaintext_receursively(GLib.FileStream fs, ICellContainer container) {
+			
+			string cell_text;
+			
+			for(int i=0; i<container.children_cells.data.length; i++) {
+
+				cell_text = container.children_cells.data[i].get_text();
+				
+				if(container.children_cells.data[i].get_level() == 0) {
+					if(container.children_cells.data[i] is EvaluationCell) {
+						
+						fs.printf(cell_text + "\n");
+					
+					} else {
+						
+						fs.printf("(*\n" + cell_text + "\n*)\n");
+					}
+				} else {
+
+					fs.printf("\n");
+					cell_text = cell_text.replace("\n","");
+					fs.printf("(*" + string.nfill(cell_text.length + 2, '*') + "*)\n(* " + cell_text + " *)\n(*" + string.nfill(cell_text.length + 2, '*') + "*)\n");
+
+					write_plaintext_receursively(fs, (ICellContainer) container.children_cells.data[i]);
+
+				}
+
+				fs.printf("\n");
+			}
+
 		}
 
 		private string list_cells_recursively(ICellContainer container) {
