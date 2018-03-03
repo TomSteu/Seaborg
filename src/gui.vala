@@ -2394,6 +2394,36 @@ namespace Seaborg {
 
 	int main(string[] args) {
 
+		bool cli_version = false;
+
+		GLib.OptionEntry[] options = new GLib.OptionEntry[2];
+		options[0] = { "version", 0, 0, OptionArg.NONE, ref cli_version, "Display version number", null };
+		options[1] = { null };
+
+
+		try {
+			
+			OptionContext opt_context = new OptionContext ("[NOTEBOOK]");
+			opt_context.set_help_enabled (true);
+			
+			opt_context.add_main_entries ( options , null);
+			
+			opt_context.parse (ref args);
+		
+		} catch (OptionError e) {
+			
+			stdout.printf ("error: %s\n", e.message);
+			stdout.printf ("Run '%s --help' to see a full list of available command line options.\n", args[0]);
+			
+			return 0;
+		}
+
+		if(cli_version) {
+			
+			stdout.printf("Seaborg %s \n", Parameter.version);
+			return 0;
+		}
+
 		return new SeaborgApplication().run(args);
 
 		
