@@ -1,5 +1,12 @@
 namespace Seaborg {
 
+	static double get_version_major() {
+
+		double res = 0.0;
+		double.try_parse(Parameter.version.substring(0, Parameter.version.last_index_of(".")), out res);
+		return res;
+	}
+
 	static bool check_input_packet(string _str) {
 		
 		string str = _str.replace(" ", "").replace("\n", "");

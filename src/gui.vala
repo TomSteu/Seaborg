@@ -1414,7 +1414,7 @@ namespace Seaborg {
 			}
 
 			string identation="	"; // this is a tab
-			save_file.printf("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n\n<notebook version=\"1.0\">\n");
+			save_file.printf("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n\n<notebook version=\"" + get_version_major().to_string() + "\">\n");
 			for(int i = 0; i<((Seaborg.Notebook)notebook_stack.get_visible_child()).children_cells.data.length; i++) {
 				write_recursively(((Seaborg.Notebook)notebook_stack.get_visible_child()).children_cells.data[i], save_file, identation);
 			}
@@ -1478,7 +1478,7 @@ namespace Seaborg {
 				delete doc;
 				return;
 			}
-			if(double.parse(version) > 1.0) {
+			if(double.parse(version) > get_version_major()) {
 				kernel_msg("Warning: file was saved in newer version");
 			}
 
@@ -1948,7 +1948,7 @@ namespace Seaborg {
 			main_window.get_size(out w_width, out w_height);
 
 			save_file.printf("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
-			save_file.printf("<seaborg version=\"1.0\">\n");
+			save_file.printf("<seaborg version=\"" + get_version_major().to_string() + "\">\n");
 			save_file.printf("	<kernel_init>" + Parameter.kernel_init  + "</kernel_init>\n");
 			save_file.printf("	<code_highlighting>" + Parameter.code_highlighting.to_string() + "</code_highlighting>\n");
 			save_file.printf("	<dark_theme>" + Parameter.dark_theme.to_string() + "</dark_theme>\n");
@@ -2022,7 +2022,7 @@ namespace Seaborg {
 				delete doc;
 				return;
 			}
-			if(double.parse(version) > 1.0) {
+			if(double.parse(version) > get_version_major()) {
 				kernel_msg("Warning: config file belongs to newer version");
 			}
 
