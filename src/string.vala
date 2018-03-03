@@ -1,9 +1,11 @@
 namespace Seaborg {
 
+	static string get_version_major_string() { return Parameter.version.substring(0, Parameter.version.last_index_of("."));}
+
 	static double get_version_major() {
 
 		double res = 0.0;
-		double.try_parse(Parameter.version.substring(0, Parameter.version.last_index_of(".")), out res);
+		double.try_parse(get_version_major_string(), out res);
 		return res;
 	}
 
