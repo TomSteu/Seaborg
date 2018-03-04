@@ -59,6 +59,11 @@ all: $(patsubst %,./build/vala/%.o,$(VALASRC)) $(patsubst %,./build/%.o,$(CSRC))
 vala: $(patsubst %,./src/%.vala,$(VALASRC))
 	$(VALAC) $(VALAFLAGS) $^ -d ./build -C $(VALAPKG)
 
+.PHONY: install-linux
+install-linux:	
+	printf '#!/bin/sh\ncd %s\nLD_LIBRARY_PATH=%s ./bin/seaborg' "$(shell pwd)" "$(WSTPLIBDIR)" > /usr/bin/seaborg
+	chmod a+x /usr/bin/seaborg
+
 .PHONY: clean
 clean:
 	rm -f ./build/vala/*.o
