@@ -84,6 +84,7 @@
 
 #endif
 
+// returns the activity flag of the connection
 int check_connection(void* con) {
 	WstpConnection* connection = (WstpConnection*) con;
 	if(!connection)
@@ -91,6 +92,7 @@ int check_connection(void* con) {
 	return connection->active;
 }
 
+// aborts evaluation by modifying the activity flag
 int try_abort(void* con) {
 	
 	WstpConnection* connection = (WstpConnection*) con;
@@ -105,6 +107,7 @@ int try_abort(void* con) {
 
 }
 
+// after abort, reset the connection to active
 int try_reset_after_abort(void* con) {
 
 	WstpConnection* connection = (WstpConnection*) con;
@@ -117,6 +120,7 @@ int try_reset_after_abort(void* con) {
 	return connection->active;
 }
 
+// init the connection
 void* init_connection(const char* path) {
 	
 	WSTPERRORTYPE error = 0;
@@ -137,6 +141,7 @@ void* init_connection(const char* path) {
 
 }
 
+// close the connction
 void close_connection(void* con) {
 	WstpConnection* connection = (WstpConnection*) con;
 	if(!connection)
@@ -148,6 +153,7 @@ void close_connection(void* con) {
 	free(connection);
 }
 
+// send abort signal to the kernel
 int abort_calculation(void* con) {
 	WstpConnection* connection = (WstpConnection*) con;
 	if(!connection)
@@ -156,6 +162,7 @@ int abort_calculation(void* con) {
 	return 0;
 }
 
+// returns error in connection, while tries to revive the latter
 const char* handle_link_error(void* con) {
 
 	WstpConnection* connection = (WstpConnection*) con;
@@ -514,6 +521,7 @@ void evaluate(void* con, const char* input, void (*callback)(char*, void*, unsig
 			}
 	}
 
+	// send end-of-evaluation signal towards the frontend
 	(*callback)((char*)0, callback_data, stamp++, 1);
 	return;
 

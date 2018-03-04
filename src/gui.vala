@@ -4,8 +4,7 @@ using Xml;
 
 namespace Seaborg {
 
-
-
+	// data structure to be send send to the backend during evaluation
 	public struct EvaluationData {
 		public void* cell;
 		public string input;
@@ -14,11 +13,11 @@ namespace Seaborg {
 
 	public class SeaborgApplication : Gtk.Application {
 
+		// keeps track of correct stamp during evaluation
 		public static ulong global_stamp = 0;
 
+		// construct gui
 		protected override void activate() {
-
-			this.set_resource_base_path("/tst/seaborg/./res/");
 
 			// try to find seaborg CSS file
 			css_provider = new CssProvider();
@@ -38,7 +37,7 @@ namespace Seaborg {
 			// reset background color for rendered formulas
 			Parameter.font_color = (new Gtk.SourceView()).get_style_context().get_color(Gtk.StateFlags.NORMAL);
 			
-			// init widgets
+			// init widgets that might be affected by setting parameters
 			main_window = new Gtk.ApplicationWindow(this);
 			main_headerbar = new Gtk.HeaderBar();
 			main_layout = new Gtk.Grid();
@@ -253,6 +252,7 @@ namespace Seaborg {
 
 			
 			// search bar
+			// sync search settings with all notebooks
 			search_settings.wrap_around = false;
 			search_settings.notify["search-text"].connect((property, sender) => {
 				if(notebook_stack.get_visible_child() != null)
@@ -274,7 +274,7 @@ namespace Seaborg {
 					((Seaborg.Notebook) notebook_stack.get_visible_child()).search_settings.regex_enabled = this.search_settings.regex_enabled;
 			});
 
-
+			// entry widget in search bar
 			search_entry = new Gtk.SearchEntry();
 			search_entry.hexpand = true;
 			search_entry.halign = Gtk.Align.FILL;
@@ -284,6 +284,7 @@ namespace Seaborg {
 					search_settings.search_text = search_entry.text;
 			});
 
+			// button to toggle case sensitivity
 			search_case = new Gtk.ToggleButton.with_label("Aa");
 			search_case.has_tooltip = true;
 			search_case.tooltip_text = "match case";
@@ -292,12 +293,14 @@ namespace Seaborg {
 				search_settings.case_sensitive = search_case.active;
 			});
 
+			// button to toggle whole word matching
 			search_word = new Gtk.ToggleButton.with_label("\"W\"");
 			search_word.has_tooltip = true;
 			search_word.tooltip_text = "match whole word";
 			search_word.active = search_settings.at_word_boundaries;
 			search_word.toggled.connect(() => { search_settings.at_word_boundaries = search_word.active; });
 
+			// button to toggle regex matching
 			search_regex = new Gtk.ToggleButton.with_label(".*");
 			search_regex.has_tooltip = true;
 			search_regex.tooltip_text = "match regex";
@@ -309,6 +312,7 @@ namespace Seaborg {
 			match_button_box.pack_start(search_word);
 			match_button_box.pack_start(search_regex);
 
+			// button for next search result
 			search_next = new Gtk.Button.from_icon_name("go-down-symbolic");
 			search_next.clicked.connect(() => {
 				
@@ -322,6 +326,7 @@ namespace Seaborg {
 
 			});
 
+			// button for previous search result
 			search_prev = new Gtk.Button.from_icon_name("go-up-symbolic");
 			search_prev.clicked.connect(() => {
 				
@@ -339,9 +344,11 @@ namespace Seaborg {
 			search_select_box.pack_start(search_next);
 			search_select_box.pack_start(search_prev);
 
+			// entry widget to replace matches
 			replace_entry = new Gtk.Entry();
 			replace_entry.set_width_chars(16);
 
+			// button to replace all search results
 			replace_all_button = new Gtk.Button.with_label("Replace All");
 			replace_all_button.clicked.connect(() => {
 				if(!(replace_entry.text == null) && !(replace_entry.text == ""))
@@ -352,7 +359,7 @@ namespace Seaborg {
 			replace_box.pack_start(replace_entry);
 			replace_box.pack_start(replace_all_button);
 
-
+			// button to hide replace box
 			replace_expand = new Gtk.ToggleButton();
 			replace_expand.set_image(new Gtk.Image.from_icon_name("edit-find-replace-symbolic", IconSize.BUTTON));
 			replace_expand.has_tooltip = true;
@@ -362,7 +369,7 @@ namespace Seaborg {
 			replace_box.notify["visible"].connect((property, sender) => { replace_expand.active = replace_box.visible; });
 			search_select_box.pack_start(replace_expand);
 
-
+			// assemble search bar, place empty grids to avoid awkward streches for small window sizes
 			search_box = new Gtk.FlowBox();
 			search_box.orientation = Gtk.Orientation.HORIZONTAL;
 			search_box.selection_mode = Gtk.SelectionMode.NONE;
@@ -380,7 +387,7 @@ namespace Seaborg {
 			search_box.add(new Gtk.Grid());
 			search_box.add(replace_box);
 
-
+			// set up search bar and connect to search button
 			search_bar = new Gtk.SearchBar();
 			search_bar.add(search_box);
 			search_bar.connect_entry(search_entry);
@@ -390,6 +397,7 @@ namespace Seaborg {
 			search_bar.halign = Gtk.Align.FILL;
 			search_bar.notify["search-mode-enabled"].connect((property, sender) => {search_button.active = search_bar.search_mode_enabled;});
 
+			// set up search button
 			search_button = new Gtk.ToggleButton();
 			search_button.always_show_image = true;
 			search_button.set_image(new Gtk.Image.from_icon_name("edit-find-symbolic", IconSize.BUTTON));
@@ -402,6 +410,7 @@ namespace Seaborg {
 
 			Gtk.Box quick_option_box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
 			
+			// button to schedule evaluation 
 			Gtk.Button eval_button = new Gtk.Button.with_label("Add to evaluation queue");
 			eval_button.get_style_context().add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 			eval_button.get_style_context().add_class("popmenu-button");
@@ -412,6 +421,7 @@ namespace Seaborg {
 			});
 			quick_option_box.add(eval_button);
 
+			// button to unschedule evaluation 
 			Gtk.Button uneval_button = new Gtk.Button.with_label("Remove from evaluation queue");
 			uneval_button.get_style_context().add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 			uneval_button.get_style_context().add_class("popmenu-button");
@@ -422,6 +432,7 @@ namespace Seaborg {
 			});
 			quick_option_box.add(uneval_button);
 
+			// button to abort evaluation 
 			Gtk.Button cancel_button = new Gtk.Button.with_label("Cancel evaluation");
 			cancel_button.get_style_context().add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 			cancel_button.get_style_context().add_class("popmenu-button");
@@ -434,10 +445,12 @@ namespace Seaborg {
 			
 			quick_option_box.add(new Gtk.Separator(Gtk.Orientation.HORIZONTAL));
 
+			// buttons to quickly change the form of output
 			input_form_button = new Gtk.RadioButton.with_label_from_widget (null, "Input Form");
 			input_form_with_plot_button = new Gtk.RadioButton.with_label_from_widget (input_form_button, "Input Form with Graphics");
 			svg_button = new Gtk.RadioButton.with_label_from_widget (input_form_button, "SVG output");
 
+			// init and connect to global parameters
 			input_form_button.active = (Parameter.output == Form.INPUT);
 			input_form_with_plot_button.active = (Parameter.output == Form.INPUTREPLACEGRAPHICS);
 			svg_button.active = (Parameter.output == Form.RENDERED);
@@ -473,33 +486,45 @@ namespace Seaborg {
 			zoom_box.hexpand = true;
 			zoom_box.halign = Gtk.Align.END;
 			
+			// if no notebook is loaded, have default zoom
 			if(notebook_stack.get_visible_child() != null) {
 				zoom_box.value = zoom_factor;
 			} else {
 				zoom_box.value = 1.0;
 			}
-						
+			
+			// connect to application zoom factor
 			zoom_box.value_changed.connect(() => {
 				zoom_factor = zoom_box.value;
 			});
 
+			// reset zoom on icon press
 			zoom_box.icon_press.connect((icon, event) => {
 				if(icon == Gtk.EntryIconPosition.PRIMARY) {
 					zoom_box.value = 1.0;
 				}
 			});
 
+			// things to be done when the notebook tabs are switched
 			notebook_stack.notify["visible-child"].connect((property, sender) => {
 				
+				// update application zoom control from notebook factor
 				zoom_box.value = zoom_factor;
-				Gtk.SourceSearchSettings child_settings = (notebook_stack.get_visible_child() != null) ? ((Seaborg.Notebook) notebook_stack.get_visible_child()).search_settings : new Gtk.SourceSearchSettings();
-				child_settings.search_text = search_settings.search_text;
-				child_settings.case_sensitive = search_settings.case_sensitive;
-				child_settings.at_word_boundaries = search_settings.at_word_boundaries;
-				child_settings.regex_enabled = search_settings.regex_enabled;
+
+				// update notebooks search settings from application settings
+				if(notebook_stack.get_visible_child() != null) {
+					Gtk.SourceSearchSettings child_settings = ((Seaborg.Notebook) notebook_stack.get_visible_child()).search_settings;
+					child_settings.search_text = search_settings.search_text;
+					child_settings.case_sensitive = search_settings.case_sensitive;
+					child_settings.at_word_boundaries = search_settings.at_word_boundaries;
+					child_settings.regex_enabled = search_settings.regex_enabled;
+				}
+
+				// update model for tree view from notebook
 				notebook_tree.model = (notebook_stack.get_visible_child() != null) ? ((Seaborg.Notebook) notebook_stack.get_visible_child()).tree_model : new Gtk.TreeStore(4, typeof(string), typeof(uint), typeof(string), typeof(ICell));
 				notebook_tree.expand_all();
 
+				// if no notebook is visible, do not allow tree sidebar
 				if(notebook_stack.get_visible_child() == null) {
 					sidebar_revealer.reveal_child = false;
 					sidebar_button.active = false;
@@ -521,9 +546,11 @@ namespace Seaborg {
 				return true;
 			});
 
-
+			// button to close window
 			Gtk.Button pref_ok_button = new Gtk.Button.from_icon_name("emblem-ok-symbolic");
 			pref_ok_button.clicked.connect(() => { preferences_window.hide(); });
+
+			// contents of the preferences window
 
 			Gtk.Grid pref_body_grid = new Gtk.Grid();
 			pref_body_grid.column_spacing = 32;
@@ -533,8 +560,7 @@ namespace Seaborg {
 			pref_body_grid.valign = Gtk.Align.START;
 			pref_body_grid.get_style_context().add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 			pref_body_grid.get_style_context().add_class("pref-grid");
-
-
+			
 			Gtk.Label kernel_heading = new Gtk.Label("Kernel");
 			kernel_heading.get_style_context().add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 			kernel_heading.get_style_context().add_class("pref-heading");
@@ -583,10 +609,12 @@ namespace Seaborg {
 			pref_body_grid.attach(highlight_nostdlib_button, 1, 8, 1, 1);
 			pref_body_grid.attach(highlight_full_button, 1, 9, 1, 1);
 
+			// scrollbar for preferences window
 			Gtk.ScrolledWindow pref_scroll = new Gtk.ScrolledWindow(null, null);
 			pref_scroll.add(pref_body_grid);
 			pref_scroll.show_all();
 			
+			//header of preferences window
 			Gtk.HeaderBar preferences_header = new Gtk.HeaderBar();
 			preferences_header.title = "Preferences";
 			preferences_header.pack_end(pref_ok_button);
@@ -615,6 +643,8 @@ namespace Seaborg {
 			notebook_tree.rules_hint = false;
 			notebook_tree.show_expanders = true;
 			notebook_tree.get_selection().mode = Gtk.SelectionMode.MULTIPLE;
+
+			// focus cell when doing single click on an item
 			notebook_tree.row_activated.connect((path, column) => {
 
 				Gtk.TreeIter iter;
@@ -625,6 +655,8 @@ namespace Seaborg {
 				((ICell) val.get_object()).focus_cell();
 
 			});
+
+			// select all cells selected in treeview
 			notebook_tree.get_selection().set_select_function((selection, model, path, selected) => {
 				
 				Gtk.TreeIter iter;
@@ -759,6 +791,7 @@ namespace Seaborg {
 
 			this.add_window(main_window);
 
+			// if no notebook has been opened, create a new one
 			if(notebook_stack.get_children().length() <= 0u)
 				new_notebook();
 
@@ -769,6 +802,7 @@ namespace Seaborg {
 			main_window.show_all();
 			replace_expand.active = false;
 
+			// init notebook tree view
 			notebook_tree.model = ((Seaborg.Notebook) notebook_stack.get_visible_child()).tree_model;
 			notebook_tree.expand_all();
 			notebook_tree.show_all();
@@ -778,6 +812,7 @@ namespace Seaborg {
 
 		}
 
+		// connect all global actions to the main menu and its hotkeys
 		protected override void startup() {
 			base.startup();
 
@@ -960,6 +995,7 @@ namespace Seaborg {
 
 		}
 
+		// save the state of the app and quit
 		public void quit_app() {
 
 			try {
@@ -982,9 +1018,10 @@ namespace Seaborg {
 			this.quit();
 		}
 
-
+		// queues all selected cells in 'container' for evaluation and focuses the next cell
 		public void schedule_evaluation(ICellContainer? container) {
 
+			// no notebook loaded
 			if(container == null)
 				return;
 			
@@ -992,14 +1029,18 @@ namespace Seaborg {
 			ICellContainer? last_container = null;
 			int last_pos = -1;
 
+			// queue all selected evaluation cells
 			schedule_evaluation_recursively(container, ref last_container, ref last_pos);
 
+			// start the evaluation thread if necessary
 			start_evalutation_thread();
 			
+			// no cell was selected
 			if(last_pos < 0 || last_container == null)
 				return;
 
-			// grab focus on next cell
+			
+			// last cell was last element within its parent, create new evaluation cell at its end
 			if(last_pos+1 >= last_container.children_cells.data.length) {
 				EvaluationCell* newCell = new EvaluationCell(container);
 				last_container.add_before(-1, {newCell});
@@ -1007,28 +1048,32 @@ namespace Seaborg {
 				return;
 
 			}
-			
+
+			// grab focus on next cell
 			last_container.children_cells.data[last_pos+1].focus_cell();
 
 		}
 
-
+		// recursive function to queue all selected cells in 'container' for evaluation, keeps a reference for the parent and child number of the last selected cell
 		private void schedule_evaluation_recursively(ICellContainer container, ref ICellContainer? last_container, ref int last_pos) {
 			
 			EvaluationCell eva;
 
 			// add evalutation cells to be evaluated
 			for(int i=0; i<container.children_cells.data.length; i++) {
-					
+				
+				// schedule cell container children
 				if(container.children_cells.data[i] is ICellContainer) {
 					schedule_evaluation_recursively((ICellContainer) container.children_cells.data[i], ref last_container, ref last_pos);
 					continue;
 				}
 
+				// cell is not a container and selected
 				if(container.children_cells.data[i].marker_selected && container.children_cells.data[i].get_level() == 0 ) {
 					last_container = container;
 					last_pos = i;
 
+					// cell is an unscheduled valuation cell
 					if((! container.children_cells.data[i].lock) && container.children_cells.data[i] is EvaluationCell) {
 						eva = (EvaluationCell) container.children_cells.data[i];
 						if(Seaborg.check_input_packet(eva.get_text())) {
@@ -1046,7 +1091,7 @@ namespace Seaborg {
 			}
 		}
 
-
+		// removes selected queued evaluation cell in 'container' from the queue, recursive function
 		public void unschedule_evaluation(ICellContainer? container) {
 
 			if(container == null)
@@ -1055,14 +1100,14 @@ namespace Seaborg {
 			EvaluationCell eva;
 			EvaluationData edata;
 
-			
-
 			// add evalutation cells to be evaluated
 			for(int i=0; i<container.children_cells.data.length; i++) {
-					
+				
+				// unschedule children of container
 				if(container.children_cells.data[i] is ICellContainer)
 					unschedule_evaluation((ICellContainer) container.children_cells.data[i]);
 
+				// unschedule selected and scheduled evaluation cells
 				if(container.children_cells.data[i].marker_selected && ( container.children_cells.data[i].lock) && container.children_cells.data[i].get_level() == 0 && container.children_cells.data[i] is EvaluationCell) {
 						
 					eva = (EvaluationCell) container.children_cells.data[i];
@@ -1077,6 +1122,7 @@ namespace Seaborg {
 						}
 					}
 					
+					// release lock for unscheduled cells
 					eva.lock = false;
 						
 				}
@@ -1133,6 +1179,7 @@ namespace Seaborg {
 							return null;
 						}
 
+						// wait for evaluation to finish
 						while(true) {
 							lock(global_stamp) {
 								if(global_stamp == 0)
@@ -1177,6 +1224,8 @@ namespace Seaborg {
 			// reset connection and check sanity
 			int res = check_connection(kernel_connection);
 			if(res != 1) {
+				
+				// connection in abort status
 				if(res == 2) {
 
 					try_reset_after_abort(kernel_connection);
@@ -2193,6 +2242,7 @@ namespace Seaborg {
 
 		}
 
+		// callback to convert mathematica notebook into seaborg notebook
 		private static  callback_str receive_notebook_xml = (_string_to_write, data_ptr, _stamp, _break) => {
 
 
@@ -2248,6 +2298,7 @@ namespace Seaborg {
 			return;
 		};
 
+		// callback function for exporting to mathematica notebook
 		private static  callback_str export_notebook_callback = (_string_to_write, data_ptr, _stamp, _break) => {
 
 
@@ -2301,8 +2352,9 @@ namespace Seaborg {
 			return;
 		};
 
+		private EvaluationData current_cell;
 
-		private EvaluationData current_cell; 
+		// kernel connection backend
 
 		[CCode (has_target = false)]
 		private delegate void callback_str(char* string_to_write, void* callback_data, ulong stamp, int break_after);
@@ -2394,6 +2446,7 @@ namespace Seaborg {
 
 	int main(string[] args) {
 
+		// command line interface
 		bool cli_version = false;
 
 		GLib.OptionEntry[] options = new GLib.OptionEntry[2];
@@ -2405,9 +2458,7 @@ namespace Seaborg {
 			
 			OptionContext opt_context = new OptionContext ("[NOTEBOOK]");
 			opt_context.set_help_enabled (true);
-			
 			opt_context.add_main_entries ( options , null);
-			
 			opt_context.parse (ref args);
 		
 		} catch (OptionError e) {
@@ -2418,6 +2469,7 @@ namespace Seaborg {
 			return 0;
 		}
 
+		// return only version
 		if(cli_version) {
 			
 			stdout.printf("Seaborg %s \n", Parameter.version);

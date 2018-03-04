@@ -8,6 +8,7 @@
 //#define DEBUG
 //#define MATHLINK
 
+// Preprocessor workaround for old naming convention
 #ifdef MATHLINK
 #include <mathlink.h>
 #define WSLINK MLINK
@@ -18,6 +19,7 @@
 #define WSENV WSENV
 #endif
 
+// structure that holds information about the connection
 typedef struct {
 	int active;
 	WSLINK link;
