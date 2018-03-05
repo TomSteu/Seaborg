@@ -118,11 +118,17 @@ namespace Seaborg {
 		}
 
 		protected void update_tree(Gtk.TreeIter? iter = null, ICellContainer container = this) {
-			
+
 			Gtk.TreeIter child_iter;
 			
 			// root node
 			if(iter == null) {
+
+				// make sure only root container updates tree
+				if(parent_cell != null) {
+					parent_cell->update_tree(null, parent_cell);
+					return;
+				}
 				
 				// wipe tree store first
 				tree_model = new Gtk.TreeStore(4, typeof(string), typeof(uint), typeof(string), typeof(ICell));

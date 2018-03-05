@@ -24,6 +24,7 @@ In order to establish a connection the mathematica kernel, you need to build aga
 * the variable `WSTPLIBDIR` to the parent directory of the WSTP dynamic link library
 * the variable `WSTPINCDIR` to the parent directory of the wstp.h header
 * the variable `WSTPLIB` to the name of the WSTP dynamic link library
+
 If you use an older version of mathematica, the connection protocol and all files are called MathLink instead. You can still build in this case, but include the option `-DMATHLINK` to `CFLAGS`.
 
 After finishing to edit the Makefile, you may build the code:

@@ -803,7 +803,7 @@ namespace Seaborg {
 			replace_expand.active = false;
 
 			// init notebook tree view
-			notebook_tree.model = ((Seaborg.Notebook) notebook_stack.get_visible_child()).tree_model;
+			notebook_tree.model = (notebook_stack.get_visible_child() != null) ? ((Seaborg.Notebook) notebook_stack.get_visible_child()).tree_model : new Gtk.TreeStore(4, typeof(string), typeof(uint), typeof(string), typeof(ICell));
 			notebook_tree.expand_all();
 			notebook_tree.show_all();
 
@@ -1459,7 +1459,7 @@ namespace Seaborg {
 
 			child = notebook_stack.get_child_by_name(base_name + ".xml");
 			if(child == null) {
-				notebook_stack.add_titled(notebook, base_name + ".xml", make_file_name(base_name + ".xml"));
+				add_notebook(notebook, base_name + ".xml", make_file_name(base_name + ".xml"));
 				cell->focus_cell();
 				return;
 			} 
@@ -1467,7 +1467,7 @@ namespace Seaborg {
 			for(int i=2; i>0; i++) {
 				child = notebook_stack.get_child_by_name(base_name + "(" + i.to_string() + ").xml");
 				if(child == null) {
-					notebook_stack.add_titled(notebook, base_name + "(" + i.to_string() + ").xml", make_file_name(base_name + "(" + i.to_string() + ").xml"));
+					add_notebook(notebook, base_name + "(" + i.to_string() + ").xml", make_file_name(base_name + "(" + i.to_string() + ").xml"));
 					cell->focus_cell();
 					return;
 				} 
@@ -1555,7 +1555,7 @@ namespace Seaborg {
 
 			Seaborg.Notebook* notebook = new Seaborg.Notebook();
 			assemble_recursively(root, (ICellContainer*)notebook);
-			notebook_stack.add_titled(notebook, fn, make_file_name(fn));
+			add_notebook(notebook, fn, make_file_name(fn));
 			main_window.show_all();
 
 			delete doc;
@@ -1596,7 +1596,7 @@ namespace Seaborg {
 
 			Seaborg.Notebook* notebook = new Seaborg.Notebook();
 			assemble_recursively(root, (ICellContainer*)notebook);
-			notebook_stack.add_titled(notebook, fn + ".xml", make_file_name(fn));
+			add_notebook(notebook, fn + ".xml", make_file_name(fn));
 			main_window.show_all();
 
 			delete doc;
@@ -1700,7 +1700,7 @@ namespace Seaborg {
 			cell->set_text(content);
 			notebook->add_before(0, {cell});
 			
-			notebook_stack.add_titled(notebook, fn + ".xml", make_file_name(fn));
+			add_notebook(notebook, fn + ".xml", make_file_name(fn));
 			main_window.show_all();
 
 		}
@@ -2240,6 +2240,18 @@ namespace Seaborg {
 
 			listener_thread_is_running = false;
 
+		}
+
+		private void add_notebook(Seaborg.Notebook* nb, string name, string title) {
+
+			notebook_stack.add_titled(nb, name, title);
+
+			nb->notify["tree-model"].connect((property, sender) => {
+				if(notebook_stack.get_visible_child() != null && ((Seaborg.Notebook) notebook_stack.get_visible_child()).name == nb->name) {
+					notebook_tree.model = nb->tree_model;
+					notebook_tree.expand_all();
+				}
+			});
 		}
 
 		// callback to convert mathematica notebook into seaborg notebook
