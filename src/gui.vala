@@ -481,8 +481,7 @@ namespace Seaborg {
 			zoom_box.snap_to_ticks = false;
 			zoom_box.update_policy = Gtk.SpinButtonUpdatePolicy.IF_VALID;
 			zoom_box.wrap = false;
-			zoom_box.set_icon_from_icon_name(EntryIconPosition.PRIMARY, "zoom-fit-best-symbolic");
-			zoom_box.set_width_chars(6);
+			zoom_box.set_width_chars(4);
 			zoom_box.hexpand = true;
 			zoom_box.halign = Gtk.Align.END;
 			
@@ -496,13 +495,6 @@ namespace Seaborg {
 			// connect to application zoom factor
 			zoom_box.value_changed.connect(() => {
 				zoom_factor = zoom_box.value;
-			});
-
-			// reset zoom on icon press
-			zoom_box.icon_press.connect((icon, event) => {
-				if(icon == Gtk.EntryIconPosition.PRIMARY) {
-					zoom_box.value = 1.0;
-				}
 			});
 
 			// things to be done when the notebook tabs are switched
