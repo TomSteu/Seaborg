@@ -1,4 +1,4 @@
 *.o
-bin/*
+bin/seaborg
 build/src/*.c
-res/tmp/*
+tmp/*.svg
