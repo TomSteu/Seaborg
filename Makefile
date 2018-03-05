@@ -62,7 +62,11 @@ vala: $(patsubst %,./src/%.vala,$(VALASRC))
 .PHONY: install-linux
 install-linux:	
 	printf '#!/usr/bin/env sh\ncd %s\nLD_LIBRARY_PATH=%s ./bin/seaborg' "$(shell pwd)" "$(WSTPLIBDIR)" > /usr/local/bin/seaborg
-	chmod a+x /usr/bin/seaborg
+	chmod a+x /usr/local/bin/seaborg
+
+.PHONY: uninstall-linux
+uninstall-linux: /usr/local/bin/seaborg
+	rm /usr/local/bin/seaborg
 
 .PHONY: clean
 clean:

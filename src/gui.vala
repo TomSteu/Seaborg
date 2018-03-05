@@ -1001,7 +1001,7 @@ namespace Seaborg {
 					if(fn == null)
 						break;
 					
-					GLib.FileUtils.remove("tmp/" + fn);
+					GLib.FileUtils.remove("tmp/*.svg" + fn);
 				}
 			} catch(GLib.FileError err) {}
 
@@ -1508,7 +1508,6 @@ namespace Seaborg {
 			// check if file exists
 			GLib.FileStream? file = GLib.FileStream.open(fn, "r");
 			if(file == null){
-				kernel_msg("Error opening file: " + fn);
 				return;
 			}
 
@@ -1606,7 +1605,7 @@ namespace Seaborg {
 			}
 
 			listener_thread_is_running = true;
-			listener_thread = new GLib.Thread<void*>("seaborg-import", () => {
+			listener_thread = new GLib.Thread<void*>("seaborg-export", () => {
 
 				// wait for fist packet
 				lock(global_stamp) {
@@ -1615,7 +1614,7 @@ namespace Seaborg {
 
 				// something is wrong
 				if(check_connection(kernel_connection) != 1) {
-					kernel_msg("Kernel error importing notebook");
+					kernel_msg("Kernel error exporting notebook");
 					abort_listener_thread();
 					return null;
 				}
@@ -1636,7 +1635,7 @@ namespace Seaborg {
 
 				// something is wrong
 				if(check_connection(kernel_connection) != 1) {
-					kernel_msg("Kernel error importing notebook");
+					kernel_msg("Kernel error exporting notebook");
 					abort_listener_thread();
 					return null;
 				}
@@ -1653,6 +1652,7 @@ namespace Seaborg {
 				}
 				
 				listener_thread_is_running = false;
+				kernel_msg("File exported successfully: " + fn);
 				return null;
 
 			});
@@ -2058,6 +2058,11 @@ namespace Seaborg {
 			main_window.set_default_size(width, height);
 
 			Parameter.kernel_init = "-linkname \"math -wstp -mathlink\"";
+
+			// check if preference file exists at all
+			GLib.FileStream? pref = GLib.FileStream.open("config.xml", "r");
+			if(pref == null)
+				return;
 
 			// parse xml string 
 			Xml.Doc* doc = Xml.Parser.parse_file("config.xml");
