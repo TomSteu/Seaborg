@@ -1,0 +1,4 @@
+*.o
+./bin/*
+./build/src/*.c
+./res/tmp/*
