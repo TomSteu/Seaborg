@@ -688,7 +688,7 @@ namespace Seaborg {
 			// sidebar revealer button
 			sidebar_button = new Gtk.ToggleButton();
 			sidebar_button.always_show_image = true;
-			sidebar_button.set_image(new Gtk.Image.from_icon_name("pane-hide-symbolic", IconSize.BUTTON));
+			sidebar_button.set_image(new Gtk.Image.from_icon_name("emblem-shared-symbolic", IconSize.BUTTON));
 			sidebar_button.active = sidebar_revealer.reveal_child;
 			sidebar_button.toggled.connect(() => {
 
