@@ -117,38 +117,40 @@ namespace Seaborg {
 			return child_cell;
 		}
 
-		protected void update_tree(Gtk.TreeIter? iter = null, ICellContainer container = this) {
+		protected void update_tree() {
 
-			Gtk.TreeIter child_iter;
-			
-			// root node
-			if(iter == null) {
-
-				// make sure only root container updates tree
-				if(parent_cell != null) {
-					parent_cell->update_tree(null, parent_cell);
-					return;
-				}
-				
-				// wipe tree store first
-				tree_model = new Gtk.TreeStore(4, typeof(string), typeof(uint), typeof(string), typeof(ICell));
-				
+			// make sure only root container updates tree
+			if(parent_cell != null) {
+				parent_cell->update_tree();
+				return;
 			}
 
-			for(int i=0; i<container.children_cells.data.length; i++) {
+			Gtk.TreeStore _tree_model = new Gtk.TreeStore(4, typeof(string), typeof(uint), typeof(string), typeof(ICell));
 
-				tree_model.append(out child_iter, iter);
-				tree_model.set(child_iter, 0, container.children_cells.data[i].name, 1, container.children_cells.data[i].get_level(), 2, container.children_cells.data[i].get_tree_title(), 3, container.children_cells.data[i], -1);
+			update_tree_iteratively(null, this, ref _tree_model);
 
-				if(container.children_cells.data[i].get_level() > 0) {
-					update_tree(child_iter, (ICellContainer) container.children_cells.data[i]);
-				}
-			}
+			// update the tree_model - now notify events can trigger
+			tree_model = _tree_model;
 
 			return;
 
 		}
 
+		private void update_tree_iteratively(Gtk.TreeIter? iter, ICellContainer container, ref Gtk.TreeStore _tree_model) {
+
+			Gtk.TreeIter child_iter;
+
+			for(int i=0; i<container.children_cells.data.length; i++) {
+
+				_tree_model.append(out child_iter, iter);
+				_tree_model.set(child_iter, 0, container.children_cells.data[i].name, 1, container.children_cells.data[i].get_level(), 2, container.children_cells.data[i].get_tree_title(), 3, container.children_cells.data[i], -1);
+
+				if(container.children_cells.data[i].get_level() > 0) {
+					update_tree_iteratively(child_iter, (ICellContainer) container.children_cells.data[i], ref _tree_model);
+				}
+			}
+		}
+		
 
 	}
 

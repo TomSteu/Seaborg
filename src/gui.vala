@@ -2239,6 +2239,7 @@ namespace Seaborg {
 
 		}
 
+		// adding notebook to stack
 		private void add_notebook(Seaborg.Notebook* nb, string name, string title) {
 
 			notebook_stack.add_titled(nb, name, title);
