@@ -1604,6 +1604,8 @@ namespace Seaborg {
 				return;
 			}
 
+			string export_string = "Export[\"" + fn + "\", Notebook[{" + list_cells_recursively((Seaborg.ICellContainer)notebook_stack.get_visible_child()) + "}]]";
+
 			listener_thread_is_running = true;
 			listener_thread = new GLib.Thread<void*>("seaborg-export", () => {
 
@@ -1614,12 +1616,9 @@ namespace Seaborg {
 
 				// something is wrong
 				if(check_connection(kernel_connection) != 1) {
-					kernel_msg("Kernel error exporting notebook");
 					abort_listener_thread();
 					return null;
 				}
-
-				string export_string = "Export[\"" + fn + "\", Notebook[{" + list_cells_recursively((Seaborg.ICellContainer)notebook_stack.get_visible_child()) + "}]]";
 
 				current_cell = EvaluationData() {
 					cell = (void*) this,
@@ -1635,7 +1634,6 @@ namespace Seaborg {
 
 				// something is wrong
 				if(check_connection(kernel_connection) != 1) {
-					kernel_msg("Kernel error exporting notebook");
 					abort_listener_thread();
 					return null;
 				}
@@ -1652,7 +1650,6 @@ namespace Seaborg {
 				}
 				
 				listener_thread_is_running = false;
-				kernel_msg("File exported successfully: " + fn);
 				return null;
 
 			});
@@ -1941,7 +1938,6 @@ namespace Seaborg {
 
 				// something is wrong
 				if(check_connection(kernel_connection) != 1) {
-					kernel_msg("Kernel error importing notebook");
 					abort_listener_thread();
 					return null;
 				}
@@ -1950,7 +1946,6 @@ namespace Seaborg {
 				FileStream? import_script = FileStream.open("res/wolfram_scripts/import.m", "r");
 				
 				if(import_script == null) {
-					kernel_msg("Importing notebook failed");
 					abort_listener_thread();
 					return null;
 				}
@@ -1975,7 +1970,6 @@ namespace Seaborg {
 
 				// something is wrong
 				if(check_connection(kernel_connection) != 1) {
-					kernel_msg("Kernel error importing notebook");
 					abort_listener_thread();
 					return null;
 				}
