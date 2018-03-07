@@ -10,7 +10,7 @@ VALAFLAGS= --thread
 
 
 ### Mathematica WSTP (former MathLink) libraries ###
-# if the file is called mathlink rather than wstp, append -DMATHLINK to CFLAGS
+# if the file is called mathlink rather than wstp, append -D MATHLINK to CFLAGS
 
 # directory of WSTP library file
 WSTPLIBDIR=/usr/local/Wolfram/Mathematica/11.2/SystemFiles/Links/WSTP/DeveloperKit/Linux-x86-64/CompilerAdditions/

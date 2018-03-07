@@ -2255,6 +2255,8 @@ namespace Seaborg {
 		// callback to convert mathematica notebook into seaborg notebook
 		private static  callback_str receive_notebook_xml = (_string_to_write, data_ptr, _stamp, _break) => {
 
+			string string_to_write = (string) _string_to_write;
+			EvaluationData* data = (EvaluationData*) data_ptr;
 
 			//append to GLib main loop
 			GLib.Idle.add( () => {
@@ -2272,9 +2274,6 @@ namespace Seaborg {
 
 					// only interested in last package
 					if(_break != 0) {
-
-						string string_to_write = (string) _string_to_write;
-						EvaluationData* data = (EvaluationData*) data_ptr;
 						
 						if(string_to_write == null || data == null)
 							return false;
