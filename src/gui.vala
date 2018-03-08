@@ -1759,8 +1759,8 @@ namespace Seaborg {
 					if(str != "")
 						str += ", ";
 
-					str += "Cell[\"" + ((Seaborg.EvaluationCell) container.children_cells.data[i]).get_text().replace("\n", "").replace("\"", "\\\"") + "\", \"Input\"],";
-					str += "Cell[\"" + ((Seaborg.EvaluationCell) container.children_cells.data[i]).get_output_text().replace("\"", "\\\"")  + "\", \"Output\"]";
+					str += "Cell[BoxData[RowBox[{\"" + ((Seaborg.EvaluationCell) container.children_cells.data[i]).get_text().replace("\"", "\\\"") + "\"}]], \"Input\"],";
+					str += "Cell[BoxData[RowBox[{\"" + ((Seaborg.EvaluationCell) container.children_cells.data[i]).get_output_text().replace("\"", "\\\"")  + "\"}]], \"Output\"]";
 					continue;
 				}
 
