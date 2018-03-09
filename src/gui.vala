@@ -2249,6 +2249,7 @@ namespace Seaborg {
 			nb->cell_focused.connect((widget) => {
 				if(notebook_stack.get_visible_child() != null && ((Seaborg.Notebook) notebook_stack.get_visible_child()).name == nb->name) {
 					int x,y;
+					main_window.check_resize();
 					if(notebook_stack.translate_coordinates(widget, 0, 0, out x, out y)) {
 						// scroll to the cell, but keep a tiny bit space on top
 						notebook_scroll.vadjustment.value = ((double) y).abs() - notebook_scroll.vadjustment.step_increment;
