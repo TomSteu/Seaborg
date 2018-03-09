@@ -1034,8 +1034,9 @@ namespace Seaborg {
 			
 			// last cell was last element within its parent, create new evaluation cell at its end
 			if(last_pos+1 >= last_container.children_cells.data.length) {
-				EvaluationCell* newCell = new EvaluationCell(container);
+				EvaluationCell* newCell = new EvaluationCell(last_container);
 				last_container.add_before(-1, {newCell});
+				main_window.show_all();
 				newCell->focus_cell();
 				return;
 
@@ -2242,6 +2243,16 @@ namespace Seaborg {
 				if(notebook_stack.get_visible_child() != null && ((Seaborg.Notebook) notebook_stack.get_visible_child()).name == nb->name) {
 					notebook_tree.model = nb->tree_model;
 					notebook_tree.expand_all();
+				}
+			});
+
+			nb->cell_focused.connect((widget) => {
+				if(notebook_stack.get_visible_child() != null && ((Seaborg.Notebook) notebook_stack.get_visible_child()).name == nb->name) {
+					int x,y;
+					if(notebook_stack.translate_coordinates(widget, 0, 0, out x, out y)) {
+						// scroll to the cell, but keep a tiny bit space on top
+						notebook_scroll.vadjustment.value = ((double) y).abs() - notebook_scroll.vadjustment.step_increment;
+					}
 				}
 			});
 		}

@@ -39,6 +39,7 @@ namespace Seaborg {
 		public abstract bool do_forward_search(ref bool last_found);
 		public abstract bool do_backward_search(ref bool last_found);
 		public abstract string get_tree_title();
+		public signal void cell_focused(Gtk.Widget widget);
 
 		public bool untoggle_handler(EventButton event) {
 

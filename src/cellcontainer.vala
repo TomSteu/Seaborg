@@ -351,6 +351,13 @@ namespace Seaborg {
 			title.grab_focus();
 			recursive_untoggle_all();
 			toggle_all();
+
+			// emit signal that cell was toggled
+			ICellContainer* par = parent_cell;
+			while(par->parent_cell != null) {
+				par = par->parent_cell;
+			}
+			par->cell_focused(title);
 		}
 
 		public void cell_check_resize() {

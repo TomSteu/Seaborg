@@ -192,9 +192,17 @@ namespace Seaborg {
 		}
 
 		public void focus_cell() {
+			
 			input_cell.grab_focus();
 			recursive_untoggle_all();
 			toggle_all();
+			
+			// emit signal that cell was toggled
+			ICellContainer* par = parent_cell;
+			while(par->parent_cell != null) {
+				par = par->parent_cell;
+			}
+			par->cell_focused(input_cell);
 		}
 
 		public void remove_recursively() {}
