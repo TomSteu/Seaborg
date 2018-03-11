@@ -1321,13 +1321,9 @@ namespace Seaborg {
 				Gtk.ResponseType.ACCEPT
 			);
 			saver.select_multiple = false;
-			if(notebook_stack.get_visible_child_name() == "") {
-				saver.set_filename("~/New notebook.xml");
-			} else {
-				saver.set_filename(notebook_stack.get_visible_child_name());
-			}
 			
-
+			if(notebook_stack.get_visible_child() != null)
+				saver.set_filename(notebook_stack.get_visible_child_name());
 			
 			if(saver.run() == Gtk.ResponseType.ACCEPT ) {
 				GLib.SList<string> filenames = saver.get_filenames();
@@ -1350,6 +1346,11 @@ namespace Seaborg {
 				Gtk.ResponseType.ACCEPT
 			);
 			loader.select_multiple = true;
+
+			Gtk.FileFilter xmlFilter = new Gtk.FileFilter();
+			xmlFilter.set_name("Seaborg Notebook *.xml");
+			xmlFilter.add_pattern("*.xml");
+			loader.add_filter(xmlFilter);
 			
 			if(notebook_stack.get_visible_child != null)
 				loader.set_filename(notebook_stack.get_visible_child_name());
@@ -1378,9 +1379,20 @@ namespace Seaborg {
 			);
 
 			loader.select_multiple = false;
-			if(notebook_stack.get_visible_child != null)
-				loader.set_filename(notebook_stack.get_visible_child_name());
-			
+
+			Gtk.FileFilter nbFilter = new Gtk.FileFilter();
+			nbFilter.set_name("Mathematica Notebook");
+			nbFilter.add_pattern("*.nb");
+			nbFilter.add_pattern("*.cdf");
+			loader.add_filter(nbFilter);
+
+			Gtk.FileFilter mFilter = new Gtk.FileFilter();
+			mFilter.set_name("Plain Text Script");
+			mFilter.add_pattern("*.m");
+			mFilter.add_pattern("*.txt");
+			mFilter.add_pattern("*.wl");
+			mFilter.add_pattern("*.wls");
+			loader.add_filter(mFilter);
 
 			
 			if(loader.run() == Gtk.ResponseType.ACCEPT ) {
