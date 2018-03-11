@@ -313,6 +313,7 @@ namespace Seaborg {
 			}
 
 			output_buffer.insert(ref iter, _text, _text.length);
+			this.check_resize();
 
 			// replace Graphics with pictures
 			if(Parameter.output == Form.INPUTREPLACEGRAPHICS && _text.contains("Graphics")) {
