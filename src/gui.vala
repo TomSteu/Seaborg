@@ -847,10 +847,19 @@ namespace Seaborg {
 			});
 
 			save_action.activate.connect(() => {
-				if(notebook_stack.get_visible_child_name() == "") {
-					save_dialog();
-				} else {
-					save_notebook(notebook_stack.get_visible_child_name());
+				if(notebook_stack.get_visible_child != null) {
+					
+					GLib.FileStream? fs = GLib.FileStream.open(notebook_stack.get_visible_child_name(), "r");
+					
+					if(fs != null) {
+
+						save_notebook(notebook_stack.get_visible_child_name());
+					
+					} else {
+						
+						save_dialog();
+					}
+					
 				}
 			});
 
