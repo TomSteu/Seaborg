@@ -29,9 +29,9 @@ SeaborgNotebookImport[in_String] := Block[
 					HoldComplete[A_] :> ToString[HoldForm[InputForm[A]]],
 					{A___, Cell[B___, CellGroupData[{C___}, D___], E___], F___} :> {A, {C}, F},
 					{D___, Cell[A_], E___} :> {D, Cell[A, "Text"], E},
-					Cell[{A___, B_String, C_String, D___}, E___] :> 
-					Cell[{A, B <> ", " <> C, D}, E],
-					Cell[{A_String}, B___] :> Cell["{" <> A <> "}", B]
+					Cell[{A___, "Null", B___}, C___] :> Cell[{A,B}, C],
+					{a___, Cell[{A_, B___}, C___], b___} :> {a, Cell[A, C], Cell[{B}, C], b},
+					{a___, Cell[{}, A___], b___} :> {a, b}
 				} //. {
 					{Cell[A_, "Title"], B___} :> {SeaborgCellContainer[A, 6, {B}]},
 					{Cell[A_, "Chapter"], B___} :> {SeaborgCellContainer[A, 5, {B}]},
@@ -55,7 +55,9 @@ SeaborgNotebookImport[in_String] := Block[
 			} //. {
 				{E___, SeaborgEvaluationCell[A_, {B___}], SeaborgResultCell[C___], D___} :> {E, SeaborgEvaluationCell[A, {B, C}], D}
 			} //. {
-				SeaborgResultCell[C___]:> {E, SeaborgTextCell[A, {B, C}], D}
+				SeaborgResultCell[C___]:> {E, SeaborgTextCell[A, {B, C}], D},
+				{a___, SeaborgEvaluationCell["Null", A___], b___} :> {a,b},
+				{a___, {}, b___} :> {a,b}
 			} //. {
 				SeaborgTextCell[A_] :> (
 					"<cell type=\"text\"><level>0</level><content>" <> 
