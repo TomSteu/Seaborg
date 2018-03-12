@@ -663,6 +663,32 @@ namespace Seaborg {
 				return true;
 
 			});
+
+			// popup context menu for cells
+			notebook_tree.button_press_event.connect((event) => {
+				if(event.type == Gdk.EventType.BUTTON_PRESS && event.button == 3) {
+					
+					Gtk.TreeSelection selection = notebook_tree.get_selection();
+					
+					if(selection.count_selected_rows() == 1) {
+						Gtk.TreeIter iter;
+						GLib.Value val;
+						Gtk.TreeModel model = notebook_tree.model;
+
+						model.get_iter(out iter, selection.get_selected_rows(out model).data);
+						model.get_value(iter, 3, out val);
+
+						ICell cell = (ICell) val.get_object();
+						if(cell != null) {
+							ContextMenu context = new ContextMenu(cell);
+							context.popup_at_pointer();
+						}
+					}
+				}
+
+				return false;
+			});
+
 			notebook_tree.hexpand = true;
 			notebook_tree.halign = Gtk.Align.FILL;
 			notebook_tree.resize_mode = Gtk.ResizeMode.PARENT;
@@ -856,7 +882,7 @@ namespace Seaborg {
 						save_notebook(notebook_stack.get_visible_child_name());
 					
 					} else {
-						
+
 						save_dialog();
 					}
 					
