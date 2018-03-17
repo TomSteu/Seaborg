@@ -27,7 +27,7 @@ namespace Seaborg {
 		public abstract void remove_recursively();
 		public abstract void add_before(int pos, ICell[] list);
 		public abstract void remove_from(int pos, int number, bool trash);
-		public abstract void focus_cell();
+		public abstract void focus_cell(bool grab_selection = true);
 		public abstract ICellContainer* parent_cell {get; set;}
 		public abstract void set_text(string _text);
 		public abstract string get_text();
@@ -97,8 +97,8 @@ namespace Seaborg {
 		public abstract GLib.Array<AddButton> addbutton_list {get; set;}
 		public abstract double zoom_factor {get; set;}
 		public abstract Gtk.SourceSearchSettings search_settings {get; set;}
-		public abstract void prev_cell(string cell_name);
-		public abstract void next_cell(string cell_name);
+		public abstract void prev_cell(string cell_name, bool grab_selection = true);
+		public abstract void next_cell(string cell_name, bool grab_selection = true);
 		public abstract  Gtk.TreeStore tree_model {get; set;}
 		public ICell* get_child_by_name(string child_name) {
 			ICell* child_cell = null;

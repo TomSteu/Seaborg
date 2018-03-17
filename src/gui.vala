@@ -223,8 +223,22 @@ namespace Seaborg {
 				            "<child>"+
 				              "<object class=\"GtkShortcutsShortcut\">"+
 				                "<property name=\"visible\">1</property>"+
+				                "<property name=\"accelerator\">&lt;ctrl&gt;&lt;shift&gt;Up</property>"+
+				                "<property name=\"title\" translatable=\"yes\">Previous cell, keep selection</property>"+
+				              "</object>"+
+				            "</child>"+
+				            "<child>"+
+				              "<object class=\"GtkShortcutsShortcut\">"+
+				                "<property name=\"visible\">1</property>"+
 				                "<property name=\"accelerator\">&lt;ctrl&gt;Down</property>"+
 				                "<property name=\"title\" translatable=\"yes\">Next cell</property>"+
+				              "</object>"+
+				            "</child>"+
+				            "<child>"+
+				              "<object class=\"GtkShortcutsShortcut\">"+
+				                "<property name=\"visible\">1</property>"+
+				                "<property name=\"accelerator\">&lt;ctrl&gt;&lt;shift&gt;Down</property>"+
+				                "<property name=\"title\" translatable=\"yes\">Next cell, keep selection</property>"+
 				              "</object>"+
 				            "</child>"+
 				          "</object>"+

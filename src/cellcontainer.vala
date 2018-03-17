@@ -347,9 +347,10 @@ namespace Seaborg {
 			}
 		}
 
-		public void focus_cell() {
+		public void focus_cell(bool grab_selection = true) {
 			title.grab_focus();
-			recursive_untoggle_all();
+			if(grab_selection)
+				recursive_untoggle_all();
 			toggle_all();
 
 			// emit signal that cell was toggled
@@ -399,20 +400,22 @@ namespace Seaborg {
 
 			if(key.type == Gdk.EventType.KEY_PRESS && (bool)(key.state & Gdk.ModifierType.CONTROL_MASK)) {
 				
+				bool grab_selection = !(bool)(key.state & Gdk.ModifierType.SHIFT_MASK);
+
 				switch (key.keyval) {
 					case Gdk.Key.Up:
 						if(parent != null)
-							parent_cell->prev_cell(this.name);
+							parent_cell->prev_cell(this.name, grab_selection);
 						break;
 					case Gdk.Key.Down:
 						if(children_cells.data.length > 0) {
 
-							children_cells.data[0].focus_cell();
+							children_cells.data[0].focus_cell(grab_selection);
 						
 						} else {
 			
 							if(parent != null)
-								parent_cell->next_cell(this.name);
+								parent_cell->next_cell(this.name, grab_selection);
 						}
 						break;
 					
@@ -568,7 +571,7 @@ namespace Seaborg {
 			return title_buffer.text;
 		}
 
-		public void next_cell(string _name) {
+		public void next_cell(string _name, bool grab_selection = true) {
 
 			int i;
 			for(i=0; i<children_cells.data.length; i++) {
@@ -577,18 +580,18 @@ namespace Seaborg {
 			}
 
 			if(i+1 < children_cells.data.length) {
-				children_cells.data[i+1].focus_cell();
+				children_cells.data[i+1].focus_cell(grab_selection);
 				return;
 			}
 
 			if(parent_cell != null) {
-				parent_cell->next_cell(this.name);
+				parent_cell->next_cell(this.name, grab_selection);
 			}
 
 			return;
 		}
 
-		public void prev_cell(string _name) {
+		public void prev_cell(string _name, bool grab_selection = true) {
 
 			int i;
 			for(i=0; i<children_cells.data.length; i++) {
@@ -597,11 +600,11 @@ namespace Seaborg {
 			}
 
 			if(i-1 >= 0) {
-				children_cells.data[i-1].focus_cell();
+				children_cells.data[i-1].focus_cell(grab_selection);
 				return;
 			}
 
-			this.focus_cell();
+			this.focus_cell(grab_selection);
 
 			return;
 		}

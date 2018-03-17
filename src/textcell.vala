@@ -92,9 +92,10 @@ namespace Seaborg {
 			return 0;
 		}
 
-		public void focus_cell() {
+		public void focus_cell(bool grab_selection = true) {
 			cell.grab_focus();
-			recursive_untoggle_all();
+			if(grab_selection)
+				recursive_untoggle_all();
 			toggle_all();
 
 			// emit signal that cell was toggled
@@ -259,14 +260,16 @@ namespace Seaborg {
 
 			if(key.type == Gdk.EventType.KEY_PRESS && (bool)(key.state & Gdk.ModifierType.CONTROL_MASK)) {
 				
+				bool grab_selection = !(bool)(key.state & Gdk.ModifierType.SHIFT_MASK);
+
 				switch (key.keyval) {
 					case Gdk.Key.Up:
 						if(parent != null)
-							parent_cell->prev_cell(this.name);
+							parent_cell->prev_cell(this.name, grab_selection);
 						break;
 					case Gdk.Key.Down:
 						if(parent != null)
-							parent_cell->next_cell(this.name);
+							parent_cell->next_cell(this.name, grab_selection);
 						break;
 					
 				}				
