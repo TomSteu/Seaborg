@@ -740,7 +740,7 @@ namespace Seaborg {
 
 			// scroll for notebooks
 			notebook_scroll.add(notebook_stack);
-			notebook_scroll.hscrollbar_policy = Gtk.PolicyType.NEVER;
+			//notebook_scroll.hscrollbar_policy = Gtk.PolicyType.NEVER;
 			// block scrolling on zoom
 			notebook_scroll.scroll_event.connect((scroll) => {
 
@@ -2287,6 +2287,7 @@ namespace Seaborg {
 
 			notebook_stack.add_titled(nb, name, title);
 
+			// update visible treemodel on switch of tabs
 			nb->notify["tree-model"].connect((property, sender) => {
 				if(notebook_stack.get_visible_child() != null && ((Seaborg.Notebook) notebook_stack.get_visible_child()).name == nb->name) {
 					notebook_tree.model = nb->tree_model;
@@ -2294,13 +2295,15 @@ namespace Seaborg {
 				}
 			});
 
+			// jump to cell when focused
 			nb->cell_focused.connect((widget) => {
 				if(notebook_stack.get_visible_child() != null && ((Seaborg.Notebook) notebook_stack.get_visible_child()).name == nb->name) {
 					int x,y;
 					main_window.check_resize();
 					if(notebook_stack.translate_coordinates(widget, 0, 0, out x, out y)) {
 						// scroll to the cell, but keep a tiny bit space on top
-						notebook_scroll.vadjustment.value = ((double) y).abs() - notebook_scroll.vadjustment.step_increment;
+						if(((double) y).abs() > notebook_scroll.vadjustment.value + notebook_scroll.vadjustment.page_size)
+							notebook_scroll.vadjustment.value = ((double) y).abs() - notebook_scroll.vadjustment.step_increment;
 					}
 				}
 			});
