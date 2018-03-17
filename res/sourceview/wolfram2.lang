@@ -62,7 +62,7 @@
 			<keyword>[0-9a-zA-Z]*(?=[\[][^\[])</keyword>
 		</context>
 		<context id="postfix" style-ref="keyword">
-			<match>//[ ]*[0-9a-zA-Z]*</match>
+			<match>//[^\.][ ]*[0-9a-zA-Z]*</match>
 		</context>
 		<context id="prefix" style-ref="keyword">
 			<match>[0-9a-zA-Z]*[ ]*@{1,3}(?!@)</match>

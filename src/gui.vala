@@ -740,6 +740,7 @@ namespace Seaborg {
 
 			// scroll for notebooks
 			notebook_scroll.add(notebook_stack);
+			notebook_scroll.hscrollbar_policy = Gtk.PolicyType.NEVER;
 			// block scrolling on zoom
 			notebook_scroll.scroll_event.connect((scroll) => {
 
