@@ -1,63 +1,41 @@
 SeaborgNotebookImport[in_String] := Block[
-	{SeaborgCellContainer, SeaborgTextCell, SeaborgEvaluationCell, SeaborgResultCell},
-	If[Import[in] === $Failed, Return["$Failed"];];
+	{SeaborgCellContainer, SeaborgContainerCell, SeaborgTextCell, SeaborgEvaluationCell, SeaborgResultCell, Recombine},
+	If[Import[in] === $Failed, Return["$Failed"];];	
+	If[Length[SyntaxInformation[NotebookImport]] == 0, Return["$Failed"];];	
+	Recombine[parts_List] := Block[
+		{},
+		If[parts === {}, Return[Nothing];];
+		If[And @@ (MatchQ[#, {}]& /@ parts), Return[{}];];
+		Return[Join[
+			Flatten[Function[x, TakeWhile[x, (! ListQ[#])& ]] /@ parts],
+			{Recombine[Function[x, SelectFirst[x, ListQ, {}]] /@ parts]},
+			Recombine[Function[x, If[FirstPosition[x, _List, {Length[x]}, 1][[1]] < Length[x], x[[FirstPosition[x, _List, {Length[x]}, 1][[1]] + 1 ;;]], {}]] /@ parts]
+		] //. {a___, {}, b___} :> {a,b}];
+	];
 	Return[
-		"<?xml version=\"1.0\" encoding=\"utf-8\"?>" <>
+		"<?xml version=\"1.0\" encoding=\"utf-8\"?>" <>	
 		"<notebook version=\"1.0\">" <> ToString[
-			Import[in] /. {
-				Notebook[A_List, B___] :> A,
-				 BoxData[A___] :> StripBoxes[A]
-				} //. {
-					Cell[A_, B___, f_[C___], D___] :> Cell[A, B, D] /; (f === Rule),
-					BoxData[A___] :> MakeExpression[A, StandardForm],
-					Cell[HoldComplete[MessageTemplate[A_, B_, C___]], D___] :> 
- 					Cell[ToString[A] <> "::" <> ToString[B], "Output"],
- 					{A___, ErrorBox[B___], C___} :> {A, C},
-					HoldComplete[A_] :> ToString[HoldForm[InputForm[A]]]
-				} //. {
-					TextData[{A___, B_String, C_String, D___}] :> TextData[{A, B <> C, D}],
-					TextData[{A___, Cell[B_String, C___], D___}] :> TextData[{A, B, D}],
-					TextData[{A___, Cell[B_, C___], D___}] :> 
-					TextData[{A,  ToString[HoldForm[InputForm[B]]], D}],
-					TextData[{A___, B_, C___}] :> TextData[{A, C}] /; ! StringQ[B],
-					TextData[{A___}] :> StringJoin[A],
-					OutputFormData[A_, B_] :> A,
-					RawData[A_] :> A /; StringQ[A],
-					RawData[A_] :>  ToString[HoldForm[InputForm[A]]],
-					{A___, Cell[B___, GraphicsData[C___], D___], E___} :> {A, E},
-					{A___, Cell[B___, StyleData[C___], D___], E___} :> {A, E},
-					HoldComplete[A_] :> ToString[HoldForm[InputForm[A]]],
-					{A___, Cell[B___, CellGroupData[{C___}, D___], E___], F___} :> {A, {C}, F},
-					{D___, Cell[A_], E___} :> {D, Cell[A, "Text"], E},
-					Cell[{A___, "Null", B___}, C___] :> Cell[{A,B}, C],
-					{a___, Cell[{A_, B___}, C___], b___} :> {a, Cell[A, C], Cell[{B}, C], b},
-					{a___, Cell[{}, A___], b___} :> {a, b}
-				} //. {
-					{Cell[A_, "Title"], B___} :> {SeaborgCellContainer[A, 6, {B}]},
-					{Cell[A_, "Chapter"], B___} :> {SeaborgCellContainer[A, 5, {B}]},
-					{Cell[A_, "Subchapter"], B___} :> {SeaborgCellContainer[A, 4, {B}]},
-					{Cell[A_, "Section"], B___} :> {SeaborgCellContainer[A, 3, {B}]},
-					{Cell[A_, "Subsection"], B___} :> {SeaborgCellContainer[A, 2, {B}]},
-					{Cell[A_, "Subsubsection"], B___} :> {SeaborgCellContainer[A, 1, {B}]},
-					Cell[A_, "Text"] :> SeaborgTextCell[A],
-					Cell[A_, "Input"] :> SeaborgEvaluationCell[A, {}],
-					Cell[A_, "Code"] :> SeaborgEvaluationCell[A, {}],
-					Cell[A_, "Output"] :> SeaborgResultCell[A],
-					Cell[A_, "Print"] :> SeaborgResultCell[A],
-					Cell[A_String, B___] :> SeaborgTextCell[A],
-					Cell[A_, B___] :> SeaborgTextCell[ToString[HoldForm[InputForm[A]]]]
-				} //. {
-				{A___,F_[E___], B___,{C___}, D___} :>{A, F[E], B, C, D} /; (F === SeaborgEvaluationCell || F === SeaborgResultCell || F === SeaborgTextCell || F === SeaborgCellContainer),
-				{A___,{C___}, B___, F_[E___]  D___} :>{A, C, B, F[E], D} /; (F === SeaborgEvaluationCell || F === SeaborgResultCell || F === SeaborgTextCell || F === SeaborgCellContainer)
+		Recombine[{
+				UsingFrontEnd[NotebookImport[in, "Title" -> "Text", "FlattenCellGroups" -> False] /. s_String :> SeaborgContainerCell[s, 6]],
+				UsingFrontEnd[NotebookImport[in, "Chapter" -> "Text", "FlattenCellGroups" -> False] /. s_String :> SeaborgContainerCell[s, 5]],
+				UsingFrontEnd[NotebookImport[in, "Subchapter" -> "Text", "FlattenCellGroups" -> False] /. s_String :> SeaborgContainerCell[s, 4]],
+				UsingFrontEnd[NotebookImport[in, "Section" -> "Text", "FlattenCellGroups" -> False] /. s_String :> SeaborgContainerCell[s, 3]],
+				UsingFrontEnd[NotebookImport[in, "Subsection" -> "Text", "FlattenCellGroups" -> False] /. s_String :> SeaborgContainerCell[s, 2]],
+				UsingFrontEnd[NotebookImport[in, "Subsubsection" -> "Text", "FlattenCellGroups" -> False] /. s_String :> SeaborgContainerCell[s, 1]],
+				UsingFrontEnd[NotebookImport[in, "Text" -> "Text", "FlattenCellGroups" -> False] /. s_String :> SeaborgTextCell[s]],
+				UsingFrontEnd[NotebookImport[in, "Code" -> "Text", "FlattenCellGroups" -> False] /. s_String :> SeaborgEvaluationCell[s, {}]],	
+				UsingFrontEnd[NotebookImport[in, "Input" -> "Text", "FlattenCellGroups" -> False] /. s_String :> SeaborgEvaluationCell[s, {}]],
+				UsingFrontEnd[NotebookImport[in, "Message" -> "Text", "FlattenCellGroups" -> False] /. s_String :> SeaborgResultCell[s]],
+				UsingFrontEnd[NotebookImport[in, "Print" -> "Text", "FlattenCellGroups" -> False] /. s_String :> SeaborgResultCell[s]],
+				UsingFrontEnd[NotebookImport[in, "Output" -> "Text", "FlattenCellGroups" -> False] /. s_String :> SeaborgResultCell[s]]
+			}] //. {
+				{SeaborgContainerCell[s_, l_], c___} :> SeaborgCellContainer[s, l, {c}],
+				{SeaborgEvaluationCell[s_, {c___}], SeaborgResultCell[t_], r___} :> {SeaborgEvaluationCell[s, {c, t}], r}
+			} //. {	
+				SeaborgResultCell[s_] :> SeaborgTextCell[s],
+				SeaborgContainerCell[s_, l_] :> SeaborgCellContainer[s, l, {}]
 			} //. {
-				{A___, B_[C___], D___, E_[F___], G___} :> {A, B[C], D, G} /; ((B === SeaborgEvaluationCell || B === SeaborgResultCell || B === SeaborgTextCell || B === SeaborgCellContainer) && ! (E === SeaborgEvaluationCell || E === SeaborgResultCell || E === SeaborgTextCell || E === SeaborgCellContainer)),
-				{A___, E_[F___], D___, B_[C___] , G___} :> {A, D, B[C], G} /; ((B === SeaborgEvaluationCell || B === SeaborgResultCell || B === SeaborgTextCell || B === SeaborgCellContainer) && ! (E === SeaborgEvaluationCell || E === SeaborgResultCell || E === SeaborgTextCell || E === SeaborgCellContainer))
-			} //. {
-				{E___, SeaborgEvaluationCell[A_, {B___}], SeaborgResultCell[C___], D___} :> {E, SeaborgEvaluationCell[A, {B, C}], D}
-			} //. {
-				SeaborgResultCell[C___]:> {E, SeaborgTextCell[A, {B, C}], D},
-				{a___, SeaborgEvaluationCell["Null", A___], b___} :> {a,b},
-				{a___, {}, b___} :> {a,b}
+				{a___, {b___}, c___} :> {a, b, c}
 			} //. {
 				SeaborgTextCell[A_] :> (
 					"<cell type=\"text\"><level>0</level><content>" <> 
@@ -68,16 +46,16 @@ SeaborgNotebookImport[in_String] := Block[
 					"<cell type=\"evaluation\"><level>0</level><content>" <> 
 					StringReplace[A, {"\n" -> "$NEWLINE", "<" -> "$BRA", ">" -> "$KET", "&" -> "$AMPERSAND"}] <>
 					"</content><results>" <>
-					StringJoin @@ (("<result type=\"text\">" <> StringReplace[#, {"\n" -> "$NEWLINE", "<" -> "$BRA", ">" -> "$KET", "&" -> "$AMPERSAND"}] <> "</result>")& /@ {B}) <> 
-					"</results><children></children></cell>"
+					StringJoin @@ (("<result type=\"text\">" <> StringReplace[#, {"\n" -> "$NEWLINE", "<" -> "$BRA", ">" -> "$KET", "&" -> "$AMPERSAND"}] <> "</result>")& /@ {B}) <>
+ 					"</results><children></children></cell>"
 				)
-			} //. {
+			} //. {	
 				SeaborgCellContainer[A_, B_, {C___}] :> (
 					{"<cell type=\"container\"><level>"<> ToString[B] <>"</level><content>" <> 
 					StringReplace[A, {"\n" -> "$NEWLINE", "<" -> "$BRA", ">" -> "$KET", "&" -> "$AMPERSAND"}] <>
 					"</content><results></results><children>", C , "</children></cell>"}
 				)
-			} //. {
+			} //. {	
 				List -> StringJoin
 			}
 		] <> 
