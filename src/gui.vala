@@ -549,7 +549,7 @@ namespace Seaborg {
 				if(key.type == Gdk.EventType.KEY_PRESS && key.keyval == Gdk.Key.Escape)
 					preferences_window.hide();
 
-				return true;
+				return false;
 			});
 
 			// button to close window
@@ -557,67 +557,134 @@ namespace Seaborg {
 			pref_ok_button.clicked.connect(() => { preferences_window.hide(); });
 
 			// contents of the preferences window
+			Gtk.Grid pref_body = new Gtk.Grid();
+			pref_body.halign = Gtk.Align.CENTER;
+			pref_body.valign = Gtk.Align.CENTER;
+			pref_body.column_spacing = 8;
+			pref_body.row_spacing = 16;
 
-			Gtk.Grid pref_body_grid = new Gtk.Grid();
-			pref_body_grid.column_spacing = 32;
-			pref_body_grid.row_spacing = 8;
-			pref_body_grid.row_homogeneous = true;
-			pref_body_grid.halign = Gtk.Align.CENTER;
-			pref_body_grid.valign = Gtk.Align.START;
-			pref_body_grid.get_style_context().add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
-			pref_body_grid.get_style_context().add_class("pref-grid");
-			
+			// heading for kernel options
 			Gtk.Label kernel_heading = new Gtk.Label("Kernel");
 			kernel_heading.get_style_context().add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 			kernel_heading.get_style_context().add_class("pref-heading");
 			kernel_heading.halign = Gtk.Align.START;
 
+			// text field for kernel string
 			init_entry = new Gtk.Entry();
-			init_entry.set_width_chars(32);
+			init_entry.set_width_chars(28);
 			init_entry.text = Parameter.kernel_init;
+			init_entry.editable = true;
 			init_entry.changed.connect(() => { Parameter.kernel_init = init_entry.get_text(); });
+			
+			// box for kernel init string
+			Gtk.Box init_box = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 0);
+			Gtk.Label init_string_label = new Gtk.Label("   Initialization String:      ");
+			init_string_label.halign = Gtk.Align.START;
+			init_box.pack_start(init_string_label);
+			init_box.pack_end(init_entry);
+			Gtk.ListBoxRow init_row = new Gtk.ListBoxRow();
+			init_row.activatable = false;
+			init_row.selectable = false;
+			init_row.add(init_box);
 
+			// list box to hold all kernel options
+			Gtk.ListBox kernel_box = new Gtk.ListBox();
+			kernel_box.selection_mode = Gtk.SelectionMode.NONE;
+			kernel_box.add(init_row);
+
+			// heading for appearence options
 			Gtk.Label appearence_heading = new Gtk.Label("Appearence");
 			appearence_heading.get_style_context().add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 			appearence_heading.get_style_context().add_class("pref-heading");
 			appearence_heading.halign = Gtk.Align.START;
 
-			dark_theme_pref = new Gtk.CheckButton.with_label(" prefer dark theme variant");
-			dark_theme_pref.halign = Gtk.Align.START;
+			// switch for the dark theme preference
+			dark_theme_pref = new Gtk.Switch();
+			dark_theme_pref.halign = Gtk.Align.CENTER;
 			dark_theme_pref.active = Parameter.dark_theme;
-			dark_theme_pref.toggled.connect(() => { Parameter.dark_theme = dark_theme_pref.active; });
+			dark_theme_pref.notify["active"].connect((property, sender) => { Parameter.dark_theme = dark_theme_pref.active; });
 
+			// box for the dark theme preference
+			Gtk.Label dark_theme_label = new Gtk.Label("   Prefer dark theme   ");
+			dark_theme_label.halign = Gtk.Align.START;
+			dark_theme_label.hexpand = true;
+			Gtk.Box dark_theme_box = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 0);
+			dark_theme_box.pack_start(dark_theme_label);
+			dark_theme_box.pack_end(dark_theme_pref);
+			Gtk.ListBoxRow dark_theme_row = new Gtk.ListBoxRow();
+			dark_theme_row.activatable = false;
+			dark_theme_row.selectable = false;
+			dark_theme_row.add(dark_theme_box);
+
+			// list box to hold all appearence options
+			Gtk.ListBox appearence_box = new Gtk.ListBox();
+			appearence_box.selection_mode = Gtk.SelectionMode.NONE;
+			appearence_box.add(dark_theme_row);
+
+			// code highlighting heading
 			Gtk.Label highlighting_heading = new Gtk.Label("Code highlighting");
 			highlighting_heading.get_style_context().add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 			highlighting_heading.get_style_context().add_class("pref-heading");
 			highlighting_heading.halign = Gtk.Align.START;
 
+			// radio buttons for syntax highlighting
 			highlight_none_button = new Gtk.RadioButton.with_label_from_widget(null, "None");
 			highlight_nostdlib_button = new Gtk.RadioButton.with_label_from_widget(highlight_none_button, "Syntax only (recommended)");
 			highlight_full_button = new Gtk.RadioButton.with_label_from_widget(highlight_none_button, "Full");
-			
 			highlight_none_button.active = (Parameter.code_highlighting == Highlighting.NONE);
 			highlight_nostdlib_button.active = (Parameter.code_highlighting == Highlighting.NOSTDLIB);
 			highlight_full_button.active = (Parameter.code_highlighting == Highlighting.FULL);
-
 			highlight_none_button.toggled.connect(() => { Parameter.code_highlighting = Highlighting.NONE; });
 			highlight_nostdlib_button.toggled.connect(() => { Parameter.code_highlighting = Highlighting.NOSTDLIB; });
 			highlight_full_button.toggled.connect(() => { Parameter.code_highlighting = Highlighting.FULL; });
 
+			// boxes for syntax highlighting preference
+			Gtk.ListBoxRow highlighting_none_row = new Gtk.ListBoxRow();
+			highlighting_none_row.activatable = false;
+			highlighting_none_row.selectable = false;
+			highlighting_none_row.add(highlight_none_button);
+			Gtk.ListBoxRow highlighting_nostdlib_row = new Gtk.ListBoxRow();
+			highlighting_nostdlib_row.activatable = false;
+			highlighting_nostdlib_row.selectable = false;
+			highlighting_nostdlib_row.add(highlight_nostdlib_button);
+			Gtk.ListBoxRow highlighting_full_row = new Gtk.ListBoxRow();
+			highlighting_full_row.activatable = false;
+			highlighting_full_row.selectable = false;
+			highlighting_full_row.add(highlight_full_button);
 
-			pref_body_grid.attach(kernel_heading, 0, 0, 3, 1);
-			pref_body_grid.attach(new Gtk.Label("Initialization string: "), 1, 1, 1, 1);
-			pref_body_grid.attach(init_entry, 2, 1, 1, 1);
-			pref_body_grid.attach(appearence_heading, 0, 3, 3, 1);
-			pref_body_grid.attach(dark_theme_pref, 1, 4, 2, 1);
-			pref_body_grid.attach(highlighting_heading, 0, 6, 3, 1);
-			pref_body_grid.attach(highlight_none_button, 1, 7, 1, 1);
-			pref_body_grid.attach(highlight_nostdlib_button, 1, 8, 1, 1);
-			pref_body_grid.attach(highlight_full_button, 1, 9, 1, 1);
+			// list box to hold all syntax highlighting options
+			Gtk.ListBox highlighting_box = new Gtk.ListBox();
+			highlighting_box.selection_mode = Gtk.SelectionMode.NONE;
+			highlighting_box.add(highlighting_none_row);
+			highlighting_box.add(highlighting_nostdlib_row);
+			highlighting_box.add(highlighting_full_row);
+
+			// phantom boxes to stabilize the layout
+			Gtk.Grid l_grid = new Gtk.Grid();
+			l_grid.hexpand = true;
+			Gtk.Grid r_grid = new Gtk.Grid();
+			r_grid.hexpand = true;
+			Gtk.Grid t_grid = new Gtk.Grid();
+			t_grid.hexpand = true;
+			t_grid.vexpand = true;
+			Gtk.Grid b_grid = new Gtk.Grid();
+			b_grid.hexpand = true;
+			b_grid.vexpand = true;
+
+			pref_body.attach(t_grid, 0, 0, 3, 1);
+			pref_body.attach(l_grid, 0, 1, 1, 6);
+			pref_body.attach(kernel_heading, 1, 1, 1, 1);
+			pref_body.attach(kernel_box, 1, 2, 1, 1);
+			pref_body.attach(appearence_heading, 1, 3, 1, 1);
+			pref_body.attach(appearence_box, 1, 4, 1, 1);
+			pref_body.attach(highlighting_heading, 1, 5, 1, 1);
+			pref_body.attach(highlighting_box, 1, 6, 1, 1);
+			pref_body.attach(r_grid , 2, 1, 1, 6);
+			pref_body.attach(b_grid, 0, 7, 3, 1);
 
 			// scrollbar for preferences window
 			Gtk.ScrolledWindow pref_scroll = new Gtk.ScrolledWindow(null, null);
-			pref_scroll.add(pref_body_grid);
+			pref_scroll.add(pref_body);
 			pref_scroll.show_all();
 			
 			//header of preferences window
@@ -628,7 +695,7 @@ namespace Seaborg {
 			preferences_header.show_all();
 			
 			preferences_window.set_titlebar(preferences_header);
-			preferences_window.set_default_size(800, 600);
+			preferences_window.set_default_size(800, 400);
 			preferences_window.add(pref_scroll);
 			if(main_icon_handle != null)
 				preferences_window.icon = main_icon_handle.get_pixbuf();
@@ -2508,7 +2575,7 @@ namespace Seaborg {
 		private Gtk.RadioButton svg_button;
 		private Gtk.Window preferences_window;
 		private Gtk.Entry init_entry;
-		private Gtk.CheckButton dark_theme_pref;
+		private Gtk.Switch dark_theme_pref;
 		private Gtk.RadioButton highlight_none_button;
 		private Gtk.RadioButton highlight_nostdlib_button;
 		private Gtk.RadioButton highlight_full_button;
