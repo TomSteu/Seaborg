@@ -118,6 +118,20 @@ namespace Seaborg {
 			return child_cell;
 		}
 
+		public void marker_selection_recursively(bool status) {
+			
+			marker_selected = status;
+
+			for(int i=0; i<children_cells.data.length; i++) {
+				
+				children_cells.data[i].marker_selected = status;
+				
+				if(children_cells.data[i] is ICellContainer) {
+					(children_cells.data[i] as ICellContainer).marker_selection_recursively(status);
+				}
+			}
+		}
+
 		protected void update_tree() {
 
 			// make sure only root container updates tree

@@ -162,14 +162,21 @@ namespace Seaborg {
 				              "<object class=\"GtkShortcutsShortcut\">"+
 				                "<property name=\"visible\">1</property>"+
 				                "<property name=\"accelerator\">&lt;ctrl&gt;I</property>"+
-				                "<property name=\"title\" translatable=\"yes\">Import Mathematica notebook</property>"+
+				                "<property name=\"title\" translatable=\"yes\">Import notebook</property>"+
 				              "</object>"+
 				            "</child>"+
 				            "<child>"+
 				              "<object class=\"GtkShortcutsShortcut\">"+
 				                "<property name=\"visible\">1</property>"+
 				                "<property name=\"accelerator\">&lt;ctrl&gt;E</property>"+
-				                "<property name=\"title\" translatable=\"yes\">Export Mathematica notebook</property>"+
+				                "<property name=\"title\" translatable=\"yes\">Export notebook</property>"+
+				              "</object>"+
+				            "</child>"+
+				            "<child>"+
+				              "<object class=\"GtkShortcutsShortcut\">"+
+				                "<property name=\"visible\">1</property>"+
+				                "<property name=\"accelerator\">&lt;ctrl&gt;Escape</property>"+
+				                "<property name=\"title\" translatable=\"yes\">Select/Unselect notebook</property>"+
 				              "</object>"+
 				            "</child>"+
 				            "<child>"+
@@ -945,6 +952,7 @@ namespace Seaborg {
 			var zoom_out_action = new GLib.SimpleAction("zoomout", null);
 			var find_action = new GLib.SimpleAction("find", null);
 			var pref_action = new GLib.SimpleAction("pref", null);
+			var sel_action = new GLib.SimpleAction("sel", null);
 
 			new_action.activate.connect(() => {
 				new_notebook();
@@ -1049,6 +1057,18 @@ namespace Seaborg {
 
 			});
 
+			sel_action.activate.connect(() => {
+				if(notebook_stack.get_visible_child() != null) {
+					if(!((Seaborg.Notebook) notebook_stack.visible_child).marker_selected) {
+						((Seaborg.Notebook) notebook_stack.visible_child).marker_selected = true;
+						return;
+					} else {
+						((Seaborg.Notebook) notebook_stack.visible_child).marker_selection_recursively(false);
+						sidebar_button.grab_focus();
+					}
+				}
+			});
+
 
 			this.add_action(new_action);
 			this.add_action(open_action);
@@ -1065,6 +1085,7 @@ namespace Seaborg {
 			this.add_action(zoom_out_action);
 			this.add_action(find_action);
 			this.add_action(pref_action);
+			this.add_action(sel_action);
 
 
 			const string[] new_accels = {"<Control>N", null};
@@ -1083,6 +1104,7 @@ namespace Seaborg {
 			const string[] zoom_out_accels = {"<Control>minus", "<Control>ZoomOut", "<Control>KP_Subtract", null};
 			const string[] find_accels = {"<Control>F", null};
 			const string[] pref_accels = {"<Control>P", null};
+			const string[] sel_accels = {"<Control>Escape", null};
 
 			this.set_accels_for_action("app.new", new_accels);
 			this.set_accels_for_action("app.open", open_accels);
@@ -1100,6 +1122,7 @@ namespace Seaborg {
 			this.set_accels_for_action("app.zoomout", zoom_out_accels);
 			this.set_accels_for_action("app.find", find_accels);
 			this.set_accels_for_action("app.pref", pref_accels);
+			this.set_accels_for_action("app.sel", sel_accels);
 
 
 
