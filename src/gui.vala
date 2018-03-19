@@ -1138,9 +1138,10 @@ namespace Seaborg {
 			
 			ICellContainer? last_container = null;
 			int last_pos = -1;
+			bool select_all = false;
 
 			// queue all selected evaluation cells
-			schedule_evaluation_recursively(container, ref last_container, ref last_pos);
+			schedule_evaluation_recursively(container, ref last_container, ref last_pos, ref select_all);
 
 			// start the evaluation thread if necessary
 			start_evalutation_thread();
@@ -1166,21 +1167,23 @@ namespace Seaborg {
 		}
 
 		// recursive function to queue all selected cells in 'container' for evaluation, keeps a reference for the parent and child number of the last selected cell
-		private void schedule_evaluation_recursively(ICellContainer container, ref ICellContainer? last_container, ref int last_pos) {
+		private void schedule_evaluation_recursively(ICellContainer container, ref ICellContainer? last_container, ref int last_pos, ref bool select_all) {
 			
 			EvaluationCell eva;
+			if(! select_all && container.marker_selected)
+				select_all = true;
 
 			// add evalutation cells to be evaluated
 			for(int i=0; i<container.children_cells.data.length; i++) {
 				
 				// schedule cell container children
 				if(container.children_cells.data[i] is ICellContainer) {
-					schedule_evaluation_recursively((ICellContainer) container.children_cells.data[i], ref last_container, ref last_pos);
+					schedule_evaluation_recursively((ICellContainer) container.children_cells.data[i], ref last_container, ref last_pos, ref select_all);
 					continue;
 				}
 
 				// cell is not a container and selected
-				if(container.children_cells.data[i].marker_selected && container.children_cells.data[i].get_level() == 0 ) {
+				if((container.children_cells.data[i].marker_selected || select_all) && container.children_cells.data[i].get_level() == 0 ) {
 					last_container = container;
 					last_pos = i;
 
