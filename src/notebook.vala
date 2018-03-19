@@ -11,6 +11,8 @@ namespace Seaborg {
 			children_cells = new GLib.Array<ICell>();
 			addbutton_list = new GLib.Array<AddButton>();
 			
+			hexpand = true;
+			halign = Gtk.Align.FILL;
 			column_spacing = 4;
 			row_spacing = 4;
 			css = new CssProvider();
@@ -57,7 +59,7 @@ namespace Seaborg {
 		public void remove_recursively() {
 			int i;
 			for(i=(int)(children_cells.length)-1; i >= 0; i--) {
-				if(children_cells.data[i].marker_selected && (! children_cells.data[i].lock)) {
+				if((children_cells.data[i].marker_selected || this.marker_selected) && (! children_cells.data[i].lock)) {
 					remove_from(i,1,true);
 				}
 			}

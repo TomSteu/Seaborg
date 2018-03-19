@@ -991,21 +991,22 @@ namespace Seaborg {
 
 				Gtk.Widget? child = notebook_stack.get_visible_child();
 
-				if(child != null) {
-					notebook_stack.remove_by_name(notebook_stack.get_visible_child_name());
-				}
-
+				if(child == null)
+					return;
+				
+				notebook_stack.remove_by_name(notebook_stack.get_visible_child_name());
 				delete ((Seaborg.Notebook*) child);
 				
 			});
 
 			remove_action.activate.connect(() => {
-				((Seaborg.Notebook)notebook_stack.get_visible_child()).remove_recursively();
+				if(notebook_stack.get_visible_child() != null)
+					((Seaborg.Notebook)notebook_stack.get_visible_child()).remove_recursively();
 			});
 
 			eval_action.activate.connect(() => {
-
-				schedule_evaluation((Seaborg.Notebook)notebook_stack.get_visible_child());
+				if(notebook_stack.get_visible_child() != null)
+					schedule_evaluation((Seaborg.Notebook)notebook_stack.get_visible_child());
 
 			});
 

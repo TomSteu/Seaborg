@@ -9,6 +9,9 @@ namespace Seaborg {
 		public EvaluationCell(ICellContainer* par) {
 			this.name = IdGenerator.get_id();
 			parent_cell = par;
+
+			hexpand = true;
+			halign = Gtk.Align.FILL;
 			column_spacing = 4;
 			css = new CssProvider();
 			font_provider = new CssProvider();

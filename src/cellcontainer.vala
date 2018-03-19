@@ -10,6 +10,9 @@ namespace Seaborg {
 			parent_cell = parent;
 			children_cells = new GLib.Array<ICell>();
 			addbutton_list = new GLib.Array<AddButton>();
+			
+			hexpand = true;
+			halign = Gtk.Align.FILL;
 			column_spacing = 4;
 			row_spacing = 4;
 			zoom_factor = parent_cell->zoom_factor;
