@@ -609,6 +609,7 @@ namespace Seaborg {
 
 
 		public ICellContainer* parent_cell {get; set;}
+		public bool cell_expanded { get { return isExpanded; } }
 		private Gtk.SourceView input_cell;
 		private Gtk.SourceBuffer input_buffer;
 		private Gtk.SourceView output_cell;

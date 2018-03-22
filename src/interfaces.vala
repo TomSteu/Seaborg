@@ -23,6 +23,7 @@ namespace Seaborg {
 		public abstract void expand_all();
 		public abstract void collapse_all();
 		public abstract bool marker_selected {get; set;}
+		public abstract bool cell_expanded {get;}
 		public abstract uint get_level();
 		public abstract void remove_recursively();
 		public abstract void add_before(int pos, ICell[] list);
@@ -118,6 +119,7 @@ namespace Seaborg {
 			return child_cell;
 		}
 
+
 		public void marker_selection_recursively(bool status) {
 			
 			marker_selected = status;
@@ -131,6 +133,97 @@ namespace Seaborg {
 				}
 			}
 		}
+
+
+		public bool apply_to_children(cell_func func) {
+
+			for(int i=0; i<children_cells.data.length; i++) {
+				
+				if(! func(children_cells.data[i]))
+					return false;
+				
+				if(children_cells.data[i].get_level() > 0) {
+					if(! ((ICellContainer) children_cells.data[i]).apply_to_children(func))
+						return false;
+				}
+			}
+
+			return true;
+		}
+
+
+		public void collapse_children(bool collapse_selected, bool collapse_self) {
+			if(collapse_self) {
+				if(collapse_selected) {
+					if(marker_selected) {
+						collapse_all();
+						return;
+					}
+				} else {
+					collapse_all();
+					return;
+				}
+			}
+
+			for(int i=0; i<children_cells.data.length; i++) {
+				if(children_cells.data[i].get_level() > 0) {
+					((ICellContainer) children_cells.data[i]).collapse_children(collapse_selected, true);
+					continue;
+				}
+				if(!collapse_selected || children_cells.data[i].marker_selected) {
+					children_cells.data[i].collapse_all();
+				}
+			}
+		}
+
+
+		public void expand_children(bool expand_selected) {
+
+			if( expand_selected) {
+				if(marker_selected) {
+					expand_children(false);
+					return;
+				} else {
+					if(!cell_expanded)
+						return;
+				}
+			}
+
+			expand_all();
+
+			for(int i=0; i<children_cells.data.length; i++) {
+				if(children_cells.data[i].get_level() > 0) {
+					((ICellContainer) children_cells.data[i]).expand_children(expand_selected);
+					continue;
+				}
+				if(!expand_selected || children_cells.data[i].marker_selected) {
+					children_cells.data[i].expand_all();
+				}
+			}
+		}
+
+
+		public ICell? first_selected_child() {
+			
+			ICell? cell = null; 
+			
+			for(int i=0; i<children_cells.data.length; i++) {
+				
+				if(children_cells.data[i].marker_selected) {
+					cell = children_cells.data[i];
+					break;
+				}
+
+				if(children_cells.data[i].get_level() > 0) {
+					cell = ((ICellContainer)children_cells.data[i]).first_selected_child();
+					if(cell != null)
+						break;
+				}
+			}
+
+			return cell;
+		}
+
 
 		protected void update_tree() {
 
@@ -150,6 +243,7 @@ namespace Seaborg {
 			return;
 
 		}
+		
 
 		private void update_tree_iteratively(Gtk.TreeIter? iter, ICellContainer container, ref Gtk.TreeStore _tree_model) {
 
@@ -168,5 +262,7 @@ namespace Seaborg {
 		
 
 	}
+
+	public delegate bool cell_func(ICell cell);
 
 }

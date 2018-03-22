@@ -274,6 +274,7 @@ namespace Seaborg {
 		public GLib.Array<AddButton> addbutton_list {get; set;}
 		public ICellContainer* parent_cell {get; set;}
 		public double zoom_factor {get; set;}
+		public bool cell_expanded { get { return true; } }
 		public Gtk.TreeStore tree_model {get; set;}
 		public Gtk.SourceSearchSettings search_settings {get; set;}
 		private uint level;

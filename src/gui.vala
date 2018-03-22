@@ -248,6 +248,13 @@ namespace Seaborg {
 				                "<property name=\"title\" translatable=\"yes\">Next cell, keep selection</property>"+
 				              "</object>"+
 				            "</child>"+
+				            "<child>"+
+				              "<object class=\"GtkShortcutsShortcut\">"+
+				                "<property name=\"visible\">1</property>"+
+				                "<property name=\"accelerator\">&lt;ctrl&gt;T</property>"+
+				                "<property name=\"title\" translatable=\"yes\">Expand/Collapse cells</property>"+
+				              "</object>"+
+				            "</child>"+
 				          "</object>"+
 				        "</child>"+
 				      "</object>"+
@@ -953,6 +960,7 @@ namespace Seaborg {
 			var find_action = new GLib.SimpleAction("find", null);
 			var pref_action = new GLib.SimpleAction("pref", null);
 			var sel_action = new GLib.SimpleAction("sel", null);
+			var expand_action = new GLib.SimpleAction("expand", null);
 
 			new_action.activate.connect(() => {
 				new_notebook();
@@ -1069,6 +1077,34 @@ namespace Seaborg {
 				}
 			});
 
+			expand_action.activate.connect(() => {
+				
+				Seaborg.Notebook nb = (Seaborg.Notebook) notebook_stack.visible_child;
+				
+				if(nb != null) {
+					
+					ICell first_cell = nb.first_selected_child();
+					
+					// there is a cell selected
+					if(first_cell == null) {
+						
+						// notebook is empty 
+						if(nb.children_cells.data.length <= 0)
+							return; 
+								
+						// grab the first cell in the notebook to decide if expanding or collapsing
+						first_cell = nb.children_cells.data[0];
+					}
+
+					// the first selected cell is not the notebook itself - use it to determine expand or collapse
+					if(first_cell.cell_expanded) {
+						((Seaborg.Notebook) notebook_stack.visible_child).collapse_children(! nb.marker_selected, false);
+					} else {
+						((Seaborg.Notebook) notebook_stack.visible_child).expand_children(! nb.marker_selected);
+					}				
+				}
+			});
+
 
 			this.add_action(new_action);
 			this.add_action(open_action);
@@ -1086,6 +1122,7 @@ namespace Seaborg {
 			this.add_action(find_action);
 			this.add_action(pref_action);
 			this.add_action(sel_action);
+			this.add_action(expand_action);
 
 
 			const string[] new_accels = {"<Control>N", null};
@@ -1105,6 +1142,7 @@ namespace Seaborg {
 			const string[] find_accels = {"<Control>F", null};
 			const string[] pref_accels = {"<Control>P", null};
 			const string[] sel_accels = {"<Control>Escape", null};
+			const string[] expand_accels = {"<Control>T", null};
 
 			this.set_accels_for_action("app.new", new_accels);
 			this.set_accels_for_action("app.open", open_accels);
@@ -1123,6 +1161,7 @@ namespace Seaborg {
 			this.set_accels_for_action("app.find", find_accels);
 			this.set_accels_for_action("app.pref", pref_accels);
 			this.set_accels_for_action("app.sel", sel_accels);
+			this.set_accels_for_action("app.expand", expand_accels);
 
 
 

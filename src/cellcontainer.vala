@@ -279,6 +279,8 @@ namespace Seaborg {
 
 				for(int i=0; i<=2*children_cells.data.length; i++)
 					remove_row(1);
+				for(int j=0; j<children_cells.data.length; j++)
+					children_cells.data[j].marker_selected = false;
 				isExpanded = false;
 				show_all();
 			}
@@ -617,6 +619,7 @@ namespace Seaborg {
 		public GLib.Array<AddButton> addbutton_list {get; set;}
 		public ICellContainer* parent_cell {get; set;}
 		public double zoom_factor {get; set;}
+		public bool cell_expanded { get { return isExpanded; } }
 		public Gtk.SourceSearchSettings search_settings {get; set;}
 		public Gtk.TreeStore tree_model {get; set;}
 		private Gtk.SourceSearchContext search_context;

@@ -293,6 +293,7 @@ namespace Seaborg {
 			return "Text Cell";
 		}
 
+		public bool cell_expanded { get { return true; } }
 		private Gtk.SourceView cell;
 		private Gtk.SourceBuffer cell_buffer;
 		private Gtk.SourceSearchContext search_context;
