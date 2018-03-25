@@ -39,8 +39,8 @@
 			<end>(?=[^0-9a-zA-Z])</end>
 		</context>
 		<context id="string" style-ref="string" end-at-line-end="true">
-			<start>L?"</start>
-			<end>"</end>
+			<start>"</start>
+			<end>[^\\]"</end>
 		</context>
 		<context id="error" style-ref="error">
 			<keyword>[0-9a-zA-Z]*::[0-9a-zA-Z]*</keyword>
