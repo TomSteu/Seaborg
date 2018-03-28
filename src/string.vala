@@ -9,8 +9,8 @@ namespace Seaborg {
 		return res;
 	}
 
-	static string replace_characters(string _str) {
-		string str = _str
+	static void replace_characters(ref Gtk.SourceBuffer buf) {
+			buf.text = buf.text
 
 			 // small greek letters
 			.replace("⋮a⋮", "α")
@@ -92,9 +92,6 @@ namespace Seaborg {
 			.replace("⋮j⋮", "φ")
 			.replace("⋮cU⋮", "ϒ");
 
-			
-
-		return str;
 	}
 
 	static string make_file_name(string _str) {

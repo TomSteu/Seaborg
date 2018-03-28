@@ -397,7 +397,7 @@ namespace Seaborg {
 				title.buffer.insert_at_cursor("⋮", "⋮".length);
 				TextIter iter;
 				int pos = title.buffer.get_char_count() -  title.buffer.cursor_position;
-				set_text(replace_characters(get_text()));
+				replace_characters(ref title_buffer);
 				title.buffer.get_iter_at_offset(out iter, title.buffer.get_char_count() - pos);
 				title.buffer.place_cursor(iter);
 

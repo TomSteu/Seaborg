@@ -1269,7 +1269,7 @@ namespace Seaborg {
 						lock(eval_queue) {
 							eval_queue.push_tail( EvaluationData() { 
 								cell = (void*) eva,
-								input = replace_form(replace_characters(eva.get_text()))
+								input = replace_form(eva.get_text())
 							});
 						}
 					}

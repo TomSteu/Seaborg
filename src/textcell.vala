@@ -255,7 +255,7 @@ namespace Seaborg {
 				cell.buffer.insert_at_cursor("⋮", "⋮".length);
 				TextIter iter;
 				int pos = cell.buffer.get_char_count() -  cell.buffer.cursor_position;
-				set_text(replace_characters(get_text()));
+				replace_characters(ref cell_buffer);
 				cell.buffer.get_iter_at_offset(out iter, cell.buffer.get_char_count() - pos);
 				cell.buffer.place_cursor(iter);
 
