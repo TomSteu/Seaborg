@@ -232,7 +232,7 @@ namespace Seaborg {
 
 		private bool key_handler(EventKey key) {
 
-			if(key.type == Gdk.EventType.KEY_PRESS && key.keyval == Gdk.Key.Escape && !(key.state == (key.state | Gdk.ModifierType.CONTROL_MASK))) {
+			if(!lock && key.type == Gdk.EventType.KEY_PRESS && key.keyval == Gdk.Key.Escape && !(key.state == (key.state | Gdk.ModifierType.CONTROL_MASK))) {
 				input_cell.buffer.insert_at_cursor("⋮", "⋮".length);
 				TextIter iter;
 				int pos = input_cell.buffer.get_char_count() -  input_cell.buffer.cursor_position;
@@ -242,7 +242,7 @@ namespace Seaborg {
 
 			}
 
-			if(input_buffer.has_selection && key.type == Gdk.EventType.KEY_PRESS && (bool)(key.state & Gdk.ModifierType.CONTROL_MASK) && key.keyval == Gdk.Key.y) {
+			if(!lock && input_buffer.has_selection && key.type == Gdk.EventType.KEY_PRESS && (bool)(key.state & Gdk.ModifierType.CONTROL_MASK) && key.keyval == Gdk.Key.y) {
 				
 				TextIter start,end;
 				if(input_buffer.get_selection_bounds(out start, out end)) {
