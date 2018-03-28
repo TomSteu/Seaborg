@@ -29,6 +29,8 @@
 		<style id="argument" _name="Argument" map-to="def:operator"/>
 		<style id="keyword" _name="Keyword" map-to="def:keyword"/>
 		<style id="buildin" _name="Buildin" map-to="def:constant"/>
+		<style id="symbol" _name="Symbol" map-to="def:statement"/>
+		<style id="definition" _name="Definition" map-to="def:special-constant"/>
 	</styles>
 	<definitions>
 		<context id="block-comment" style-ref="comment" end-at-line-end="false">
@@ -37,19 +39,19 @@
 		</context>
 		<context id="arg-context" style-ref="argument" end-at-line-end="true">
 			<start>#</start>
-			<end>(?=[^0-9a-zA-Z])</end>
+			<end>(?=[^0-9\p{L}])</end>
 		</context>
 		<context id="string" style-ref="string" end-at-line-end="false">
 			<start>"</start>
 			<end>"</end>
 		</context>
 		<context id="error" style-ref="error">
-			<keyword>[0-9a-zA-Z]*::[0-9a-zA-Z]*</keyword>
+			<keyword>[0-9\p{L}]*::[0-9\p{L}]*</keyword>
 		</context>
 		<context id="argument" style-ref="argument">
-			<keyword>[0-9a-zA-Z]*_[0-9a-zA-Z]*</keyword>
-			<keyword>[0-9a-zA-Z]*__[0-9a-zA-Z]*</keyword>
-			<keyword>[0-9a-zA-Z]*___[0-9a-zA-Z]*</keyword>
+			<keyword>[0-9\p{L}]*_[0-9\p{L}]*</keyword>
+			<keyword>[0-9\p{L}]*__[0-9\p{L}]*</keyword>
+			<keyword>[0-9\p{L}]*___[0-9\p{L}]*</keyword>
 		</context>
 		<context id="keywords" style-ref="buildin">
 			<keyword>True</keyword>
@@ -59,25 +61,36 @@
 			<keyword>Out</keyword>
 		</context>
 		<context id="functions" style-ref="keyword">
-			<keyword>[0-9a-zA-Z]*(?=[\[][^\[])</keyword>
+			<keyword>[0-9\p{L}]*(?=[\[][^\[])</keyword>
 		</context>
 		<context id="postfix" style-ref="keyword">
-			<match>//[^\.][ ]*[0-9a-zA-Z]*</match>
+			<match>//[^\.][ ]*[0-9\p{L}]*</match>
 		</context>
 		<context id="prefix" style-ref="keyword">
-			<match>[0-9a-zA-Z]*[ ]*@{1,3}(?!@)</match>
+			<match>[0-9\p{L}]*[ ]*@{1,3}(?!@)</match>
 		</context>
 		<context id="apply" style-ref="keyword">
-			<match>[0-9a-zA-Z]*[ ]*/@(?!@)</match>
+			<match>[0-9\p{L}]*[ ]*/@(?!@)</match>
 		</context>
 		<context id="infix" style-ref="keyword" end-at-line-end="false">
 			<start>[\~]</start>
 			<end>[\~]</end>
 		</context>
+		<context id="symbol" style-ref="symbol">
+			<match>\\\[[0-9\p{L}]*\]</match>
+		</context>
+		<context id="internal" style-ref="symbol">
+			<match>\$[0-9\p{L}]*</match>
+		</context>
+		<context id="definition" style-ref="definition">
+			<keyword>[0-9\p{L}]*(?=[ ]*\=)</keyword>
+			<keyword>[0-9\p{L}]*(?=[\[].*[\]][ ]*:\=)</keyword>
+		</context>
 		<context id="wolfram-nostdlib">
 			<include>
 				<context ref="block-comment"/>
 				<context ref="string"/>
+				<context ref="definition"/>
 				<context ref="error"/>
 				<context ref="arg-context"/>
 				<context ref="argument"/>
@@ -87,6 +100,8 @@
 				<context ref="prefix"/>
 				<context ref="apply"/>
 				<context ref="infix"/>
+				<context ref="symbol"/>
+				<context ref="internal"/>
 			</include>
 		</context>
 	</definitions>

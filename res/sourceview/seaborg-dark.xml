@@ -52,5 +52,7 @@
   <style name="def:operator"                foreground="cyan"/>
   <style name="def:error"                   foreground="some_red" bold="true"/>
   <style name="def:constant"                foreground="some_blue" bold="true"/>
+  <style name="def:statement"               foreground="some_yellow" />
+  <style name="def:special-constant"        foreground="green" />
 
 </style-scheme>
