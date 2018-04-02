@@ -1264,13 +1264,15 @@ namespace Seaborg {
 					// cell is an unscheduled valuation cell
 					if((! container.children_cells.data[i].lock) && container.children_cells.data[i] is EvaluationCell) {
 						eva = (EvaluationCell) container.children_cells.data[i];
-						eva.lock = true;
-						eva.remove_text();
-						lock(eval_queue) {
-							eval_queue.push_tail( EvaluationData() { 
-								cell = (void*) eva,
-								input = replace_form(eva.get_text())
-							});
+						if(check_input(eva.get_text())) {	
+							eva.lock = true;
+							eva.remove_text();
+							lock(eval_queue) {
+								eval_queue.push_tail( EvaluationData() { 
+									cell = (void*) eva,
+									input = replace_form(eva.get_text())
+								});
+							}
 						}
 					}
 				}

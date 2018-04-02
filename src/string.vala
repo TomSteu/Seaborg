@@ -9,6 +9,10 @@ namespace Seaborg {
 		return res;
 	}
 
+	static bool check_input(string str) {
+		return str.replace(" ", "").replace("	", "").replace("\n", "") != "";
+	}
+
 	static void replace_characters(ref Gtk.SourceBuffer buf) {
 			buf.text = buf.text
 
