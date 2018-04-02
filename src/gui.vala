@@ -1029,7 +1029,7 @@ namespace Seaborg {
 
 			remove_action.activate.connect(() => {
 				if(notebook_stack.get_visible_child() != null)
-					((Seaborg.Notebook)notebook_stack.get_visible_child()).remove_recursively();
+					notebook_remove_children((Seaborg.Notebook)notebook_stack.get_visible_child());
 			});
 
 			eval_action.activate.connect(() => {
@@ -1200,6 +1200,69 @@ namespace Seaborg {
 			save_preferences();
 			
 			this.quit();
+		}
+
+		// removes all selected cells
+		public void notebook_remove_children(ICellContainer container) {
+
+			ICell? cell = null;
+
+			// find cell to be focused after removal
+			find_next_cell_after_selected(container, out cell);
+			// remove cells
+			container.remove_recursively();
+
+			if(container == null)
+				return;
+
+			// notebook wiped clean - add the first evaluation cell
+			if(container.children_cells.data.length == 0) {
+				EvaluationCell* newCell = new EvaluationCell(container);
+				container.add_before(-1, {newCell});
+				main_window.show_all();
+				newCell->focus_cell();
+				return;
+			}
+
+			// no next cell, or being removed for some reason - default to the first one within the notebook
+			if(cell == null)
+				cell = container.children_cells.data[container.children_cells.data.length-1];
+
+			// grab focus
+			cell.focus_cell();
+			return;
+
+		}
+
+		// finds the cell to be focused after removal of the selected ones
+		private bool find_next_cell_after_selected(ICellContainer container, out ICell? cell) {
+			
+			cell = null;
+			
+			for(int i=container.children_cells.data.length-1; i>=0; i--) {
+				
+				if(container.children_cells.data[i].marker_selected) {
+					if(i+1 < container.children_cells.data.length) {
+						cell = container.children_cells.data[i+1];
+					} else {
+						cell = null;
+					}
+
+					return true;
+				}
+
+				if(container.children_cells.data[i].get_level() > 0u) {
+					if(find_next_cell_after_selected((ICellContainer) container.children_cells.data[i], out cell)) {
+						if(cell == null) {
+							if(i+1 < container.children_cells.data.length)
+								cell = container.children_cells.data[i+1];
+						}
+						return true;
+					}
+				}
+			}
+
+			return false;
 		}
 
 		// queues all selected cells in 'container' for evaluation and focuses the next cell
