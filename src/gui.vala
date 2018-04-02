@@ -673,6 +673,86 @@ namespace Seaborg {
 			highlighting_box.add(highlighting_nostdlib_row);
 			highlighting_box.add(highlighting_full_row);
 
+			// code wrap heading
+			Gtk.Label wrap_heading = new Gtk.Label("Text wrapping");
+			wrap_heading.get_style_context().add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
+			wrap_heading.get_style_context().add_class("pref-heading");
+			wrap_heading.halign = Gtk.Align.START;
+
+			// radio buttons for code wrapping
+			wrap_none_button = new Gtk.RadioButton.with_label_from_widget(null, "no break");
+			wrap_char_button = new Gtk.RadioButton.with_label_from_widget(wrap_none_button, "break characters");
+			wrap_word_button = new Gtk.RadioButton.with_label_from_widget(wrap_none_button, "break words");
+			wrap_word_char_button = new Gtk.RadioButton.with_label_from_widget(wrap_none_button, "break words then characters");
+			wrap_none_button.active = (Parameter.wrap_mode == Gtk.WrapMode.NONE);
+			wrap_char_button.active = (Parameter.wrap_mode == Gtk.WrapMode.CHAR);
+			wrap_word_button.active = (Parameter.wrap_mode == Gtk.WrapMode.WORD);
+			wrap_word_char_button.active = (Parameter.wrap_mode == Gtk.WrapMode.WORD_CHAR);
+			wrap_none_button.toggled.connect(() => { 
+				Parameter.wrap_mode = Gtk.WrapMode.NONE; 
+				
+				foreach (Gtk.Widget child in notebook_stack.get_children()) {
+					((Seaborg.Notebook) child).set_wrap_mode(Parameter.wrap_mode);
+				}
+
+				main_window.show_all();
+			});
+			wrap_char_button.toggled.connect(() => { 
+				Parameter.wrap_mode = Gtk.WrapMode.CHAR;
+
+				foreach (Gtk.Widget child in notebook_stack.get_children()) {
+					((Seaborg.Notebook) child).set_wrap_mode(Parameter.wrap_mode);
+				}
+
+				main_window.show_all();
+			 });
+			wrap_word_button.toggled.connect(() => { 
+				Parameter.wrap_mode = Gtk.WrapMode.WORD;
+
+				foreach (Gtk.Widget child in notebook_stack.get_children()) {
+					((Seaborg.Notebook) child).set_wrap_mode(Parameter.wrap_mode);
+				}
+
+				main_window.show_all();
+			});
+			wrap_word_char_button.toggled.connect(() => { 
+				Parameter.wrap_mode = Gtk.WrapMode.WORD_CHAR; 
+
+				foreach (Gtk.Widget child in notebook_stack.get_children()) {
+					((Seaborg.Notebook) child).set_wrap_mode(Parameter.wrap_mode);
+				}
+
+				main_window.show_all();
+			});
+
+			// boxes for syntax highlighting preference
+			Gtk.ListBoxRow  wrap_none_row = new Gtk.ListBoxRow();
+			wrap_none_row.activatable = false;
+			wrap_none_row.selectable = false;
+			wrap_none_row.add(wrap_none_button);
+			Gtk.ListBoxRow  wrap_char_row = new Gtk.ListBoxRow();
+			wrap_char_row.activatable = false;
+			wrap_char_row.selectable = false;
+			wrap_char_row.add(wrap_char_button);
+			Gtk.ListBoxRow  wrap_word_row = new Gtk.ListBoxRow();
+			wrap_word_row.activatable = false;
+			wrap_word_row.selectable = false;
+			wrap_word_row.add(wrap_word_button);
+			Gtk.ListBoxRow  wrap_word_char_row = new Gtk.ListBoxRow();
+			wrap_word_char_row.activatable = false;
+			wrap_word_char_row.selectable = false;
+			wrap_word_char_row.add(wrap_word_char_button);
+
+			// list box to hold all syntax highlighting options
+			Gtk.ListBox wrap_box = new Gtk.ListBox();
+			wrap_box.selection_mode = Gtk.SelectionMode.NONE;
+			wrap_box.add(wrap_none_row);
+			wrap_box.add(wrap_char_row);
+			wrap_box.add(wrap_word_row);
+			wrap_box.add(wrap_word_char_row);
+
+
+
 			// phantom boxes to stabilize the layout
 			Gtk.Grid l_grid = new Gtk.Grid();
 			l_grid.hexpand = true;
@@ -686,15 +766,17 @@ namespace Seaborg {
 			b_grid.vexpand = true;
 
 			pref_body.attach(t_grid, 0, 0, 3, 1);
-			pref_body.attach(l_grid, 0, 1, 1, 6);
+			pref_body.attach(l_grid, 0, 1, 1, 8);
 			pref_body.attach(kernel_heading, 1, 1, 1, 1);
 			pref_body.attach(kernel_box, 1, 2, 1, 1);
 			pref_body.attach(appearence_heading, 1, 3, 1, 1);
 			pref_body.attach(appearence_box, 1, 4, 1, 1);
 			pref_body.attach(highlighting_heading, 1, 5, 1, 1);
 			pref_body.attach(highlighting_box, 1, 6, 1, 1);
-			pref_body.attach(r_grid , 2, 1, 1, 6);
-			pref_body.attach(b_grid, 0, 7, 3, 1);
+			pref_body.attach(wrap_heading, 1, 7, 1, 1);
+			pref_body.attach(wrap_box, 1, 8, 1, 1);
+			pref_body.attach(r_grid , 2, 1, 1, 8);
+			pref_body.attach(b_grid, 0, 9, 3, 1);
 
 			// scrollbar for preferences window
 			Gtk.ScrolledWindow pref_scroll = new Gtk.ScrolledWindow(null, null);
@@ -2281,6 +2363,7 @@ namespace Seaborg {
 			save_file.printf("	<code_highlighting>" + Parameter.code_highlighting.to_string() + "</code_highlighting>\n");
 			save_file.printf("	<dark_theme>" + Parameter.dark_theme.to_string() + "</dark_theme>\n");
 			save_file.printf("	<output>" + Parameter.output.to_string() + "</output>\n");
+			save_file.printf("	<wrap_mode>" + Parameter.wrap_mode.to_string() + "</wrap_mode>\n");
 			save_file.printf("	<search_match_case>" + search_settings.case_sensitive.to_string() + "</search_match_case>\n");
 			save_file.printf("	<search_match_word>" + search_settings.at_word_boundaries.to_string() + "</search_match_word>\n");
 			save_file.printf("	<search_match_regex>" + search_settings.regex_enabled.to_string() + "</search_match_regex>\n");
@@ -2399,6 +2482,24 @@ namespace Seaborg {
 									break;
 								case "SEABORG_FORM_RENDERED":
 									Parameter.output = Form.RENDERED;
+									break;
+							}
+							break;
+
+						case "wrap_mode":
+
+							switch (iter->get_content()) {
+								case "GTK_WRAP_NONE":
+									Parameter.wrap_mode = Gtk.WrapMode.NONE;
+									break;
+								case "GTK_WRAP_CHAR":
+									Parameter.wrap_mode = Gtk.WrapMode.CHAR;
+									break;
+								case "GTK_WRAP_WORD":
+									Parameter.wrap_mode = Gtk.WrapMode.WORD;
+									break;
+								case "GTK_WRAP_WORD_CHAR":
+									Parameter.wrap_mode = Gtk.WrapMode.WORD_CHAR;
 									break;
 							}
 							break;
@@ -2720,6 +2821,10 @@ namespace Seaborg {
 		private Gtk.RadioButton highlight_none_button;
 		private Gtk.RadioButton highlight_nostdlib_button;
 		private Gtk.RadioButton highlight_full_button;
+		private Gtk.RadioButton wrap_none_button;
+		private Gtk.RadioButton wrap_char_button;
+		private Gtk.RadioButton wrap_word_button;
+		private Gtk.RadioButton wrap_word_char_button;
 		private Gtk.ToggleButton sidebar_button;
 		private Gtk.TreeView notebook_tree;
 		private Gtk.ScrolledWindow tree_scroll;

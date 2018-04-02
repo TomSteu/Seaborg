@@ -38,7 +38,7 @@ namespace Seaborg {
 			cell.insert_spaces_instead_of_tabs = false;
 			cell.smart_backspace = true;
 			cell.show_line_marks = false;
-			cell.wrap_mode = Gtk.WrapMode.WORD_CHAR;
+			cell.wrap_mode = Parameter.wrap_mode;
 			cell.monospace = false;
 			cell.editable = true;
 			cell.hexpand = true;
@@ -291,6 +291,10 @@ namespace Seaborg {
 
 		public string get_tree_title() {
 			return "Text Cell";
+		}
+
+		public void set_wrap_mode(Gtk.WrapMode wrap) {
+			cell.wrap_mode = wrap;
 		}
 
 		public bool cell_expanded { get { return true; } }

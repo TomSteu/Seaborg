@@ -42,7 +42,7 @@ namespace Seaborg {
 			title.insert_spaces_instead_of_tabs = false;
 			title.smart_backspace = true;
 			title.show_line_marks = false;
-			title.wrap_mode = Gtk.WrapMode.WORD_CHAR;
+			title.wrap_mode = Parameter.wrap_mode;
 			title.monospace = false;
 			title.editable = true;
 			title.hexpand = true;
@@ -612,6 +612,13 @@ namespace Seaborg {
 			this.focus_cell(grab_selection);
 
 			return;
+		}
+
+		public void set_wrap_mode(Gtk.WrapMode wrap) {
+			title.wrap_mode = wrap;
+
+			for(int i=0; i<children_cells.data.length; i++)
+				children_cells.data[i].set_wrap_mode(wrap);
 		}
 
 

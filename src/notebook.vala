@@ -270,6 +270,12 @@ namespace Seaborg {
 			return;
 		}
 
+		public void set_wrap_mode(Gtk.WrapMode wrap) {
+
+			for(int i=0; i<children_cells.data.length; i++)
+				children_cells.data[i].set_wrap_mode(wrap);
+		}
+
 		public GLib.Array<ICell> children_cells {get; set;}
 		public GLib.Array<AddButton> addbutton_list {get; set;}
 		public ICellContainer* parent_cell {get; set;}

@@ -48,7 +48,7 @@ namespace Seaborg {
 			input_cell.insert_spaces_instead_of_tabs = false;
 			input_cell.smart_backspace = true;
 			input_cell.show_line_marks = false;
-			input_cell.wrap_mode = Gtk.WrapMode.WORD_CHAR;
+			input_cell.wrap_mode = Parameter.wrap_mode;
 			input_cell.monospace = true;
 			input_cell.editable = true;
 			input_cell.hexpand = true;
@@ -606,6 +606,10 @@ namespace Seaborg {
 
 		public string get_tree_title() {
 			return "Evaluation Cell";
+		}
+
+		public void set_wrap_mode(Gtk.WrapMode wrap) {
+			input_cell.wrap_mode = wrap;
 		}
 
 

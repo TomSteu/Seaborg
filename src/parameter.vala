@@ -22,6 +22,7 @@ namespace Seaborg {
 		public static bool dark_theme = true;
 		public static Form output = Form.INPUTREPLACEGRAPHICS;
 		public static Gdk.RGBA font_color;
+		public static Gtk.WrapMode wrap_mode = Gtk.WrapMode.WORD_CHAR;
 
 	}
 
