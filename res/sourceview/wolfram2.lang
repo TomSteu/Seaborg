@@ -83,18 +83,38 @@
 			<match>\$[0-9\p{L}]*</match>
 		</context>
 		<context id="definition" style-ref="definition">
-			<keyword>[0-9\p{L}]*(?=[ ]*\=)</keyword>
+			<keyword>[0-9\p{L}]*(?=[ ]*\=[^\=]+)</keyword>
+			<keyword>[0-9\p{L}]*(?=[ ]*:\=)</keyword>
+			<keyword>[0-9\p{L}]*(?=[ ]*\+\=)</keyword>
+			<keyword>[0-9\p{L}]*(?=[ ]*\-\=)</keyword>
+			<keyword>[0-9\p{L}]*(?=[ ]*\*\=)</keyword>
+			<keyword>[0-9\p{L}]*(?=[ ]*/\=)</keyword>
+			<keyword>[0-9\p{L}]*(?=[\[].*[\]][ ]*\=[^\=]*)</keyword>
 			<keyword>[0-9\p{L}]*(?=[\[].*[\]][ ]*:\=)</keyword>
+			<keyword>[0-9\p{L}]*(?=[\[].*[\]][ ]*\+\=)</keyword>
+			<keyword>[0-9\p{L}]*(?=[\[].*[\]][ ]*\-\=)</keyword>
+			<keyword>[0-9\p{L}]*(?=[\[].*[\]][ ]*\*\=)</keyword>
+			<keyword>[0-9\p{L}]*(?=[\[].*[\]][ ]*/\=)</keyword>
+			<keyword>[0-9\p{L}]*(?=[\[][\[].*[\]][\]][ ]*\=[^\=]*)</keyword>
+			<keyword>[0-9\p{L}]*(?=[\[][\[].*[\]][\]][ ]*:\=)</keyword>
+			<keyword>[0-9\p{L}]*(?=[\[][\[].*[\]][\]][ ]*\+\=)</keyword>
+			<keyword>[0-9\p{L}]*(?=[\[][\[].*[\]][\]][ ]*\-\=)</keyword>
+			<keyword>[0-9\p{L}]*(?=[\[][\[].*[\]][\]][ ]*\*\=)</keyword>
+			<keyword>[0-9\p{L}]*(?=[\[][\[].*[\]][\]][ ]*/\=)</keyword>
+			<keyword>[0-9\p{L}]*(?=[ ]*\+\+)</keyword>
+			<keyword>[0-9\p{L}]*(?=[ ]*\-\-)</keyword>
+			<keyword>(?&lt;=\+\+)[0-9\p{L}]*</keyword>
+			<keyword>(?&lt;=\-\-)[0-9\p{L}]*</keyword>
 		</context>
 		<context id="wolfram-nostdlib">
 			<include>
 				<context ref="block-comment"/>
 				<context ref="string"/>
-				<context ref="definition"/>
 				<context ref="error"/>
 				<context ref="arg-context"/>
 				<context ref="argument"/>
 				<context ref="keywords"/>
+				<context ref="definition"/>
 				<context ref="functions"/>
 				<context ref="postfix"/>
 				<context ref="prefix"/>
