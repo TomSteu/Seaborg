@@ -40,6 +40,8 @@ namespace Seaborg {
 		public abstract bool do_forward_search(ref bool last_found);
 		public abstract bool do_backward_search(ref bool last_found);
 		public abstract string get_tree_title();
+		public abstract ICell* first_cell();
+		public abstract ICell* last_cell();
 		public abstract void set_wrap_mode(Gtk.WrapMode wrap);
 		public signal void cell_focused(Gtk.Widget widget);
 
@@ -101,7 +103,8 @@ namespace Seaborg {
 		public abstract Gtk.SourceSearchSettings search_settings {get; set;}
 		public abstract void prev_cell(string cell_name, bool grab_selection = true);
 		public abstract void next_cell(string cell_name, bool grab_selection = true);
-		public abstract  Gtk.TreeStore tree_model {get; set;}
+		public abstract Gtk.TreeStore tree_model {get; set;}
+		
 		public ICell* get_child_by_name(string child_name) {
 			ICell* child_cell = null;
 			for(int i=0; i<children_cells.data.length; i++) {

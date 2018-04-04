@@ -230,6 +230,22 @@ namespace Seaborg {
 			return "Notebook";
 		}
 
+		public ICell* first_cell() {
+			
+			if(children_cells.data.length < 1)
+				return this;
+
+			return children_cells.data[0].first_cell();
+		}
+
+		public ICell* last_cell() {
+			
+			if(children_cells.data.length < 1)
+				return this;
+
+			return children_cells.data[children_cells.data.length - 1].last_cell();
+		}
+
 		public void next_cell(string _name, bool grab_selection = true) {
 
 			int i;
@@ -239,8 +255,10 @@ namespace Seaborg {
 			}
 
 			if(i+1 < children_cells.data.length) {
-				children_cells.data[i+1].focus_cell(grab_selection);
+				
+				children_cells.data[i+1].first_cell()->focus_cell(grab_selection);
 				return;
+
 			}
 
 			if(parent_cell != null) {
@@ -259,7 +277,8 @@ namespace Seaborg {
 			}
 
 			if(i-1 >= 0) {
-				children_cells.data[i-1].focus_cell(grab_selection);
+
+				children_cells.data[i-1].last_cell()->focus_cell(grab_selection);
 				return;
 			}
 

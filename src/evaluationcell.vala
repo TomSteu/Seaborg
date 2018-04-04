@@ -612,6 +612,8 @@ namespace Seaborg {
 			input_cell.wrap_mode = wrap;
 		}
 
+		public ICell* first_cell() { return this; }
+		public ICell* last_cell() { return this; }
 
 		public ICellContainer* parent_cell {get; set;}
 		public bool cell_expanded { get { return isExpanded; } }

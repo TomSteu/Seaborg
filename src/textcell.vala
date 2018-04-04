@@ -297,6 +297,9 @@ namespace Seaborg {
 			cell.wrap_mode = wrap;
 		}
 
+		public ICell* first_cell() { return this; }
+		public ICell* last_cell() { return this; }
+
 		public bool cell_expanded { get { return true; } }
 		private Gtk.SourceView cell;
 		private Gtk.SourceBuffer cell_buffer;
