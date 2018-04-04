@@ -267,6 +267,13 @@ namespace Seaborg {
 				                "<property name=\"title\" translatable=\"yes\">Expand/Collapse cells</property>"+
 				              "</object>"+
 				            "</child>"+
+				            "<child>"+
+				              "<object class=\"GtkShortcutsShortcut\">"+
+				                "<property name=\"visible\">1</property>"+
+				                "<property name=\"accelerator\">&lt;ctrl&gt;M</property>"+
+				                "<property name=\"title\" translatable=\"yes\">Transmute cell</property>"+
+				              "</object>"+
+				            "</child>"+
 				          "</object>"+
 				        "</child>"+
 				      "</object>"+

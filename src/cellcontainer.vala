@@ -423,6 +423,11 @@ namespace Seaborg {
 								parent_cell->next_cell(this.name, grab_selection);
 						}
 						break;
+					case Gdk.Key.m:
+						ContextMenu context = new ContextMenu(this);
+						context.popup_at_widget(marker, Gdk.Gravity.CENTER, Gdk.Gravity.WEST, null);
+						context.grab_focus();
+						break;
 					
 				}
 			}
