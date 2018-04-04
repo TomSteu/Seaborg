@@ -13,11 +13,23 @@ namespace Seaborg {
 
 	public class SeaborgApplication : Gtk.Application {
 
+		public SeaborgApplication () {
+			Object (application_id: "org.seaborg.seaborg", flags: ApplicationFlags.HANDLES_OPEN);
+			set_inactivity_timeout (10000);
+		}
+
 		// keeps track of correct stamp during evaluation
 		public static ulong global_stamp = 0;
 
+		public override void open(File[] files, string hint) {
+			activate();
+			foreach (File file in files) {
+				load_notebook(file.get_path());
+			}
+		}
+
 		// construct gui
-		protected override void activate() {
+		public override void activate() {
 
 			// try to find seaborg CSS file
 			css_provider = new CssProvider();
@@ -1864,6 +1876,13 @@ namespace Seaborg {
 				return;
 			}
 
+			// check if it is xml
+			char buff[6];
+			string? first_chars = file.gets(buff);
+			
+			if(first_chars == null || first_chars != "<?xml")
+				return;
+
 			string? version;
 
 			// parse file 
@@ -2784,8 +2803,6 @@ namespace Seaborg {
 			}
 		}
 
-		
-
 		private Gtk.ApplicationWindow main_window;
 		private Gtk.HeaderBar main_headerbar;
 		private Seaborg.TabSwitcher tab_switcher;
@@ -2849,7 +2866,7 @@ namespace Seaborg {
 
 		try {
 			
-			OptionContext opt_context = new OptionContext ("[NOTEBOOK]");
+			OptionContext opt_context = new OptionContext ("[NOTEBOOKS]");
 			opt_context.set_help_enabled (true);
 			opt_context.add_main_entries ( options , null);
 			opt_context.parse (ref args);
@@ -2870,7 +2887,6 @@ namespace Seaborg {
 		}
 
 		return new SeaborgApplication().run(args);
-
 		
 	}
 }
