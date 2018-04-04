@@ -90,6 +90,7 @@ namespace Seaborg {
 			output_cell.top_margin = 0;
 			output_cell.bottom_margin = 0;
 			output_cell.button_press_event.connect(untoggle_handler);
+			output_cell.key_press_event.connect(output_key_handler);
 			output_cell.get_style_context().add_provider(font_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 
 			if(Parameter.dark_theme) {
@@ -254,6 +255,28 @@ namespace Seaborg {
 
 				}
 			}
+
+			if(key.type == Gdk.EventType.KEY_PRESS && (bool)(key.state & Gdk.ModifierType.CONTROL_MASK)) {
+				
+				bool grab_selection = !(bool)(key.state & Gdk.ModifierType.SHIFT_MASK);
+
+				switch (key.keyval) {
+					case Gdk.Key.Up:
+						if(parent != null)
+							parent_cell->prev_cell(this.name, grab_selection);
+						break;
+					case Gdk.Key.Down:
+						if(parent != null)
+							parent_cell->next_cell(this.name, grab_selection);
+						break;
+					
+				}
+			}
+
+			return false;
+		}
+
+		private bool output_key_handler(EventKey key) {
 
 			if(key.type == Gdk.EventType.KEY_PRESS && (bool)(key.state & Gdk.ModifierType.CONTROL_MASK)) {
 				
