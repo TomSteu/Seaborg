@@ -4,7 +4,7 @@
 ### Compiler and flags ###
 
 CC=gcc
-CFLAGS= -O3 -w
+CFLAGS= -O3 -w -D DEBUG
 VALAC= valac
 VALAFLAGS= --thread
 

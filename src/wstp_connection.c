@@ -21,6 +21,7 @@
 #define WSTPACTIVATE(X) MLActivate(X)
 #define WSTPPUTMESSAGE(X,Y) MLPutMessage(X,Y)
 #define WSTPPUTFUNCTION(X,Y,Z) MLPutFunction(X,Y,Z)
+#define WSTPPUTSYMBOL(X,Y) MLPutSymbol(X,Y)
 #define WSTPPUTSTRING(X,Y,Z) MLPutUTF8String(X,Y,Z)
 #define WSTPCLOSE(X) MLClose(X)
 #define WSTPDEINITIALIZE(X) MLDeinitialize(X)
@@ -55,6 +56,7 @@
 #define WSTPACTIVATE(X) WSActivate(X)
 #define WSTPPUTMESSAGE(X,Y) WSPutMessage(X,Y)
 #define WSTPPUTFUNCTION(X,Y,Z) WSPutFunction(X,Y,Z)
+#define WSTPPUTSYMBOL(X,Y) WSPutSymbol(X,Y)
 #define WSTPPUTSTRING(X,Y,Z) WSPutUTF8String(X,Y,Z)
 #define WSTPCLOSE(X) WSClose(X)
 #define WSTPDEINITIALIZE(X) WSDeinitialize(X)
@@ -342,6 +344,8 @@ void evaluate(void* con, const char* input, void (*callback)(char*, void*, unsig
 						break;					
 					}
 					DEBUGMSG("WSTP: BEGINDLGPKT integer: %i\n", inti);
+					(*callback)((char*)0, callback_data, stamp++, 1);
+					return;
 					break;
 				case CALLPKT: 
 					DEBUGMSG( "WSTP: package received: CALLPKT\n" );
@@ -394,11 +398,81 @@ void evaluate(void* con, const char* input, void (*callback)(char*, void*, unsig
 					(*callback)(str, callback_data, stamp++, 0);
 					WSTPRELEASESTRING(connection->link, (const char*) str, bytes);
 					break;
-				case INPUTPKT: 
+				case INPUTPKT:
 					DEBUGMSG( "WSTP: package received: INPUTPKT\n" );
+					if(! WSTPGETSTRING(connection->link, (const unsigned char**) &str, &bytes, &chars)) {
+						DEBUGMSG( "WSTP: Error receiving string\n" );
+						err = (char*) handle_link_error(connection);
+						(*callback)(err, callback_data, stamp++, (connection->active == 0)?1:0);
+		 				if(err) WSTPRELEASEERRORMESSAGE(connection->link, err);
+						if(connection->active == 0) return;
+						break;
+					}
+					(*callback)(str, callback_data, stamp++, 0);
+
+					// Input[] expects some input, Null will be provided to avoid kernel panic
+					if(! WSTPPUTFUNCTION(connection->link, "EnterTextPacket", 1)) {
+						(*callback)((char*) handle_link_error((void*) connection), callback_data, stamp++, 1); 
+						return; 
+					}
+					if(! WSTPPUTSTRING(connection->link, "Null", 4)) { 
+						char* err = (char*) handle_link_error(connection);
+						(*callback)(err, callback_data, stamp++, 1);
+						 if(err) WSTPRELEASEERRORMESSAGE(connection->link, err);
+						return;
+					}
+					if(! WSTPENDPACKET(connection->link))	{
+						char* err = (char*) handle_link_error(connection);
+						(*callback)(err, callback_data, stamp++, 1);
+						 if(err) WSTPRELEASEERRORMESSAGE(connection->link, err);
+						return;
+					}
+					if(! WSTPFLUSH(connection->link))	{
+						char* err = (char*) handle_link_error(connection);
+						(*callback)(err, callback_data, stamp++, 1);
+						 if(err) WSTPRELEASEERRORMESSAGE(connection->link, err);
+						return;
+					}
+
+					(*callback)((char*)0, callback_data, stamp++, 0);
 					break;
 				case INPUTSTRPKT: 
 					DEBUGMSG( "WSTP: package received: INPUTSTRPKT\n" );
+					if(! WSTPGETSTRING(connection->link, (const unsigned char**) &str, &bytes, &chars)) {
+						DEBUGMSG( "WSTP: Error receiving string\n" );
+						err = (char*) handle_link_error(connection);
+						(*callback)(err, callback_data, stamp++, (connection->active == 0)?1:0);
+		 				if(err) WSTPRELEASEERRORMESSAGE(connection->link, err);
+						if(connection->active == 0) return;
+						break;
+					}
+					(*callback)(str, callback_data, stamp++, 0);
+
+					// Input[] expects some input, Null will be provided to avoid kernel panic
+					if(! WSTPPUTFUNCTION(connection->link, "EnterTextPacket", 1)) {
+						(*callback)((char*) handle_link_error((void*) connection), callback_data, stamp++, 1); 
+						return; 
+					}
+					if(! WSTPPUTSTRING(connection->link, "Null", 4)) { 
+						char* err = (char*) handle_link_error(connection);
+						(*callback)(err, callback_data, stamp++, 1);
+						 if(err) WSTPRELEASEERRORMESSAGE(connection->link, err);
+						return;
+					}
+					if(! WSTPENDPACKET(connection->link))	{
+						char* err = (char*) handle_link_error(connection);
+						(*callback)(err, callback_data, stamp++, 1);
+						 if(err) WSTPRELEASEERRORMESSAGE(connection->link, err);
+						return;
+					}
+					if(! WSTPFLUSH(connection->link))	{
+						char* err = (char*) handle_link_error(connection);
+						(*callback)(err, callback_data, stamp++, 1);
+						 if(err) WSTPRELEASEERRORMESSAGE(connection->link, err);
+						return;
+					}
+
+					(*callback)((char*)0, callback_data, stamp++, 0);
 					break;
 				case MENUPKT: 
 					DEBUGMSG( "WSTP: package received: MENUPKT\n" );
@@ -421,6 +495,8 @@ void evaluate(void* con, const char* input, void (*callback)(char*, void*, unsig
 					}
 					DEBUGMSG("WSTP: MENUPKT title: %s", str);
 					WSTPRELEASESTRING(connection->link, (const char*) str, bytes);
+					(*callback)((char*)0, callback_data, stamp++, 1);
+					return;
 					break;
 				case MESSAGEPKT:
 					DEBUGMSG( "WSTP: package received: MESSAGEPKT\n" );
@@ -495,6 +571,27 @@ void evaluate(void* con, const char* input, void (*callback)(char*, void*, unsig
 				case ILLEGALPKT: 
 					DEBUGMSG( "WSTP: package received: ILLEGALPKT\n" );
 					(*callback)((char*)"(* kernel error *)", callback_data, stamp++, 1);
+
+
+					// skip to the end of current packet
+					if(! WSTPNEWPACKET(connection->link)) {
+						DEBUGMSG( "WSTP: Error skipping to end of packet\n");
+						err = (char*) handle_link_error(connection);
+						(*callback)(err, callback_data, stamp++, (connection->active == 0)?1:0);
+				 		if(err) WSTPRELEASEERRORMESSAGE(connection->link, err);
+						if(connection->active == 0) return;
+					}
+
+					// check for unregistered errors
+					err = (char*) handle_link_error(connection);
+					if(err) {
+						(*callback)(err, callback_data, stamp++, (connection->active == 0)?1:0);
+						DEBUGMSG("Error finishing packet: %s\n", err);
+						WSTPRELEASEERRORMESSAGE(connection->link, err);
+						if(connection->active == 0) return;
+					}
+
+
 					return;
 					break; 
 				default:
