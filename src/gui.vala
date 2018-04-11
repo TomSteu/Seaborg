@@ -489,6 +489,17 @@ namespace Seaborg {
 				quick_option_button.popover.popdown();
 			});
 			quick_option_box.add(cancel_button);
+
+			// button to restart kernel
+			Gtk.Button restart_button = new Gtk.Button.with_label("Restart kernel");
+			restart_button.get_style_context().add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
+			restart_button.get_style_context().add_class("popmenu-button");
+			restart_button.set_alignment(0.0f, 0.5f);
+			restart_button.clicked.connect(() => { 
+				reset_kernel();
+				quick_option_button.popover.popdown();
+			});
+			quick_option_box.add(restart_button);
 			
 			quick_option_box.add(new Gtk.Separator(Gtk.Orientation.HORIZONTAL));
 
@@ -1598,11 +1609,12 @@ namespace Seaborg {
 
 			if(kernel_connection != null) {
 				if(check_connection(kernel_connection) != -1) {
-					close_connection(kernel_connection);
+					abort_calculation(kernel_connection);
+					//close_connection(kernel_connection);
+
 				}
 			}
 
-			
 			kernel_connection = init_connection(Parameter.kernel_init);
 			if(check_connection(kernel_connection) != 1) {
 				kernel_msg("Error resetting connection");
@@ -2777,8 +2789,8 @@ namespace Seaborg {
 		[CCode(cname = "init_connection", cheader_filename = "wstp_connection.h")]
 		private extern static void* init_connection(char* path);
 
-		[CCode(cname = "close_connection", cheader_filename = "wstp_connection.h")]
-		private extern static void close_connection(void* connection);
+		/*[CCode(cname = "close_connection", cheader_filename = "wstp_connection.h")]
+		private extern static void close_connection(void* connection);*/
 
 		[CCode(cname = "evaluate", cheader_filename = "wstp_connection.h")]
 		private extern static void evaluate(void* con, char* input, callback_str callback, void* callback_data);
@@ -2791,6 +2803,9 @@ namespace Seaborg {
 
 		[CCode(cname = "try_reset_after_abort", cheader_filename = "wstp_connection.h")]
 		private extern static int try_reset_after_abort(void* con);
+
+		[CCode(cname = "abort_calculation", cheader_filename = "wstp_connection.h")]
+		private extern static int abort_calculation(void* con);
 
 		private double zoom_factor {
 			get {
