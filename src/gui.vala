@@ -1610,7 +1610,8 @@ namespace Seaborg {
 			if(kernel_connection != null) {
 				if(check_connection(kernel_connection) != -1) {
 					abort_calculation(kernel_connection);
-					//close_connection(kernel_connection);
+					close_connection(kernel_connection);
+
 
 				}
 			}
@@ -2789,8 +2790,8 @@ namespace Seaborg {
 		[CCode(cname = "init_connection", cheader_filename = "wstp_connection.h")]
 		private extern static void* init_connection(char* path);
 
-		/*[CCode(cname = "close_connection", cheader_filename = "wstp_connection.h")]
-		private extern static void close_connection(void* connection);*/
+		[CCode(cname = "close_connection", cheader_filename = "wstp_connection.h")]
+		private extern static void close_connection(void* connection);
 
 		[CCode(cname = "evaluate", cheader_filename = "wstp_connection.h")]
 		private extern static void evaluate(void* con, char* input, callback_str callback, void* callback_data);
