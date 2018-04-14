@@ -324,19 +324,21 @@ namespace Seaborg {
 			// replace all formulas by SVGs
 			if(Parameter.output == Form.RENDERED) {
 				
-				string txt_rep = _text.replace("\n", "");
-				
-				// file is encoded by hash
-				string fn = "tmp/" + 
-					GLib.Checksum.compute_for_string(
-						GLib.ChecksumType.SHA256, 
-						txt_rep,
-						txt_rep.length
-					) + ".svg" ;
+				string txt_rep = _text.replace("\n", "").replace(" ", "");
+				if(txt_rep.length < 81 || txt_rep.substring(0, 15) != "SeaborgOutput[\"") {
+					output_buffer.insert(ref iter, _text, _text.length);
+					this.check_resize();
+					return;
+				}
 
+
+				string fn = "tmp/" + txt_rep.substring(15, 64) + ".svg";
+				string data = "tmp/" + txt_rep.substring(15, 64) + ".txt";
 				GLib.FileStream? file = GLib.FileStream.open(fn, "r");
+
 				if(file == null) {
 					output_buffer.insert(ref iter, _text, _text.length);
+					this.check_resize();
 					return;
 				}
 
@@ -344,8 +346,11 @@ namespace Seaborg {
 				
 				if(! plot.import_success()) {
 					output_buffer.insert(ref iter, _text, _text.length);
+					this.check_resize();
 					return;
 				}
+
+				plot.data_file = data;
 
 				// insert line break and formula
 				output_buffer.insert(ref iter, "\n", 1);
@@ -359,71 +364,6 @@ namespace Seaborg {
 			output_buffer.insert(ref iter, _text, _text.length);
 			this.check_resize();
 
-			// replace Graphics with pictures
-			if(Parameter.output == Form.INPUTREPLACEGRAPHICS && _text.contains("Graphics")) {
-
-				int pos_end, pos_start = 0;
-				int char_end, char_start;
-				string output, hash;
-				GLib.FileStream file;
-				PlotFrame plot;
-				TextIter iter1, iter2;
-
-				while(true) {
-
-					output_buffer.get_bounds(out iter1, out iter2);
-					output = output_buffer.get_slice(iter1, iter2, true);
-
-					if(pos_start > output.length - 1)
-						break;
-
-
-					// find next graphics output
-					pos_start = output.index_of("Graphics", pos_start);
-					if(pos_start < 0)
-						break;
-
-					pos_end = find_closing_bracket(output, pos_start);
-					if(pos_end < 0 || pos_end >= output.length)
-						break;
-					
-					// try importing picture, file name is encoded by hash
-					hash = GLib.Checksum.compute_for_string(
-						GLib.ChecksumType.SHA256, 
-						output.substring(pos_start, pos_end-pos_start+1), 
-						pos_end-pos_start+1
-					);
-
-					file = GLib.FileStream.open("tmp/" + hash + ".svg", "r");
-					if(file == null) {
-						pos_start = pos_end + 1;
-						continue;
-					}
-
-					plot = new PlotFrame("tmp/" + hash + ".svg", this);
-
-
-					if(! plot.import_success()) {
-						pos_start = pos_end + 1;
-						continue;
-					}
-
-					// remove graphics output from buffer
-					char_start = character_index_at_byte_index(output, pos_start);
-					char_end = character_index_at_byte_index(output, pos_end);
-					output_buffer.get_iter_at_offset(out iter1, char_start);
-					output_buffer.get_iter_at_offset(out iter2, char_end+1);
-					output_buffer.delete(ref iter1, ref iter2);
-
-					// insert plot
-					output_buffer.get_iter_at_offset(out iter1, char_start);
-					output_cell.add_child_at_anchor(plot, output_buffer.create_child_anchor(iter1));
-
-
-				}
-
-				this.show_all();
-			}
 			
 		}
 

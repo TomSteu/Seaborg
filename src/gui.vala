@@ -505,20 +505,16 @@ namespace Seaborg {
 
 			// buttons to quickly change the form of output
 			input_form_button = new Gtk.RadioButton.with_label_from_widget (null, "Input Form");
-			input_form_with_plot_button = new Gtk.RadioButton.with_label_from_widget (input_form_button, "Input Form with Graphics");
 			svg_button = new Gtk.RadioButton.with_label_from_widget (input_form_button, "SVG output");
 
 			// init and connect to global parameters
 			input_form_button.active = (Parameter.output == Form.INPUT);
-			input_form_with_plot_button.active = (Parameter.output == Form.INPUTREPLACEGRAPHICS);
 			svg_button.active = (Parameter.output == Form.RENDERED);
 			
 			input_form_button.toggled.connect(() => { Parameter.output = Form.INPUT; });
-			input_form_with_plot_button.toggled.connect(() => { Parameter.output = Form.INPUTREPLACEGRAPHICS; });
 			svg_button.toggled.connect(() => { Parameter.output = Form.RENDERED; });
 
 			quick_option_box.add(input_form_button);
-			quick_option_box.add(input_form_with_plot_button);
 			quick_option_box.add(svg_button);
 			quick_option_box.show_all();
 
@@ -1306,6 +1302,7 @@ namespace Seaborg {
 						break;
 					
 					GLib.FileUtils.remove("tmp/*.svg" + fn);
+					GLib.FileUtils.remove("tmp/*.txt" + fn);
 				}
 			} catch(GLib.FileError err) {}
 
@@ -2516,9 +2513,6 @@ namespace Seaborg {
 								case "SEABORG_FORM_INPUT":
 									Parameter.output = Form.INPUT;
 									break;
-								case "SEABORG_FORM_INPUTREPLACEGRAPHICS":
-									Parameter.output = Form.INPUTREPLACEGRAPHICS;
-									break;
 								case "SEABORG_FORM_RENDERED":
 									Parameter.output = Form.RENDERED;
 									break;
@@ -2853,7 +2847,6 @@ namespace Seaborg {
 		private Gtk.ShortcutsWindow shortcuts;
 		private Gtk.MenuButton quick_option_button;
 		private Gtk.RadioButton input_form_button;
-		private Gtk.RadioButton input_form_with_plot_button;
 		private Gtk.RadioButton svg_button;
 		private Gtk.Window preferences_window;
 		private Gtk.Entry init_entry;

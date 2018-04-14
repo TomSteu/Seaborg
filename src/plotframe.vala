@@ -7,6 +7,7 @@ namespace Seaborg {
 		public PlotFrame(string file, EvaluationCell* _parent) {
 
 			parent_cell = _parent;
+			svg_file = file;
 
 			try {
 
@@ -47,14 +48,27 @@ namespace Seaborg {
 				zoom_in.get_style_context().add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 				zoom_in.get_style_context().add_class("zoom-button");
 				zoom_in.clicked.connect(do_zoom_in);
+				zoom_in.has_tooltip = true;
+				zoom_in.tooltip_text = "zoom in";
 				
 				zoom_out = new Gtk.Button.with_label("-");
 				zoom_out.get_style_context().add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 				zoom_out.get_style_context().add_class("zoom-button");
 				zoom_out.clicked.connect(do_zoom_out);
+				zoom_out.has_tooltip = true;
+				zoom_out.tooltip_text = "zoom in";
+
+				copy_button = new Gtk.Button.with_label("⎘");
+				copy_button.get_style_context().add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
+				copy_button.get_style_context().add_class("zoom-button");
+				copy_button.clicked.connect(do_copy_to_clipboard);
+				copy_button.has_tooltip = true;
+				copy_button.tooltip_text = "copy to clipboard";
 				
 				toolbar.attach(zoom_in, 0, 0, 1, 1);
-				toolbar.attach(zoom_out, 0, 1, 1, 1);
+				toolbar.attach(copy_button, 0, 1, 1, 1);
+				toolbar.attach(zoom_out, 0, 2, 1, 1);
+				
 
 				this.attach(toolbar, 0, 0, 1, 1);
 				this.attach(plot, 1, 0, 1, 1);
@@ -66,7 +80,7 @@ namespace Seaborg {
 
 		public bool import_success() {
 			return (handle == null)? false : true;
-		} 
+		}
 
 		private void do_zoom_in() {
 
@@ -82,6 +96,22 @@ namespace Seaborg {
 			draw_image();
 			parent_cell->cell_check_resize();
 
+		}
+
+		private void do_copy_to_clipboard() {
+			
+			FileStream? fs = FileStream.open(data_file, "r");
+			if(fs != null) {
+				
+				string content = fs.read_line();
+				
+				while(! fs.eof()) {
+					content = content + "\n" + fs.read_line();
+				}
+
+				Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD).set_text(content, content.length);
+
+			} 
 		}
 
 		private void draw_image() {
@@ -117,10 +147,13 @@ namespace Seaborg {
 		private Rsvg.Handle handle;
 		private Gtk.Button zoom_in;
 		private Gtk.Button zoom_out;
+		private Gtk.Button copy_button;
 		private Gtk.Grid toolbar;
 		private int zoom_factor;
 		private CssProvider css;
 		private EvaluationCell* parent_cell;
+		public string svg_file {get; set;}
+		public string data_file {get; set;}
 	}
 
 }

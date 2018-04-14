@@ -140,98 +140,13 @@ namespace Seaborg {
 		switch (Parameter.output) {
 			case Form.INPUT:
 				return "ToString[InputForm[" + str + "]]";
-			case Form.INPUTREPLACEGRAPHICS: 
-				return "ToString[InputForm[ReplaceAll[{ Graphics[A___] :> Block[{plot}, plot = Graphics[A]; Export[\"tmp/\" <> IntegerString[Hash[ToString[InputForm[plot], CharacterEncoding->\"UTF8\"], \"SHA256\"], 16, 64] <> \".svg\", plot]; plot]," + 
-				"Graphics3D[A___] :> Block[{plot}, plot = Graphics3D[A]; Export[\"tmp/\" <> IntegerString[Hash[ToString[InputForm[plot]], \"SHA256\"], 16, 64] <> \".svg\", plot]; plot] }]["+ str + "]]]";
 			case Form.RENDERED:
-				return "Function[{arg}, Export[\"tmp/\" <> IntegerString[Hash[ToString[InputForm[arg], CharacterEncoding->\"UTF8\"], \"SHA256\"], 16, 64] <> \".svg\", ToString[StandardForm[Style[arg, FontColor->RGBColor["
+				return "Function[{x}, Block[{ arg = Evaluate[x], hash = IntegerString[Hash[ToString[InputForm[arg], CharacterEncoding->\"UTF8\"], \"SHA256\"], 16, 64] }, Export[\"tmp/\" <> hash <> \".svg\", ToString[StandardForm[Style[arg, FontColor->RGBColor["
 					+ Parameter.font_color.red.to_string() + ", " + Parameter.font_color.green.to_string() + ", " + Parameter.font_color.blue.to_string() + ", " + Parameter.font_color.alpha.to_string()
-					+ "]]]]]; ToString[InputForm[arg]]][" + str + "]";
+					+ "]]]]]; Export[\"tmp/\" <> hash <> \".txt\", arg]; ToString[InputForm[SeaborgOutput[hash]]]]][" + str + "]";
 		}
 
 		return "ToString[InputForm[" + str + "]]";
-	}
-
-	static int find_closing_bracket(string str, int start = 0) {
-		
-		if(start < 0 || start >= str.length)
-			return -1;
-
-		int brack_count = 0;
-		int pos = start;
-		int pos_open = str.index_of("[", start);
-		int pos_close = str.index_of("]", start);
-		int pos_string = str.index_of("\"", start);
-			
-		
-		do {
-
-			if(pos_string > 0 && (pos_string < pos_close || pos_close < 0) && (pos_string < pos_open || pos_open < 0)) {
-				
-				if(pos >= str.length-1)
-					return -1;
-
-				pos = str.index_of("\"", pos+1);
-				
-				if(pos < 0 || pos+1 >= str.length-1)
-					return -1;
-
-				pos_open = str.index_of("[", pos+1);
-				pos_close = str.index_of("]", pos+1);
-				pos_string = str.index_of("\"", pos+1);
-
-				continue;
-			}
-
-
-			if( (pos_close < pos_open || pos_open < 0) && pos_close >= 0)  {
-				brack_count--;
-				pos = pos_close;
-				pos_close = str.index_of("]", pos+1);
-				continue;
-			}
-
-			if( (pos_open < pos_close || pos_close < 0) && pos_open >= 0) {
-				brack_count++;
-				pos = pos_open;
-				pos_open = str.index_of("[", pos+1);
-				continue;
-			}
-
-			break;
-
-		} while(brack_count != 0 && pos < str.length - 1);
-
-		return (brack_count == 0) ? pos : -1;
-	}
-
-	static int character_index_at_byte_index(string str, int byte_idx) {
-
-		if(byte_idx > str.length-1)
-			return -1;
-
-		if(! str.valid_char(byte_idx))
-			return -1;
-
-		int char_idx = (byte_idx >= str.char_count()) ? str.char_count()-1 : byte_idx;
-		int current_idx;
-
-		while(char_idx >= 0 && char_idx < str.char_count()) {
-			
-			current_idx = str.index_of_nth_char(char_idx);
-
-			if(current_idx == byte_idx)
-				return char_idx;
-
-			if(current_idx < byte_idx)
-				return -1;
-
-			char_idx--;
-
-		}
-
-		return -1;
-
 	}
 
 	public enum SearchType {
