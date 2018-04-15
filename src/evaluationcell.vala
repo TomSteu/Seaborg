@@ -321,6 +321,18 @@ namespace Seaborg {
 			TextIter iter;
 			output_buffer.get_end_iter(out iter);
 			
+			if(_text.char_count() > 8000) {
+				
+				Placeholder more = new Placeholder();
+				more.hold_expression = _text;
+
+				output_buffer.insert(ref iter, "\n", 1);
+				output_buffer.get_end_iter(out iter);
+				output_cell.add_child_at_anchor(more, output_buffer.create_child_anchor(iter));
+				this.show_all();
+				return;
+			}
+			
 			// replace all formulas by SVGs
 			if(Parameter.output == Form.RENDERED) {
 				
@@ -358,6 +370,7 @@ namespace Seaborg {
 				output_cell.add_child_at_anchor(plot, output_buffer.create_child_anchor(iter));
 				this.show_all();
 
+				this.check_resize();
 				return;
 			}
 

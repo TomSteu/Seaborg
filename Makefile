@@ -37,7 +37,7 @@ DEPLIBS= `pkg-config --libs gtk+-3.0 gtksourceview-3.0 gdk-3.0 glib-2.0 libxml-2
 
 ##### DO NOT MODIFY #####
 
-VALASRC = gui interfaces parameter string notebook cellcontainer idgenerator evaluationcell textcell addbutton contextmenu plotframe stack 
+VALASRC = gui interfaces parameter string notebook cellcontainer idgenerator evaluationcell textcell addbutton contextmenu plotframe stack placeholder
 CSRC= wstp_connection
 
 .PRECIOUS: ./build/src/%.c
