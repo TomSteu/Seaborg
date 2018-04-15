@@ -706,7 +706,8 @@ namespace Seaborg {
 			wrap_heading.halign = Gtk.Align.START;
 
 			// radio buttons for code wrapping
-			wrap_none_button = new Gtk.RadioButton.with_label_from_widget(null, "no break");
+			wrap_none_button = new Gtk.RadioButton.with_label_from_widget(null, "static after characters:   ");
+			char_wrap_count_box = new Gtk.SpinButton.with_range(4, 120, 1);
 			wrap_char_button = new Gtk.RadioButton.with_label_from_widget(wrap_none_button, "break characters");
 			wrap_word_button = new Gtk.RadioButton.with_label_from_widget(wrap_none_button, "break words");
 			wrap_word_char_button = new Gtk.RadioButton.with_label_from_widget(wrap_none_button, "break words then characters");
@@ -714,8 +715,11 @@ namespace Seaborg {
 			wrap_char_button.active = (Parameter.wrap_mode == Gtk.WrapMode.CHAR);
 			wrap_word_button.active = (Parameter.wrap_mode == Gtk.WrapMode.WORD);
 			wrap_word_char_button.active = (Parameter.wrap_mode == Gtk.WrapMode.WORD_CHAR);
+			char_wrap_count_box.value = Parameter.chars_per_line;
+			char_wrap_count_box.sensitive = (Parameter.wrap_mode == Gtk.WrapMode.NONE);
 			wrap_none_button.toggled.connect(() => { 
 				Parameter.wrap_mode = Gtk.WrapMode.NONE; 
+				char_wrap_count_box.sensitive = true;
 				
 				foreach (Gtk.Widget child in notebook_stack.get_children()) {
 					((Seaborg.Notebook) child).set_wrap_mode(Parameter.wrap_mode);
@@ -725,6 +729,7 @@ namespace Seaborg {
 			});
 			wrap_char_button.toggled.connect(() => { 
 				Parameter.wrap_mode = Gtk.WrapMode.CHAR;
+				char_wrap_count_box.sensitive = false;
 
 				foreach (Gtk.Widget child in notebook_stack.get_children()) {
 					((Seaborg.Notebook) child).set_wrap_mode(Parameter.wrap_mode);
@@ -734,6 +739,7 @@ namespace Seaborg {
 			 });
 			wrap_word_button.toggled.connect(() => { 
 				Parameter.wrap_mode = Gtk.WrapMode.WORD;
+				char_wrap_count_box.sensitive = false;
 
 				foreach (Gtk.Widget child in notebook_stack.get_children()) {
 					((Seaborg.Notebook) child).set_wrap_mode(Parameter.wrap_mode);
@@ -742,7 +748,8 @@ namespace Seaborg {
 				main_window.show_all();
 			});
 			wrap_word_char_button.toggled.connect(() => { 
-				Parameter.wrap_mode = Gtk.WrapMode.WORD_CHAR; 
+				Parameter.wrap_mode = Gtk.WrapMode.WORD_CHAR;
+				char_wrap_count_box.sensitive = false;
 
 				foreach (Gtk.Widget child in notebook_stack.get_children()) {
 					((Seaborg.Notebook) child).set_wrap_mode(Parameter.wrap_mode);
@@ -750,12 +757,18 @@ namespace Seaborg {
 
 				main_window.show_all();
 			});
+			char_wrap_count_box.notify["value"].connect((property, sender) => {
+				Parameter.chars_per_line = (int) char_wrap_count_box.value;
+			});
 
 			// boxes for syntax highlighting preference
 			Gtk.ListBoxRow  wrap_none_row = new Gtk.ListBoxRow();
 			wrap_none_row.activatable = false;
 			wrap_none_row.selectable = false;
-			wrap_none_row.add(wrap_none_button);
+			Gtk.Box wrap_static_box = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 0);
+			wrap_static_box.add(wrap_none_button);
+			wrap_static_box.add(char_wrap_count_box);
+			wrap_none_row.add(wrap_static_box);
 			Gtk.ListBoxRow  wrap_char_row = new Gtk.ListBoxRow();
 			wrap_char_row.activatable = false;
 			wrap_char_row.selectable = false;
@@ -2400,6 +2413,7 @@ namespace Seaborg {
 			save_file.printf("	<dark_theme>" + Parameter.dark_theme.to_string() + "</dark_theme>\n");
 			save_file.printf("	<output>" + Parameter.output.to_string() + "</output>\n");
 			save_file.printf("	<wrap_mode>" + Parameter.wrap_mode.to_string() + "</wrap_mode>\n");
+			save_file.printf("	<chars_per_line>" + Parameter.chars_per_line.to_string() + "</chars_per_line>\n");
 			save_file.printf("	<search_match_case>" + search_settings.case_sensitive.to_string() + "</search_match_case>\n");
 			save_file.printf("	<search_match_word>" + search_settings.at_word_boundaries.to_string() + "</search_match_word>\n");
 			save_file.printf("	<search_match_regex>" + search_settings.regex_enabled.to_string() + "</search_match_regex>\n");
@@ -2535,6 +2549,13 @@ namespace Seaborg {
 									Parameter.wrap_mode = Gtk.WrapMode.WORD_CHAR;
 									break;
 							}
+							break;
+
+						case "chars_per_line":
+							
+							Parameter.chars_per_line = int.parse(iter->get_content());
+							if(Parameter.chars_per_line < 4 || Parameter.chars_per_line > 120)
+								Parameter.chars_per_line = 80;
 							break;
 
 						case "search_match_case":
@@ -2854,6 +2875,7 @@ namespace Seaborg {
 		private Gtk.RadioButton highlight_none_button;
 		private Gtk.RadioButton highlight_nostdlib_button;
 		private Gtk.RadioButton highlight_full_button;
+		private Gtk.SpinButton char_wrap_count_box;
 		private Gtk.RadioButton wrap_none_button;
 		private Gtk.RadioButton wrap_char_button;
 		private Gtk.RadioButton wrap_word_button;

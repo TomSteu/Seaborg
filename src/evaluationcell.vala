@@ -80,7 +80,7 @@ namespace Seaborg {
 			output_cell.insert_spaces_instead_of_tabs = false;
 			output_cell.smart_backspace = true;
 			output_cell.show_line_marks = false;
-			output_cell.wrap_mode = Gtk.WrapMode.WORD_CHAR;
+			output_cell.wrap_mode = Parameter.wrap_mode;
 			output_cell.monospace = true;
 			output_cell.editable = false;
 			output_cell.hexpand = true;
@@ -361,6 +361,63 @@ namespace Seaborg {
 				return;
 			}
 
+			if(Parameter.wrap_mode == Gtk.WrapMode.NONE) {
+				int length = Parameter.chars_per_line > 0 ? Parameter.chars_per_line : 80;
+				int char_count = _text.char_count();
+				int pos1 = 0;
+				int pos2 = 0;
+				int pos3 = 0;
+				string insert_string = "";
+
+				while(pos1 < char_count) {
+
+					pos2 = _text.index_of_char('\n', pos1);
+					
+					// line break not found
+					if(pos2 < pos1) {
+						
+						while(pos1 < char_count) {
+							
+							pos2 = pos1 + length;
+							if(pos2 > char_count)
+								pos2 = char_count;
+
+							insert_string = _text.slice( _text.index_of_nth_char(pos1), _text.index_of_nth_char(pos2)) + "\n";
+							output_buffer.insert(ref iter, insert_string, insert_string.length);
+							output_buffer.get_end_iter(out iter);
+							pos1 = pos2;
+
+
+						} break;
+					}
+
+					// test if line fits into one notebook line
+					if(pos2 - pos1 < length) {
+						pos2++;
+						insert_string = _text.slice( _text.index_of_nth_char(pos1), _text.index_of_nth_char(pos2));
+						output_buffer.insert(ref iter, insert_string, insert_string.length);
+						output_buffer.get_end_iter(out iter);
+						pos1 = pos2;
+					
+					} else {
+
+						while(pos1 < pos2) {
+							pos3 = pos1 + length;
+							if(pos3 > pos2)
+								pos3 = pos2;
+
+							insert_string = _text.slice( _text.index_of_nth_char(pos1), _text.index_of_nth_char(pos3)) + "\n";
+							output_buffer.insert(ref iter, insert_string, insert_string.length);
+							output_buffer.get_end_iter(out iter);
+							pos1 = pos3;
+						}
+					}
+				}
+
+				this.check_resize();
+				return;
+			}
+
 			output_buffer.insert(ref iter, _text, _text.length);
 			this.check_resize();
 
@@ -587,6 +644,7 @@ namespace Seaborg {
 
 		public void set_wrap_mode(Gtk.WrapMode wrap) {
 			input_cell.wrap_mode = wrap;
+			output_cell.wrap_mode = wrap;
 		}
 
 		public ICell* first_cell() { return this; }
