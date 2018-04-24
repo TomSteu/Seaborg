@@ -23,6 +23,7 @@ namespace Seaborg {
 		public static Gdk.RGBA font_color;
 		public static Gtk.WrapMode wrap_mode = Gtk.WrapMode.WORD_CHAR;
 		public static int chars_per_line = 80;
+		public static int max_chars = 8000;
 
 	}
 

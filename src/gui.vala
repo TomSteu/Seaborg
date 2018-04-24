@@ -2415,6 +2415,7 @@ namespace Seaborg {
 			save_file.printf("	<output>" + Parameter.output.to_string() + "</output>\n");
 			save_file.printf("	<wrap_mode>" + Parameter.wrap_mode.to_string() + "</wrap_mode>\n");
 			save_file.printf("	<chars_per_line>" + Parameter.chars_per_line.to_string() + "</chars_per_line>\n");
+			save_file.printf("	<max_chars>" + Parameter.max_chars.to_string() + "</max_chars>\n");
 			save_file.printf("	<search_match_case>" + search_settings.case_sensitive.to_string() + "</search_match_case>\n");
 			save_file.printf("	<search_match_word>" + search_settings.at_word_boundaries.to_string() + "</search_match_word>\n");
 			save_file.printf("	<search_match_regex>" + search_settings.regex_enabled.to_string() + "</search_match_regex>\n");
@@ -2557,6 +2558,13 @@ namespace Seaborg {
 							Parameter.chars_per_line = int.parse(iter->get_content());
 							if(Parameter.chars_per_line < 4 || Parameter.chars_per_line > 120)
 								Parameter.chars_per_line = 80;
+							break;
+
+						case "max_chars":
+							
+							Parameter.max_chars = int.parse(iter->get_content());
+							if(Parameter.max_chars < 0)
+								Parameter.max_chars = 8000;
 							break;
 
 						case "search_match_case":

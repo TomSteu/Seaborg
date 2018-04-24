@@ -321,7 +321,7 @@ namespace Seaborg {
 			TextIter iter;
 			output_buffer.get_end_iter(out iter);
 			
-			if(_text.char_count() > 8000) {
+			if(_text.char_count() > Parameter.max_chars) {
 				
 				Placeholder more = new Placeholder();
 				more.buffer = output_buffer;
