@@ -2239,7 +2239,7 @@ namespace Seaborg {
 														case null: 
 															break;
 														case "text":
-															ecell->add_text("\n" + load_replacement(iter3->get_content()));
+															ecell->add_text(load_replacement(iter3->get_content()));
 															ecell->expand_all();
 															break;							
 													}
