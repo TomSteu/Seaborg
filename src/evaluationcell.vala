@@ -324,12 +324,17 @@ namespace Seaborg {
 			if(_text.char_count() > 8000) {
 				
 				Placeholder more = new Placeholder();
+				more.buffer = output_buffer;
+
 				more.hold_expression = _text;
 
 				output_buffer.insert(ref iter, "\n", 1);
 				output_buffer.get_end_iter(out iter);
-				output_cell.add_child_at_anchor(more, output_buffer.create_child_anchor(iter));
+				more.anchor = output_buffer.create_child_anchor(iter);
+				output_cell.add_child_at_anchor(more, more.anchor);
 				this.show_all();
+				this.check_resize();
+				
 				return;
 			}
 			
@@ -339,6 +344,7 @@ namespace Seaborg {
 				string txt_rep = _text.replace("\n", "").replace(" ", "");
 				if(txt_rep.length < 81 || txt_rep.substring(0, 15) != "SeaborgOutput[\"") {
 					output_buffer.insert(ref iter, _text, _text.length);
+					this.show_all();
 					this.check_resize();
 					return;
 				}
@@ -350,6 +356,7 @@ namespace Seaborg {
 
 				if(file == null) {
 					output_buffer.insert(ref iter, _text, _text.length);
+					this.show_all();
 					this.check_resize();
 					return;
 				}
@@ -358,6 +365,7 @@ namespace Seaborg {
 				
 				if(! plot.import_success()) {
 					output_buffer.insert(ref iter, _text, _text.length);
+					this.show_all();
 					this.check_resize();
 					return;
 				}
@@ -369,7 +377,6 @@ namespace Seaborg {
 				output_buffer.get_end_iter(out iter);
 				output_cell.add_child_at_anchor(plot, output_buffer.create_child_anchor(iter));
 				this.show_all();
-
 				this.check_resize();
 				return;
 			}
@@ -427,11 +434,13 @@ namespace Seaborg {
 					}
 				}
 
+				this.show_all();
 				this.check_resize();
 				return;
 			}
 
 			output_buffer.insert(ref iter, _text, _text.length);
+			this.show_all();
 			this.check_resize();
 
 			

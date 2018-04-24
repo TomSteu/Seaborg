@@ -1674,6 +1674,7 @@ namespace Seaborg {
 						if(string_to_write != "") {
 							cell_to_write->add_text("\n"+ string_to_write);
 							cell_to_write->expand_all();
+							cell_to_write->show_all();
 						}
 
 						if(_break != 0) {
