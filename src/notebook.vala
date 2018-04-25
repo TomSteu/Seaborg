@@ -295,6 +295,16 @@ namespace Seaborg {
 				children_cells.data[i].set_wrap_mode(wrap);
 		}
 
+		public string cell_checksum() {
+			string hash = "";
+			
+			for(int i=0; i<=children_cells.data.length; i++) {
+				hash += children_cells.data[i].cell_checksum();
+			}
+
+			return GLib.Checksum.compute_for_string(GLib.ChecksumType.SHA256, hash);
+		}
+
 		public GLib.Array<ICell> children_cells {get; set;}
 		public GLib.Array<AddButton> addbutton_list {get; set;}
 		public ICellContainer* parent_cell {get; set;}

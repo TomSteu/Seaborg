@@ -43,6 +43,7 @@ namespace Seaborg {
 		public abstract ICell* first_cell();
 		public abstract ICell* last_cell();
 		public abstract void set_wrap_mode(Gtk.WrapMode wrap);
+		public abstract string cell_checksum();
 		public signal void cell_focused(Gtk.Widget widget);
 
 		public bool untoggle_handler(EventButton event) {

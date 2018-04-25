@@ -669,6 +669,10 @@ namespace Seaborg {
 			output_cell.wrap_mode = wrap;
 		}
 
+		public string cell_checksum() {
+			return GLib.Checksum.compute_for_string(GLib.ChecksumType.SHA256, input_buffer.text + output_buffer.text);
+		}
+
 		public ICell* first_cell() { return this; }
 		public ICell* last_cell() { return this; }
 
