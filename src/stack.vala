@@ -1,5 +1,6 @@
 using Gtk;
 using Pango;
+using GLib;
 
 namespace Seaborg {
 
@@ -12,6 +13,7 @@ namespace Seaborg {
 		public new void add_titled (Gtk.Widget child, string name, string title) {
 			base.add_titled(child, name, title);
 			base.visible_child = child;
+			checksums.insert(name, "");
 			child_added(name, title);
 		}
 
@@ -24,6 +26,9 @@ namespace Seaborg {
 			if( child != null) 
 				base.remove(child);
 
+			if(checksums.contains(name))
+				checksums.remove(name);
+
 		}
 
 		public void child_amend_name_title(string old_name, string new_name, string new_title) {
@@ -34,9 +39,21 @@ namespace Seaborg {
 				if( child != null) {
 					base.child_set_property(child, "name", new_name);
 					base.child_set_property(child, "title", new_title);
+
+					if(new_name != old_name) {
+						string val = checksums.lookup(old_name);
+						checksums.insert(new_name, val);
+						checksums.remove(old_name);
+					}
 				}
 
 		}
+
+		public void child_update_checksum(string name, string hash) {
+			checksums.insert(name, hash);
+		}
+
+		private GLib.HashTable <string, string> checksums = new GLib.HashTable <string, string>(str_hash, str_equal);
 
 
 	}

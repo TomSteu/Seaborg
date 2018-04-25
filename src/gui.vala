@@ -1893,6 +1893,8 @@ namespace Seaborg {
 				notebook_stack.child_amend_name_title(notebook_stack.get_visible_child_name(), fn, make_file_name(fn));
 			}
 
+			notebook_stack.child_update_checksum(notebook_stack.get_visible_child_name(), ((Seaborg.Notebook) notebook_stack.visible_child).cell_checksum());
+
 			kernel_msg("File saved successfully");
 
 			return;
