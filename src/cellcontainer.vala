@@ -334,6 +334,11 @@ namespace Seaborg {
 				font_provider.load_from_data(zoom_string, zoom_string.length);
 			} catch (GLib.Error err) {}
 
+			while(Gtk.events_pending()) Gtk.main_iteration() ;
+			show_all();
+			cell_check_resize();
+			show_all();
+
 
 		}
 

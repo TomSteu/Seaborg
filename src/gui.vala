@@ -1640,8 +1640,16 @@ namespace Seaborg {
 
 			Gtk.Label label = new Gtk.Label(msg);
 			message_bar.get_content_area().add(label);
+			ulong current_id = ++msg_id;
 			label.show();
 			message_bar.show();
+
+			Timeout.add(10000, () => {
+				if(current_id == msg_id) {
+					message_bar.hide();
+				}
+				return false;
+			});
 		}
 
 		private static  callback_str write_to_evaluation_cell = (_string_to_write, cell_ptr, _stamp, _break) => {
@@ -2898,6 +2906,7 @@ namespace Seaborg {
 		private bool listener_thread_is_running=false;
 		private CssProvider css_provider;
 		private Rsvg.Handle? main_icon_handle;
+		private ulong msg_id = 0;
 	}
 
 
