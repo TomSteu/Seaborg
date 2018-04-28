@@ -53,6 +53,10 @@ namespace Seaborg {
 			checksums.insert(name, hash);
 		}
 
+		public string lookup_checksum(string name) {
+			return checksums.lookup(name);
+		}
+
 		private GLib.HashTable <string, string> checksums = new GLib.HashTable <string, string>(str_hash, str_equal);
 
 

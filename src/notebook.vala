@@ -298,7 +298,7 @@ namespace Seaborg {
 		public string cell_checksum() {
 			string hash = "";
 			
-			for(int i=0; i<=children_cells.data.length; i++) {
+			for(int i=0; i<children_cells.data.length; i++) {
 				hash += children_cells.data[i].cell_checksum();
 			}
 

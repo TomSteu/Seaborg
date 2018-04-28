@@ -1104,20 +1104,7 @@ namespace Seaborg {
 			});
 
 			save_action.activate.connect(() => {
-				if(notebook_stack.get_visible_child != null) {
-					
-					GLib.FileStream? fs = GLib.FileStream.open(notebook_stack.get_visible_child_name(), "r");
-					
-					if(fs != null) {
-
-						save_notebook(notebook_stack.get_visible_child_name());
-					
-					} else {
-
-						save_dialog();
-					}
-					
-				}
+				save_quick();
 			});
 
 			save_as_action.activate.connect(() => {
@@ -1143,9 +1130,38 @@ namespace Seaborg {
 				if(child == null)
 					return;
 				
-				notebook_stack.remove_by_name(notebook_stack.get_visible_child_name());
-				delete ((Seaborg.Notebook*) child);
+				if(notebook_stack.lookup_checksum(notebook_stack.get_visible_child_name()) != ((Seaborg.Notebook) notebook_stack.visible_child).cell_checksum()) {
+
+					Gtk.MessageDialog dialog = new Gtk.MessageDialog( main_window, Gtk.DialogFlags.MODAL, Gtk.MessageType.QUESTION, Gtk.ButtonsType.NONE, "Notebook" + notebook_stack.visible_child_name + " was modified, saving it?");
+					dialog.add_button("_Cancel", Gtk.ResponseType.CANCEL);
+					dialog.add_button("C_lose", Gtk.ResponseType.CLOSE);
+					dialog.add_button("_Save", Gtk.ResponseType.ACCEPT);
+
+					dialog.response.connect((response) => {
+						switch(response) {
+							
+							case Gtk.ResponseType.CLOSE:
+								notebook_stack.remove_by_name(notebook_stack.get_visible_child_name());
+								delete ((Seaborg.Notebook*) child);
+								break;
+							case Gtk.ResponseType.ACCEPT:
+								if(save_quick()) {
+									notebook_stack.remove_by_name(notebook_stack.get_visible_child_name());
+									delete ((Seaborg.Notebook*) child);
+								}
+								break;
+						}
+						dialog.destroy();
+						return;
+					});
+
+					dialog.run();
 				
+				} else {
+
+					notebook_stack.remove_by_name(notebook_stack.get_visible_child_name());
+					delete ((Seaborg.Notebook*) child);
+				}
 			});
 
 			remove_action.activate.connect(() => {
@@ -1302,6 +1318,28 @@ namespace Seaborg {
 
 		// save the state of the app and quit
 		public void quit_app() {
+
+			foreach(Gtk.Widget child in notebook_stack.get_children()) {
+				
+				notebook_stack.set_visible_child(child);
+				
+				if(notebook_stack.lookup_checksum(notebook_stack.visible_child_name) != ((Seaborg.Notebook) notebook_stack.visible_child).cell_checksum()) {
+					Gtk.MessageDialog dialog = new Gtk.MessageDialog( main_window, Gtk.DialogFlags.MODAL, Gtk.MessageType.QUESTION, Gtk.ButtonsType.NONE, "Notebook" + notebook_stack.visible_child_name + " was modified, saving it?");
+					dialog.add_button("_Close", Gtk.ResponseType.CLOSE);
+					dialog.add_button("_Save", Gtk.ResponseType.ACCEPT);
+
+					dialog.response.connect((response) => {
+						
+						if(response == Gtk.ResponseType.ACCEPT) {
+							save_quick();
+						}
+						dialog.destroy();
+						return;
+					});
+
+					dialog.run();
+				}
+			}
 
 			try {
 				GLib.Dir tmp = GLib.Dir.open("tmp/");
@@ -1701,7 +1739,27 @@ namespace Seaborg {
 			return;
 		};
 
-		private void save_dialog() {
+		private bool save_quick() {
+
+			if(notebook_stack.get_visible_child != null) {
+					
+				GLib.FileStream? fs = GLib.FileStream.open(notebook_stack.get_visible_child_name(), "r");
+					
+				if(fs != null) {
+
+					save_notebook(notebook_stack.get_visible_child_name());
+					return true;
+				
+				}
+
+				return save_dialog();
+					
+			}
+
+			return false;
+		}
+
+		private bool save_dialog() {
 			Gtk.FileChooserDialog saver = new Gtk.FileChooserDialog(
 				"Save Notebook",
 				main_window,
@@ -1721,9 +1779,13 @@ namespace Seaborg {
 				foreach (string fn in filenames) {
 					save_notebook(fn);	
 				}
+
+				saver.close();
+				return true;
 			}
 
 			saver.close();
+			return false;
 		}
 
 		private void load_dialog() {
@@ -2682,6 +2744,7 @@ namespace Seaborg {
 		private void add_notebook(Seaborg.Notebook* nb, string name, string title) {
 
 			notebook_stack.add_titled(nb, name, title);
+			notebook_stack.child_update_checksum(name, nb->cell_checksum());
 
 			// update visible treemodel on switch of tabs
 			nb->notify["tree-model"].connect((property, sender) => {
