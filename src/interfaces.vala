@@ -77,20 +77,45 @@ namespace Seaborg {
 
 			switch (txt) {
 				case "(":
-					iter.get_buffer().insert(ref iter, ")", 1);
+					// the next line is not a bug but a clever trick
+					iter.get_buffer().insert(ref iter, ") ", 1);
+					iter.backward_cursor_position();
+					iter.get_buffer().place_cursor(iter);
 					break;
 				case "[":
-					iter.get_buffer().insert(ref iter, "]", 1);
+					iter.get_buffer().insert(ref iter, "] ", 1);
+					iter.backward_cursor_position();
+					iter.get_buffer().place_cursor(iter);
 					break;
 				case "{":
-					iter.get_buffer().insert(ref iter, "}", 1);
+					iter.get_buffer().insert(ref iter, "} ", 1);
+					iter.backward_cursor_position();
+					iter.get_buffer().place_cursor(iter);
+					break;
+				case ")":
+					if(iter.get_char() == ')') {
+						Gtk.TextIter iter2 = iter;
+						iter2.forward_char();
+						iter.get_buffer().delete(ref iter, ref iter2);
+					}
+					break;
+				case "]":
+					if(iter.get_char() == ']') {
+						Gtk.TextIter iter2 = iter;
+						iter2.forward_char();
+						iter.get_buffer().delete(ref iter, ref iter2);
+					}
+					break;
+				case "}":
+					if(iter.get_char() == '}') {
+						Gtk.TextIter iter2 = iter;
+						iter2.forward_char();
+						iter.get_buffer().delete(ref iter, ref iter2);
+					}
 					break;
 				default:
 					return;
 			}
-
-			iter.backward_cursor_position();
-			iter.get_buffer().place_cursor(iter);
 
 			return;
 		}
