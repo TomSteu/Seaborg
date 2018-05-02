@@ -37,7 +37,7 @@ namespace Seaborg {
  			
 
  			input_buffer = new Gtk.SourceBuffer(null);
-			input_buffer.highlight_matching_brackets = true;			
+			input_buffer.highlight_matching_brackets = true;	
 
 			input_cell = new Gtk.SourceView.with_buffer(input_buffer);
 			input_cell.show_line_numbers = false;
@@ -70,6 +70,7 @@ namespace Seaborg {
 			output_buffer = new Gtk.SourceBuffer(null);
 			output_buffer.highlight_matching_brackets = true;
 			output_buffer.add_selection_clipboard(Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD));
+			output_buffer.max_undo_levels = 0;
 
 			output_cell = new Gtk.SourceView.with_buffer(output_buffer);
 			output_cell.show_line_numbers = false;
