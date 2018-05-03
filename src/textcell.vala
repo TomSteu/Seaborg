@@ -9,6 +9,13 @@ namespace Seaborg {
 			this.name = IdGenerator.get_id();
 			parent_cell = par;
 
+			text_scroll = new Gtk.ScrolledWindow(null, null);
+			text_scroll.halign = Gtk.Align.FILL;
+			text_scroll.hexpand = true;
+			text_scroll.vscrollbar_policy = Gtk.PolicyType.NEVER;
+			text_scroll.hscrollbar_policy = Gtk.PolicyType.AUTOMATIC;
+
+
 			hexpand = true;
 			halign = Gtk.Align.FILL;
 			column_spacing = 4;
@@ -70,7 +77,8 @@ namespace Seaborg {
 			marker.get_style_context().add_class("cell-marker");
 
 			attach(marker, 0, 0, 1, 1);
-			attach(cell, 1, 0, 1, 1);
+			text_scroll.add(cell);
+			attach(text_scroll, 1, 0, 1, 1);
 
 			marker.button_press_event.connect(press_handler);
 			show_all();
@@ -309,6 +317,7 @@ namespace Seaborg {
 		public ICell* last_cell() { return this; }
 
 		public bool cell_expanded { get { return true; } }
+		private Gtk.ScrolledWindow text_scroll;
 		private Gtk.SourceView cell;
 		private Gtk.SourceBuffer cell_buffer;
 		private Gtk.SourceSearchContext search_context;

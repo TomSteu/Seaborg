@@ -18,6 +18,18 @@ namespace Seaborg {
 			this.get_style_context().add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 			_lock = false;
 
+			input_scroll = new Gtk.ScrolledWindow(null, null);
+			input_scroll.halign = Gtk.Align.FILL;
+			input_scroll.hexpand = true;
+			input_scroll.vscrollbar_policy = Gtk.PolicyType.NEVER;
+			input_scroll.hscrollbar_policy = Gtk.PolicyType.AUTOMATIC;
+
+			output_scroll = new Gtk.ScrolledWindow(null, null);
+			output_scroll.halign = Gtk.Align.FILL;
+			output_scroll.hexpand = true;
+			output_scroll.vscrollbar_policy = Gtk.PolicyType.NEVER;
+			output_scroll.hscrollbar_policy = Gtk.PolicyType.AUTOMATIC;
+
 			try {
 
 				string font_string = "* { font-size: " + parent_cell->zoom_factor.to_string() + "em; }";
@@ -126,8 +138,11 @@ namespace Seaborg {
 			style_context.add_class("cell-marker");
 			this.get_style_context().add_class("cell-grid");
 
+			input_scroll.add(input_cell);
+			output_scroll.add(output_cell);
+
 			attach(marker, 0, 0, 1, 1);
-			attach(input_cell, 1, 0, 1, 1);
+			attach(input_scroll, 1, 0, 1, 1);
 
 			isExpanded = false;
 
@@ -161,8 +176,8 @@ namespace Seaborg {
 		public void expand_all() {
 			if(!isExpanded) {
 				remove_row(0);
-				attach(input_cell, 1, 0, 1, 1);
-				attach(output_cell, 1, 1, 1, 1);
+				attach(input_scroll, 1, 0, 1, 1);
+				attach(output_scroll, 1, 1, 1, 1);
 				attach(marker, 0, 0, 1, 2);
 				isExpanded = true;
 				show_all();
@@ -678,6 +693,8 @@ namespace Seaborg {
 
 		public ICellContainer* parent_cell {get; set;}
 		public bool cell_expanded { get { return isExpanded; } }
+		private Gtk.ScrolledWindow input_scroll;
+		private Gtk.ScrolledWindow output_scroll;
 		private Gtk.SourceView input_cell;
 		private Gtk.SourceBuffer input_buffer;
 		private Gtk.SourceView output_cell;

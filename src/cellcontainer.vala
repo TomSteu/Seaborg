@@ -18,6 +18,12 @@ namespace Seaborg {
 			zoom_factor = parent_cell->zoom_factor;
 			search_settings = parent_cell->search_settings;
 
+			title_scroll = new Gtk.ScrolledWindow(null, null);
+			title_scroll.halign = Gtk.Align.FILL;
+			title_scroll.hexpand = true;
+			title_scroll.vscrollbar_policy = Gtk.PolicyType.NEVER;
+			title_scroll.hscrollbar_policy = Gtk.PolicyType.AUTOMATIC;
+
 			css = new CssProvider();
 			font_provider = new CssProvider();
 			this.get_style_context().add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
@@ -80,7 +86,8 @@ namespace Seaborg {
 
 			// assemble the container
 			attach(marker, 0, 0, 1, 2);
-			attach(title, 1, 0, 1, 1);
+			title_scroll.add(title);
+			attach(title_scroll, 1, 0, 1, 1);
 			addbutton_list.append_val(new AddButton(this));
 			attach(addbutton_list.index(0), 1, 1, 1);
 
@@ -664,6 +671,7 @@ namespace Seaborg {
 		public bool cell_expanded { get { return isExpanded; } }
 		public Gtk.SourceSearchSettings search_settings {get; set;}
 		public Gtk.TreeStore tree_model {get; set;}
+		private Gtk.ScrolledWindow title_scroll;
 		private Gtk.SourceSearchContext search_context;
 		private uint Level;
 		private SourceView title;
