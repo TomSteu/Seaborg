@@ -80,6 +80,14 @@ namespace Seaborg {
 			text_scroll.add(cell);
 			attach(text_scroll, 1, 0, 1, 1);
 
+			text_scroll.vadjustment.notify["value"].connect((property, sender) => {
+				if(text_scroll.vadjustment.value > 0) {
+					text_scroll.get_vadjustment().set_value(0);
+					check_resize();
+					show_all();
+				}	
+			});
+
 			marker.button_press_event.connect(press_handler);
 			show_all();
 

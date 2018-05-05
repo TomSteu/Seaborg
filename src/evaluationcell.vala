@@ -142,6 +142,22 @@ namespace Seaborg {
 			input_scroll.add(input_cell);
 			output_scroll.add(output_cell);
 
+			input_scroll.vadjustment.notify["value"].connect((property, sender) => {
+				if(input_scroll.vadjustment.value > 0) {
+					input_scroll.get_vadjustment().set_value(0);
+					check_resize();
+					show_all();
+				}	
+			});
+			
+			output_scroll.vadjustment.notify["value"].connect((property, sender) => {
+				if(output_scroll.vadjustment.value > 0) {
+					output_scroll.get_vadjustment().set_value(0);
+					check_resize();
+					show_all();
+				}	
+			});
+
 			attach(marker, 0, 0, 1, 1);
 			attach(input_scroll, 1, 0, 1, 1);
 

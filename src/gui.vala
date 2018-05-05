@@ -966,20 +966,6 @@ namespace Seaborg {
 				return false;
 			});
 
-			notebook_scroll.hadjustment.notify["page-size"].connect((property, sender) => {
-				if(notebook_stack.visible_child != null && notebook_scroll.hadjustment.upper - notebook_scroll.hadjustment.lower > notebook_scroll.hadjustment.page_size) {
-					//notebook_stack.visible_child.width_request = (int) notebook_scroll.hadjustment.page_size;
-					
-					//int minimum_height, natural_height;
-					//int width = (int) (0.9*notebook_scroll.hadjustment.page_size);
-					
-					//notebook_scroll.get_preferred_height_for_width (width, out minimum_height, out natural_height);
-					//notebook_scroll.set_size_request(width, minimum_height);
-
-				}
-			});
-
-
 			// main layout
 			main_layout.attach(message_bar, 0, 0, 2, 1);
 			main_layout.attach(search_bar, 0, 1, 2, 1);

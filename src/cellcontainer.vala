@@ -92,6 +92,13 @@ namespace Seaborg {
 			attach(addbutton_list.index(0), 1, 1, 1);
 
 			marker.button_press_event.connect(press_handler);
+			title_scroll.vadjustment.notify["value"].connect((property, sender) => {
+				if(title_scroll.vadjustment.value > 0) {
+					title_scroll.get_vadjustment().set_value(0);
+					check_resize();
+					show_all();
+				}	
+			});
 			isExpanded = true;
 
 			show_all();
