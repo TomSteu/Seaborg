@@ -70,6 +70,7 @@ namespace Seaborg {
 			}
 
 			search_context = new Gtk.SourceSearchContext(cell_buffer, parent_cell->search_settings);
+			get_style_context().add_class("cell-grid");
 
 			marker = new Gtk.ToggleButton();
 			marker.can_focus = false;
