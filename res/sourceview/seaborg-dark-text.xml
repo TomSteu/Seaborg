@@ -21,7 +21,7 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 -->
-<style-scheme id="seaborg-dark" _name="Seaborg-Dark" version="1.0">
+<style-scheme id="seaborg-dark-text" _name="Seaborg-Dark Text-Cell" version="1.0">
   <author>Seaborg Team</author>
   <_description>Seaborg color scheme</_description>
 

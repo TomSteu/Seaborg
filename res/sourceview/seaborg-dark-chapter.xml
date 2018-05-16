@@ -1,0 +1,35 @@
+<style-scheme id="seaborg-dark-chapter" _name="Seaborg-Dark Chapter-Heading" version="1.0">
+  <author>Seaborg Team</author>
+  <_description>Seaborg color scheme</_description>
+
+  <!-- Palette -->
+  <color name="white"       value="#FFFFFF"/>
+  <color name="blue"        value="#0000FF"/>
+  <color name="gray"        value="#BEBEBE"/>
+  <color name="green"       value="#2E8B57"/>
+  <color name="red"         value="#FF0000"/>
+  <color name="yellow"      value="#FFFF00"/>
+  <color name="sky_blue"    value="#0088ff"/>
+  <color name="magenta"     value="#FF00FF"/>
+  <color name="cyan"        value="#008A8C"/>
+  <color name="some_blue"   value="#729FDF"/>
+  <color name="some_purple" value="#C792EA"/>
+  <color name="some_red"    value="#F07178"/>
+  <color name="some_green"  value="#99c794"/>
+  <color name="some_cyan"   value="#5FB3B3"/>
+  <color name="some_yellow" value="#F9AE58"/>
+
+  <!-- Dark Palette                       -->
+  <style name="bracket-match"               foreground="green" bold="true"/>
+  <style name="bracket-mismatch"            foreground="red" bold="true"/>
+  <style name="search-match"                background="some_yellow"/>
+  <style name="def:comment"                 foreground="gray"/>
+  <style name="def:string"                  foreground="some_purple"/>
+  <style name="def:keyword"                 foreground="some_blue"/>
+  <style name="def:operator"                foreground="cyan"/>
+  <style name="def:error"                   foreground="some_red" bold="true"/>
+  <style name="def:constant"                foreground="some_blue" bold="true"/>
+  <style name="def:statement"               foreground="some_yellow" />
+  <style name="def:special-constant"        foreground="green" />
+
+</style-scheme>

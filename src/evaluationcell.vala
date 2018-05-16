@@ -107,11 +107,11 @@ namespace Seaborg {
 			output_cell.get_style_context().add_provider(font_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 
 			if(Parameter.dark_theme) {
-				input_buffer.style_scheme = sm.get_scheme("seaborg-dark");
-				output_buffer.style_scheme = sm.get_scheme("seaborg-dark");
+				input_buffer.style_scheme = sm.get_scheme("seaborg-dark-input");
+				output_buffer.style_scheme = sm.get_scheme("seaborg-dark-output");
 			} else {
-				input_buffer.style_scheme = sm.get_scheme("seaborg-light");
-				output_buffer.style_scheme = sm.get_scheme("seaborg-light");
+				input_buffer.style_scheme = sm.get_scheme("seaborg-light-input");
+				output_buffer.style_scheme = sm.get_scheme("seaborg-light-output");
 			}
 			
 			if(Parameter.code_highlighting != Highlighting.NONE) {

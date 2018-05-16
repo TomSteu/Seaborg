@@ -63,14 +63,8 @@ namespace Seaborg {
 			title_buffer.insert_text.connect(insert_handler);
 			title_buffer.add_selection_clipboard(Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD));
 
-			Gtk.SourceStyleSchemeManager sm = new Gtk.SourceStyleSchemeManager();
+			sm = new Gtk.SourceStyleSchemeManager();
  			sm.search_path = new string[] {"res/sourceview/"};
-
-			if(Parameter.dark_theme) {
-				title_buffer.style_scheme = sm.get_scheme("seaborg-dark");
-			} else {
-				title_buffer.style_scheme = sm.get_scheme("seaborg-light");
-			}
 
 			search_context = new Gtk.SourceSearchContext(title_buffer, parent_cell->search_settings);
 
@@ -339,6 +333,51 @@ namespace Seaborg {
 			
 
 			Level = level;
+
+			if(Parameter.dark_theme) {
+				switch (Level) {
+					case 1u:
+						title_buffer.style_scheme = sm.get_scheme("seaborg-dark-subsubsection");
+						break;
+					case 2u:
+						title_buffer.style_scheme = sm.get_scheme("seaborg-dark-subsection");
+						break;
+					case 3u:
+						title_buffer.style_scheme = sm.get_scheme("seaborg-dark-section");
+						break;
+					case 4u:
+						title_buffer.style_scheme = sm.get_scheme("seaborg-dark-subchapter");
+						break;
+					case 5u:
+						title_buffer.style_scheme = sm.get_scheme("seaborg-dark-chapter");
+						break;
+					case 6u:
+						title_buffer.style_scheme = sm.get_scheme("seaborg-dark-title");
+						break;
+				}
+				
+			} else {
+				switch (Level) {
+					case 1u:
+						title_buffer.style_scheme = sm.get_scheme("seaborg-light-subsubsection");
+						break;
+					case 2u:
+						title_buffer.style_scheme = sm.get_scheme("seaborg-light-subsection");
+						break;
+					case 3u:
+						title_buffer.style_scheme = sm.get_scheme("seaborg-light-section");
+						break;
+					case 4u:
+						title_buffer.style_scheme = sm.get_scheme("seaborg-light-subchapter");
+						break;
+					case 5u:
+						title_buffer.style_scheme = sm.get_scheme("seaborg-light-chapter");
+						break;
+					case 6u:
+						title_buffer.style_scheme = sm.get_scheme("seaborg-light-title");
+						break;
+				}
+			}
 			string zoom_string = 
 				"* { font-size: " + 
 				((0.2 * get_level() + 1.0)* zoom_factor).to_string() + 
@@ -687,6 +726,7 @@ namespace Seaborg {
 		private CssProvider css;
 		private CssProvider font_provider;
 		private bool isExpanded;
+		private Gtk.SourceStyleSchemeManager sm;
 	}
 
 }

@@ -64,9 +64,9 @@ namespace Seaborg {
  			sm.search_path = new string[] {"res/sourceview/"};
 
 			if(Parameter.dark_theme) {
-				cell_buffer.style_scheme = sm.get_scheme("seaborg-dark");
+				cell_buffer.style_scheme = sm.get_scheme("seaborg-dark-text");
 			} else {
-				cell_buffer.style_scheme = sm.get_scheme("seaborg-light");
+				cell_buffer.style_scheme = sm.get_scheme("seaborg-light-text");
 			}
 
 			search_context = new Gtk.SourceSearchContext(cell_buffer, parent_cell->search_settings);
