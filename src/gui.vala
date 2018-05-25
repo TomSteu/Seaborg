@@ -1386,13 +1386,26 @@ namespace Seaborg {
 			
 			cell = null;
 			
+			// cycle through cells backwards
 			for(int i=container.children_cells.data.length-1; i>=0; i--) {
 				
 				if(container.children_cells.data[i].marker_selected) {
 					if(i+1 < container.children_cells.data.length) {
+						
+						// focus next cell
 						cell = container.children_cells.data[i+1];
 					} else {
-						cell = null;
+						
+						if(i > 0) {
+							
+							// focus previous cell within container
+							cell = container.children_cells.data[i-1];
+							
+						} else {
+							
+							// do not focus any cell
+							cell = null;
+						}
 					}
 
 					return true;
@@ -1453,7 +1466,7 @@ namespace Seaborg {
 		private void schedule_evaluation_recursively(ICellContainer container, ref ICellContainer? last_container, ref int last_pos, bool select_all) {
 			
 			EvaluationCell eva;
-			
+
 			if(container.marker_selected)
 				select_all = true;
 
