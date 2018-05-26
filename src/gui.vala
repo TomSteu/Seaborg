@@ -214,6 +214,13 @@ namespace Seaborg {
 				            "<child>"+
 				              "<object class=\"GtkShortcutsShortcut\">"+
 				                "<property name=\"visible\">1</property>"+
+				                "<property name=\"accelerator\">&lt;ctrl&gt;U</property>"+
+				                "<property name=\"title\" translatable=\"yes\">Insert cell</property>"+
+				              "</object>"+
+				            "</child>"+
+				            "<child>"+
+				              "<object class=\"GtkShortcutsShortcut\">"+
+				                "<property name=\"visible\">1</property>"+
 				                "<property name=\"accelerator\">&lt;ctrl&gt;Return</property>"+
 				                "<property name=\"title\" translatable=\"yes\">Evaluate cells</property>"+
 				              "</object>"+
@@ -1081,6 +1088,7 @@ namespace Seaborg {
 			var pref_action = new GLib.SimpleAction("pref", null);
 			var sel_action = new GLib.SimpleAction("sel", null);
 			var expand_action = new GLib.SimpleAction("expand", null);
+			var insert_action = new GLib.SimpleAction("insert", null);
 
 			new_action.activate.connect(() => {
 				new_notebook();
@@ -1108,6 +1116,11 @@ namespace Seaborg {
 
 			quit_action.activate.connect(() => {
 				quit_app();
+			});
+
+			insert_action.activate.connect(() => {
+				if(notebook_stack.get_visible_child() != null)
+					notebook_insert_cell((Seaborg.Notebook)notebook_stack.get_visible_child());
 			});
 
 			close_action.activate.connect(() => {
@@ -1259,6 +1272,7 @@ namespace Seaborg {
 			this.add_action(pref_action);
 			this.add_action(sel_action);
 			this.add_action(expand_action);
+			this.add_action(insert_action);
 
 
 			const string[] new_accels = {"<Control>N", null};
@@ -1279,6 +1293,7 @@ namespace Seaborg {
 			const string[] pref_accels = {"<Control>P", null};
 			const string[] sel_accels = {"<Control>Escape", null};
 			const string[] expand_accels = {"<Control>T", null};
+			const string[] insert_accels = {"<Control>U", null};
 
 			this.set_accels_for_action("app.new", new_accels);
 			this.set_accels_for_action("app.open", open_accels);
@@ -1298,6 +1313,7 @@ namespace Seaborg {
 			this.set_accels_for_action("app.pref", pref_accels);
 			this.set_accels_for_action("app.sel", sel_accels);
 			this.set_accels_for_action("app.expand", expand_accels);
+			this.set_accels_for_action("app.insert", insert_accels);
 
 
 
@@ -1349,6 +1365,27 @@ namespace Seaborg {
 			this.quit();
 		}
 
+		// inserts new cell after last selected one
+		public bool notebook_insert_cell(ICellContainer container) {
+			for(int i=container.children_cells.data.length-1; i>=0; i--) {
+				
+				// last cell found
+				if(container.children_cells.data[i].marker_selected) {
+					EvaluationCell* new_cell = new EvaluationCell(container);
+					container.add_before(i+1, {new_cell});
+					main_window.show_all();
+					new_cell->focus_cell();
+					return true;
+				}
+
+				if(container.children_cells.data[i].get_level() > 0u && notebook_insert_cell((ICellContainer) container.children_cells.data[i]))
+					return true;
+			}
+
+			return false;
+
+		}
+
 		// removes all selected cells
 		public void notebook_remove_children(ICellContainer container) {
 
@@ -1364,10 +1401,10 @@ namespace Seaborg {
 
 			// notebook wiped clean - add the first evaluation cell
 			if(container.children_cells.data.length == 0) {
-				EvaluationCell* newCell = new EvaluationCell(container);
-				container.add_before(-1, {newCell});
+				EvaluationCell* new_cell = new EvaluationCell(container);
+				container.add_before(-1, {new_cell});
 				main_window.show_all();
-				newCell->focus_cell();
+				new_cell->focus_cell();
 				return;
 			}
 
@@ -1400,7 +1437,7 @@ namespace Seaborg {
 							
 							// focus previous cell within container
 							cell = container.children_cells.data[i-1];
-							
+
 						} else {
 							
 							// do not focus any cell
