@@ -60,6 +60,7 @@ namespace Seaborg {
 			title.button_press_event.connect(untoggle_handler);
 			title.key_press_event.connect(key_handler);
 			title.get_style_context().add_provider(font_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
+			title_scroll.get_style_context().add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 			title_buffer.insert_text.connect(insert_handler);
 			title_buffer.add_selection_clipboard(Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD));
 
@@ -330,7 +331,28 @@ namespace Seaborg {
 		public void set_level(uint level) {
 			if(Level == level)
 				return;
-			
+
+			switch(Level) {
+				case 1u:
+					title_scroll.get_style_context().remove_class("subsubsection");
+					break;
+				case 2u:
+					title_scroll.get_style_context().remove_class("subsection");
+					break;
+				case 3u:
+					title_scroll.get_style_context().remove_class("section");
+					break;
+				case 4u:
+					title_scroll.get_style_context().remove_class("subchapter");
+					break;
+				case 5u:
+					title_scroll.get_style_context().remove_class("chapter");
+					break;
+				case 6u:
+					title_scroll.get_style_context().remove_class("title");
+					break;
+
+			}
 
 			Level = level;
 
@@ -338,21 +360,27 @@ namespace Seaborg {
 				switch (Level) {
 					case 1u:
 						title_buffer.style_scheme = sm.get_scheme("seaborg-dark-subsubsection");
+						title_scroll.get_style_context().add_class("subsubsection");
 						break;
 					case 2u:
 						title_buffer.style_scheme = sm.get_scheme("seaborg-dark-subsection");
+						title_scroll.get_style_context().add_class("subsection");
 						break;
 					case 3u:
 						title_buffer.style_scheme = sm.get_scheme("seaborg-dark-section");
+						title_scroll.get_style_context().add_class("section");
 						break;
 					case 4u:
 						title_buffer.style_scheme = sm.get_scheme("seaborg-dark-subchapter");
+						title_scroll.get_style_context().add_class("subchapter");
 						break;
 					case 5u:
 						title_buffer.style_scheme = sm.get_scheme("seaborg-dark-chapter");
+						title_scroll.get_style_context().add_class("chapter");
 						break;
 					case 6u:
 						title_buffer.style_scheme = sm.get_scheme("seaborg-dark-title");
+						title_scroll.get_style_context().add_class("title");
 						break;
 				}
 				
@@ -360,21 +388,27 @@ namespace Seaborg {
 				switch (Level) {
 					case 1u:
 						title_buffer.style_scheme = sm.get_scheme("seaborg-light-subsubsection");
+						title_scroll.get_style_context().add_class("subsubsection");
 						break;
 					case 2u:
 						title_buffer.style_scheme = sm.get_scheme("seaborg-light-subsection");
+						title_scroll.get_style_context().add_class("subsection");
 						break;
 					case 3u:
 						title_buffer.style_scheme = sm.get_scheme("seaborg-light-section");
+						title_scroll.get_style_context().add_class("section");
 						break;
 					case 4u:
 						title_buffer.style_scheme = sm.get_scheme("seaborg-light-subchapter");
+						title_scroll.get_style_context().add_class("subchapter");
 						break;
 					case 5u:
 						title_buffer.style_scheme = sm.get_scheme("seaborg-light-chapter");
+						title_scroll.get_style_context().add_class("chapter");
 						break;
 					case 6u:
 						title_buffer.style_scheme = sm.get_scheme("seaborg-light-title");
+						title_scroll.get_style_context().add_class("title");
 						break;
 				}
 			}

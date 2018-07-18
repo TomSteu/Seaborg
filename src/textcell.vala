@@ -9,13 +9,6 @@ namespace Seaborg {
 			this.name = IdGenerator.get_id();
 			parent_cell = par;
 
-			text_scroll = new Gtk.ScrolledWindow(null, null);
-			text_scroll.halign = Gtk.Align.FILL;
-			text_scroll.hexpand = true;
-			text_scroll.vscrollbar_policy = Gtk.PolicyType.NEVER;
-			text_scroll.hscrollbar_policy = Gtk.PolicyType.AUTOMATIC;
-
-
 			hexpand = true;
 			halign = Gtk.Align.FILL;
 			column_spacing = 4;
@@ -33,6 +26,14 @@ namespace Seaborg {
 
 				css = CssProvider.get_default();
 			}
+
+			text_scroll = new Gtk.ScrolledWindow(null, null);
+			text_scroll.halign = Gtk.Align.FILL;
+			text_scroll.hexpand = true;
+			text_scroll.vscrollbar_policy = Gtk.PolicyType.NEVER;
+			text_scroll.hscrollbar_policy = Gtk.PolicyType.AUTOMATIC;
+			text_scroll.get_style_context().add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
+			text_scroll.get_style_context().add_class("text-cell");
 
 			cell_buffer = new Gtk.SourceBuffer(null);
 			cell_buffer.highlight_matching_brackets = true;
@@ -59,6 +60,7 @@ namespace Seaborg {
 			cell.get_style_context().add_provider(font_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 			cell_buffer.insert_text.connect(insert_handler);
 			cell_buffer.add_selection_clipboard(Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD));
+
 
 			Gtk.SourceStyleSchemeManager sm = new Gtk.SourceStyleSchemeManager();
  			sm.search_path = new string[] {"res/sourceview/"};

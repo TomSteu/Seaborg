@@ -13,10 +13,10 @@ VALAFLAGS= --thread
 # if the file is called mathlink rather than wstp, append -D MATHLINK to CFLAGS
 
 # directory of WSTP library file
-WSTPLIBDIR=/usr/local/Wolfram/Mathematica/11.2/SystemFiles/Links/WSTP/DeveloperKit/Linux-x86-64/CompilerAdditions/
+WSTPLIBDIR=/usr/local/Wolfram/Mathematica/11.3/SystemFiles/Links/WSTP/DeveloperKit/Linux-x86-64/CompilerAdditions/
 
 # directory of wstp.h / mathlink.h file 
-WSTPINCDIR=/usr/local/Wolfram/Mathematica/11.2/SystemFiles/Links/WSTP/DeveloperKit/Linux-x86-64/CompilerAdditions/
+WSTPINCDIR=/usr/local/Wolfram/Mathematica/11.3/SystemFiles/Links/WSTP/DeveloperKit/Linux-x86-64/CompilerAdditions/
 
 # name of library file
 WSTPLIB=WSTP64i4

@@ -18,18 +18,6 @@ namespace Seaborg {
 			this.get_style_context().add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 			_lock = false;
 
-			input_scroll = new Gtk.ScrolledWindow(null, null);
-			input_scroll.halign = Gtk.Align.FILL;
-			input_scroll.hexpand = true;
-			input_scroll.vscrollbar_policy = Gtk.PolicyType.NEVER;
-			input_scroll.hscrollbar_policy = Gtk.PolicyType.AUTOMATIC;
-
-			output_scroll = new Gtk.ScrolledWindow(null, null);
-			output_scroll.halign = Gtk.Align.FILL;
-			output_scroll.hexpand = true;
-			output_scroll.vscrollbar_policy = Gtk.PolicyType.NEVER;
-			output_scroll.hscrollbar_policy = Gtk.PolicyType.AUTOMATIC;
-
 			try {
 
 				string font_string = "* { font-size: " + parent_cell->zoom_factor.to_string() + "em; }";
@@ -40,6 +28,22 @@ namespace Seaborg {
 
 				css = CssProvider.get_default();
 			}
+
+			input_scroll = new Gtk.ScrolledWindow(null, null);
+			input_scroll.halign = Gtk.Align.FILL;
+			input_scroll.hexpand = true;
+			input_scroll.vscrollbar_policy = Gtk.PolicyType.NEVER;
+			input_scroll.hscrollbar_policy = Gtk.PolicyType.AUTOMATIC;
+			input_scroll.get_style_context().add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
+			input_scroll.get_style_context().add_class("input-cell");
+
+			output_scroll = new Gtk.ScrolledWindow(null, null);
+			output_scroll.halign = Gtk.Align.FILL;
+			output_scroll.hexpand = true;
+			output_scroll.vscrollbar_policy = Gtk.PolicyType.NEVER;
+			output_scroll.hscrollbar_policy = Gtk.PolicyType.AUTOMATIC;
+			output_scroll.get_style_context().add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_USER);
+			output_scroll.get_style_context().add_class("output-cell");
 
 			Gtk.SourceLanguageManager lm = new Gtk.SourceLanguageManager();
 			Gtk.SourceStyleSchemeManager sm = new Gtk.SourceStyleSchemeManager();

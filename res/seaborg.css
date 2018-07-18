@@ -1,3 +1,29 @@
+.input-cell {}
+
+.output-cell {}
+
+.text-cell {}
+
+.title {}
+
+.chapter {
+	padding-top: .15em;
+	background-color: @theme_text_color;
+}
+
+.subchapter {}
+
+.section {
+	padding-top: .1em;
+	background-color: @theme_text_color;
+}
+
+.subsection {}
+
+.subsubsection {}
+
+
+
 .cell-grid  {
 	padding-left: 0px;
 	padding-right: 0px;
