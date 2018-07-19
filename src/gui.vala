@@ -468,7 +468,7 @@ namespace Seaborg {
 			Gtk.Button eval_button = new Gtk.Button.with_label("Add to evaluation queue");
 			eval_button.get_style_context().add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 			eval_button.get_style_context().add_class("popmenu-button");
-			eval_button.set_alignment(0.0f, 0.5f);
+			eval_button.get_child().halign = Gtk.Align.START;
 			eval_button.clicked.connect(() => { 
 				schedule_evaluation((Seaborg.Notebook)notebook_stack.get_visible_child());
 				quick_option_button.popover.popdown();
@@ -479,7 +479,7 @@ namespace Seaborg {
 			Gtk.Button uneval_button = new Gtk.Button.with_label("Remove from evaluation queue");
 			uneval_button.get_style_context().add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 			uneval_button.get_style_context().add_class("popmenu-button");
-			uneval_button.set_alignment(0.0f, 0.5f);
+			uneval_button.get_child().halign = Gtk.Align.START;
 			uneval_button.clicked.connect(() => { 
 				unschedule_evaluation((Seaborg.Notebook)notebook_stack.get_visible_child());
 				quick_option_button.popover.popdown();
@@ -490,7 +490,7 @@ namespace Seaborg {
 			Gtk.Button cancel_button = new Gtk.Button.with_label("Cancel evaluation");
 			cancel_button.get_style_context().add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 			cancel_button.get_style_context().add_class("popmenu-button");
-			cancel_button.set_alignment(0.0f, 0.5f);
+			cancel_button.get_child().halign = Gtk.Align.START;
 			cancel_button.clicked.connect(() => { 
 				try_abort(kernel_connection);
 				quick_option_button.popover.popdown();
@@ -501,7 +501,7 @@ namespace Seaborg {
 			Gtk.Button restart_button = new Gtk.Button.with_label("Restart kernel");
 			restart_button.get_style_context().add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER);
 			restart_button.get_style_context().add_class("popmenu-button");
-			restart_button.set_alignment(0.0f, 0.5f);
+			restart_button.get_child().halign = Gtk.Align.START;
 			restart_button.clicked.connect(() => { 
 				reset_kernel();
 				quick_option_button.popover.popdown();
@@ -855,7 +855,6 @@ namespace Seaborg {
 			notebook_tree.hover_selection = false;
 			notebook_tree.reorderable = false;
 			notebook_tree.rubber_banding = true;
-			notebook_tree.rules_hint = false;
 			notebook_tree.show_expanders = true;
 			notebook_tree.get_selection().mode = Gtk.SelectionMode.MULTIPLE;
 
