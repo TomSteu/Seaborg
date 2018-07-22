@@ -48,7 +48,16 @@ namespace Seaborg {
 
 			// reset background color for rendered formulas
 			Parameter.font_color = (new Gtk.SourceView()).get_style_context().get_color(Gtk.StateFlags.NORMAL);
-			
+
+			// init gui
+			build_gui();
+
+
+		}
+		
+		// initialize entire GUI 
+		public void build_gui() {
+
 			// init widgets that might be affected by setting parameters
 			main_window = new Gtk.ApplicationWindow(this);
 			main_headerbar = new Gtk.HeaderBar();
@@ -512,16 +521,21 @@ namespace Seaborg {
 
 			// buttons to quickly change the form of output
 			input_form_button = new Gtk.RadioButton.with_label_from_widget (null, "Input Form");
+			full_form_button = new Gtk.RadioButton.with_label_from_widget(input_form_button, "Full Form");
 			svg_button = new Gtk.RadioButton.with_label_from_widget (input_form_button, "SVG output");
+
 
 			// init and connect to global parameters
 			input_form_button.active = (Parameter.output == Form.INPUT);
+			full_form_button.active = (Parameter.output == Form.FULL);
 			svg_button.active = (Parameter.output == Form.RENDERED);
 			
 			input_form_button.toggled.connect(() => { Parameter.output = Form.INPUT; });
+			full_form_button.toggled.connect(() => {Parameter.output = Form.FULL; });
 			svg_button.toggled.connect(() => { Parameter.output = Form.RENDERED; });
 
 			quick_option_box.add(input_form_button);
+			quick_option_box.add(full_form_button);
 			quick_option_box.add(svg_button);
 			quick_option_box.show_all();
 
@@ -2637,6 +2651,9 @@ namespace Seaborg {
 								case "SEABORG_FORM_INPUT":
 									Parameter.output = Form.INPUT;
 									break;
+								case "SEABORG_FORM_FULL":
+									Parameter.output = Form.FULL;
+									break;
 								case "SEABORG_FORM_RENDERED":
 									Parameter.output = Form.RENDERED;
 									break;
@@ -2986,6 +3003,7 @@ namespace Seaborg {
 		private Gtk.ShortcutsWindow shortcuts;
 		private Gtk.MenuButton quick_option_button;
 		private Gtk.RadioButton input_form_button;
+		private Gtk.RadioButton full_form_button;
 		private Gtk.RadioButton svg_button;
 		private Gtk.Window preferences_window;
 		private Gtk.Entry init_entry;

@@ -140,6 +140,8 @@ namespace Seaborg {
 		switch (Parameter.output) {
 			case Form.INPUT:
 				return "ToString[InputForm[" + str + "]]";
+			case Form.FULL:
+				return "ToString[FullForm[" + str + "]]";
 			case Form.RENDERED:
 				return "Function[{x}, Block[{ arg = Evaluate[x], hash = IntegerString[Hash[ToString[InputForm[arg], CharacterEncoding->\"UTF8\"], \"SHA256\"], 16, 64] }, Export[\"tmp/\" <> hash <> \".svg\", ToString[StandardForm[Style[arg, FontColor->RGBColor["
 					+ Parameter.font_color.red.to_string() + ", " + Parameter.font_color.green.to_string() + ", " + Parameter.font_color.blue.to_string() + ", " + Parameter.font_color.alpha.to_string()
