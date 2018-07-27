@@ -5,7 +5,8 @@ namespace Seaborg {
 	public enum Form {
 		INPUT,
 		RENDERED,
-		FULL
+		FULL,
+		UNICODE
 	}
 
 	public enum Highlighting {

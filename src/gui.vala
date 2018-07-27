@@ -523,20 +523,24 @@ namespace Seaborg {
 			input_form_button = new Gtk.RadioButton.with_label_from_widget (null, "Input Form");
 			full_form_button = new Gtk.RadioButton.with_label_from_widget(input_form_button, "Full Form");
 			svg_button = new Gtk.RadioButton.with_label_from_widget (input_form_button, "SVG output");
+			unicode_button = new Gtk.RadioButton.with_label_from_widget (input_form_button, "Unicode output");
 
 
 			// init and connect to global parameters
 			input_form_button.active = (Parameter.output == Form.INPUT);
 			full_form_button.active = (Parameter.output == Form.FULL);
 			svg_button.active = (Parameter.output == Form.RENDERED);
+			unicode_button.active = (Parameter.output == Form.UNICODE);
 			
 			input_form_button.toggled.connect(() => { Parameter.output = Form.INPUT; });
-			full_form_button.toggled.connect(() => {Parameter.output = Form.FULL; });
+			full_form_button.toggled.connect(() => { Parameter.output = Form.FULL; });
 			svg_button.toggled.connect(() => { Parameter.output = Form.RENDERED; });
+			unicode_button.toggled.connect(() => { Parameter.output = Form.UNICODE; });
 
 			quick_option_box.add(input_form_button);
 			quick_option_box.add(full_form_button);
 			quick_option_box.add(svg_button);
+			quick_option_box.add(unicode_button);
 			quick_option_box.show_all();
 
 
@@ -2657,6 +2661,9 @@ namespace Seaborg {
 								case "SEABORG_FORM_RENDERED":
 									Parameter.output = Form.RENDERED;
 									break;
+								case "SEABORG_FORM_UNICODE":
+									Parameter.output = Form.UNICODE;
+									break;
 							}
 							break;
 
@@ -3005,6 +3012,7 @@ namespace Seaborg {
 		private Gtk.RadioButton input_form_button;
 		private Gtk.RadioButton full_form_button;
 		private Gtk.RadioButton svg_button;
+		private Gtk.RadioButton unicode_button;
 		private Gtk.Window preferences_window;
 		private Gtk.Entry init_entry;
 		private Gtk.Switch dark_theme_pref;

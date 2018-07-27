@@ -94,7 +94,8 @@ namespace Seaborg {
 			.replace("⋮fs⋮", "ς")
 			.replace("⋮cph⋮", "φ")
 			.replace("⋮j⋮", "φ")
-			.replace("⋮cU⋮", "ϒ");
+			.replace("⋮cU⋮", "ϒ")
+			.replace("⋮el⋮", "∈");
 
 	}
 
@@ -146,6 +147,8 @@ namespace Seaborg {
 				return "Function[{x}, Block[{ arg = Evaluate[x], hash = IntegerString[Hash[ToString[InputForm[arg], CharacterEncoding->\"UTF8\"], \"SHA256\"], 16, 64] }, Export[\"tmp/\" <> hash <> \".svg\", ToString[StandardForm[Style[arg, FontColor->RGBColor["
 					+ Parameter.font_color.red.to_string() + ", " + Parameter.font_color.green.to_string() + ", " + Parameter.font_color.blue.to_string() + ", " + Parameter.font_color.alpha.to_string()
 					+ "]]]]]; Export[\"tmp/\" <> hash <> \".txt\", arg]; ToString[InputForm[SeaborgOutput[hash]]]]][" + str + "]";
+			case Form.UNICODE:
+				return "StringReplace[ToString[InputForm[" + str + "]], { \"*\"->\" \", StringExpression[$pat1:Except[Characters[\"⁽⁾⁺⁻⁰¹²³⁴⁵⁶⁷⁸⁹\"]], \"^\", $pat2:DigitCharacter..] :> $pat1 <> StringReplace[$pat2, {\"0\"->\"⁰\", \"1\"->\"¹\", \"2\"->\"²\", \"3\"->\"³\", \"4\"->\"⁴\", \"5\"->\"⁵\", \"6\"->\"⁶\", \"7\"->\"⁷\", \"8\"->\"⁸\", \"9\"->\"⁹\"}], StringExpression[$pat1:Except[Characters[\"⁽⁾⁺⁻⁰¹²³⁴⁵⁶⁷⁸⁹\"]], \"^(-\", $pat2:DigitCharacter.., \")\"] :> $pat1 <> \"⁻\" <> StringReplace[$pat2, {\"0\"->\"⁰\", \"1\"->\"¹\", \"2\"->\"²\", \"3\"->\"³\", \"4\"->\"⁴\", \"5\"->\"⁵\", \"6\"->\"⁶\", \"7\"->\"⁷\", \"8\"->\"⁸\", \"9\"->\"⁹\"}], StringExpression[$pat1:Except[LetterCharacter]..., \"D[\"] :> $pat1 <> \"∂[\", StringExpression[$pat1:Except[LetterCharacter]..., \"Product[\"] :> $pat1 <> \"∏[\", StringExpression[$pat1:Except[LetterCharacter]..., \"Sum[\"] :> $pat1 <> \"∑[\", StringExpression[$pat1:Except[LetterCharacter]..., \"Sqrt[\"] :> $pat1 <> \"√[\", StringExpression[$pat1:Except[LetterCharacter]..., \"Infinity\", $pat2:Except[LetterCharacter]...] :> $pat1 <> \"∞\" <> $pat2, StringExpression[$pat1:Except[LetterCharacter]..., \"Integrate[\"] :> $pat1 <> \"∫[\", StringExpression[$pat1:Except[LetterCharacter]..., \"===\", $pat2:Except[LetterCharacter]...] :> $pat1 <> \"≡\" <> $pat2, StringExpression[$pat1:Except[LetterCharacter]..., \"=!=\", $pat2:Except[LetterCharacter]...] :> $pat1 <> \"≢\" <> $pat2, StringExpression[$pat1:Except[LetterCharacter]..., \"!=\", $pat2:Except[LetterCharacter]...] :> $pat1 <> \"≠\" <> $pat2, StringExpression[$pat1:Except[LetterCharacter]..., \">=\", $pat2:Except[LetterCharacter]...] :> $pat1 <> \"≥\" <> $pat2, StringExpression[$pat1:Except[LetterCharacter]..., \"<=\", $pat2:Except[LetterCharacter]...] :> $pat1 <> \"≤\" <> $pat2}]";
 		}
 
 		return "ToString[InputForm[" + str + "]]";
